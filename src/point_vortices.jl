@@ -2,27 +2,31 @@ module PointVortices
 
     using GeometricIntegrators.Equations
 
-    export point_vortices_ode, point_vortices_iode,
-           hamiltonian, angular_momentum, α1, α2, α3, α4
+    export point_vortices_ode, point_vortices_iode, point_vortices_idae,
+           point_vortices_dg, point_vortices_formal_lagrangian,
+           hamiltonian, angular_momentum, ϑ1, ϑ2, ϑ3, ϑ4
 
     const γ₁ = +0.5
     const γ₂ = +0.5
-    const q₀ = [0.5, +0.1, 0.5, -0.1]
+    const X0 = +0.5
+    const Y0 = +0.1
+    const X1 = +0.5
+    const Y1 = -0.1
 
 
-    function S{T}(x::T,y::T)
-        one(T) + x^2 + y^2
+    function S(x::T, y::T) where {T}
+        1 + x^2 + y^2
     end
 
-    function S2{T}(x::T,y::T)
-        one(T) + 2x^2 + 2y^2
+    function S2(x::T, y::T) where {T}
+        1 + 2x^2 + 2y^2
     end
 
-    function dSdx{T}(x::T,y::T)
+    function dSdx(x::T, y::T) where {T}
         2x
     end
 
-    function dSdy{T}(x::T,y::T)
+    function dSdy(x::T, y::T) where {T}
         2y
     end
 
@@ -32,34 +36,127 @@ module PointVortices
     end
 
     function angular_momentum(t,q)
-        # γ₁ * (q[1]^2 + q[2]^2) * S(q[1],q[2]) +
-        # γ₂ * (q[3]^2 + q[4]^2) * S(q[3],q[4])
-        q[1] * α2(t, q) - q[2] * α1(t, q) +
-        q[3] * α4(t, q) - q[4] * α3(t, q)
+        q[1] * ϑ2(t, q) - q[2] * ϑ1(t, q) +
+        q[3] * ϑ4(t, q) - q[4] * ϑ3(t, q)
     end
 
 
-    function α1(t, q)
+    function ϑ1(t, q)
         - γ₁ * q[2] * S(q[1], q[2]) / 2
     end
 
-    function α2(t, q)
+    function ϑ2(t, q)
         + γ₁ * q[1] * S(q[1], q[2]) / 2
     end
 
-    function α3(t, q)
+    function ϑ3(t, q)
         - γ₂ * q[4] * S(q[3], q[4]) / 2
     end
 
-    function α4(t, q)
+    function ϑ4(t, q)
         + γ₂ * q[3] * S(q[3], q[4]) / 2
     end
 
 
-    const p₀ = [α1(0, q₀),
-                α2(0, q₀),
-                α3(0, q₀),
-                α4(0, q₀)]
+    const q₀ = [X0, Y0, X1, Y1]
+    const p₀ = [ϑ1(0, q₀), ϑ2(0, q₀), ϑ3(0, q₀), ϑ4(0, q₀)]
+
+
+    function dϑ1d1(t, q)
+        - γ₁ * q[2] * dSdx(q[1], q[2]) / 2
+    end
+
+    function dϑ1d2(t, q)
+        - γ₁ * q[2] * dSdy(q[1], q[2]) / 2 - γ₁ * S(q[1], q[2]) / 2
+    end
+
+    function dϑ1d3(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ1d4(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ2d1(t, q)
+        + γ₁ * q[1] * dSdx(q[1], q[2]) / 2 + γ₁ * S(q[1], q[2]) / 2
+    end
+
+    function dϑ2d2(t, q)
+        + γ₁ * q[1] * dSdy(q[1], q[2]) / 2
+    end
+
+    function dϑ2d3(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ2d4(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ3d1(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ3d2(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ3d3(t, q)
+        - γ₂ * q[4] * dSdx(q[3], q[4]) / 2
+    end
+
+    function dϑ3d4(t, q)
+        - γ₂ * q[4] * dSdy(q[3], q[4]) / 2 - γ₂ * S(q[3], q[4]) / 2
+    end
+
+    function dϑ4d1(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ4d2(t, q)
+        zero(eltype(q))
+    end
+
+    function dϑ4d3(t, q)
+        + γ₂ * q[3] * dSdx(q[3], q[4]) / 2 + γ₂ * S(q[3], q[4]) / 2
+    end
+
+    function dϑ4d4(t, q)
+        + γ₂ * q[3] * dSdy(q[3], q[4]) / 2
+    end
+
+
+    function ϑ(t, q, p)
+        p[1] = ϑ1(t, q)
+        p[2] = ϑ2(t, q)
+        p[3] = ϑ3(t, q)
+        p[4] = ϑ4(t, q)
+    end
+
+    function ω(t, q, Ω)
+        Ω[1,1] = 0
+        Ω[1,2] = dϑ1d2(t,q) - dϑ2d1(t,q)
+        Ω[1,3] = dϑ1d3(t,q) - dϑ3d1(t,q)
+        Ω[1,4] = dϑ1d4(t,q) - dϑ4d1(t,q)
+
+        Ω[2,1] = dϑ2d1(t,q) - dϑ1d2(t,q)
+        Ω[2,2] = 0
+        Ω[2,3] = dϑ2d3(t,q) - dϑ3d2(t,q)
+        Ω[2,4] = dϑ2d4(t,q) - dϑ4d2(t,q)
+
+        Ω[3,1] = dϑ3d1(t,q) - dϑ1d3(t,q)
+        Ω[3,2] = dϑ3d2(t,q) - dϑ2d3(t,q)
+        Ω[3,3] = 0
+        Ω[3,4] = dϑ3d4(t,q) - dϑ4d3(t,q)
+
+        Ω[4,1] = dϑ4d1(t,q) - dϑ1d4(t,q)
+        Ω[4,2] = dϑ4d2(t,q) - dϑ2d4(t,q)
+        Ω[4,3] = dϑ4d3(t,q) - dϑ3d4(t,q)
+        Ω[4,4] = 0
+
+        nothing
+    end
 
 
     function f1(t, q, v)
@@ -99,8 +196,34 @@ module PointVortices
           γ₁ * γ₂ * S(q[1],q[2]) * S(q[3],q[4]) * (q[2] - q[4]) / ( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / π
     end
 
+    function dH(t, q, dH)
+        dH[1] = dHd1(t, q)
+        dH[2] = dHd2(t, q)
+        dH[3] = dHd3(t, q)
+        dH[4] = dHd4(t, q)
+        nothing
+    end
 
-    function point_vortices_ode_v(t, q, v)
+
+    function point_vortices_p₀(q₀, t₀=0)
+        p₀ = zero(q₀)
+
+        if ndims(q₀) == 1
+            ϑ(t₀, q₀, p₀)
+        else
+            for i in 1:size(q₀,2)
+                tq = zeros(eltype(q₀), size(q₀,1))
+                tp = zeros(eltype(p₀), size(p₀,1))
+                simd_copy_xy_first!(tq, q₀, i)
+                ϑ(t₀, tq, tp)
+                simd_copy_yx_first!(tp, p₀, i)
+            end
+        end
+        p₀
+    end
+
+
+    function point_vortices_v(t, q, v)
         denominator1 = 1 / (γ₁ * S2(q[1], q[2]))
         denominator2 = 1 / (γ₂ * S2(q[3], q[4]))
 
@@ -112,20 +235,24 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_ode(q₀=q₀)
-        ODE(point_vortices_ode_v, q₀)
+    function point_vortices_v(t, q, p, v)
+        point_vortices_v(t, q, v)
     end
 
 
-    function point_vortices_iode_α(t, q, v, p)
-        p[1] = α1(t,q)
-        p[2] = α2(t,q)
-        p[3] = α3(t,q)
-        p[4] = α4(t,q)
+    function point_vortices_ϑ(t, q, p)
+        p[1] = ϑ1(t,q)
+        p[2] = ϑ2(t,q)
+        p[3] = ϑ3(t,q)
+        p[4] = ϑ4(t,q)
         nothing
     end
 
-    function point_vortices_iode_f(t, q, v, f)
+    function point_vortices_ϑ(t, q, v, p)
+        point_vortices_ϑ(t, q, p)
+    end
+
+    function point_vortices_f(t, q, v, f)
         f[1] = f1(t,q,v) - dHd1(t,q)
         f[2] = f2(t,q,v) - dHd2(t,q)
         f[3] = f3(t,q,v) - dHd3(t,q)
@@ -133,7 +260,11 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_iode_g(t, q, λ, g)
+    function point_vortices_f(t, q, v, p, f)
+        point_vortices_f(t, q, v, f)
+    end
+
+    function point_vortices_g(t, q, λ, g)
         g[1] = f1(t,q,λ)
         g[2] = f2(t,q,λ)
         g[3] = f3(t,q,λ)
@@ -141,14 +272,58 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_iode_v(t, q, p, v)
-        point_vortices_ode_v(t, q, v)
+    function point_vortices_g(t, q, p, λ, g)
+        point_vortices_g(t, q, λ, g)
     end
 
-    function point_vortices_iode(q₀=q₀, p₀=p₀)
-        IODE(point_vortices_iode_α, point_vortices_iode_f,
-             point_vortices_iode_g, point_vortices_iode_v,
+    function point_vortices_u(t, q, v, u)
+        u[1] = v[1]
+        u[2] = v[2]
+        u[3] = v[3]
+        u[4] = v[4]
+        nothing
+    end
+
+    function point_vortices_u(t, q, p, v, u)
+        point_vortices_u(t, q, v, u)
+    end
+
+    function point_vortices_ϕ(t, q, p, ϕ)
+        ϕ[1] = p[1] - ϑ1(t,q)
+        ϕ[2] = p[2] - ϑ2(t,q)
+        ϕ[3] = p[3] - ϑ3(t,q)
+        ϕ[4] = p[4] - ϑ4(t,q)
+        nothing
+    end
+
+
+    function point_vortices_ode(q₀=q₀)
+        ODE(point_vortices_v, q₀)
+    end
+
+    function point_vortices_iode(q₀=q₀, p₀=point_vortices_p₀(q₀))
+        IODE(point_vortices_ϑ, point_vortices_f,
+             point_vortices_g, point_vortices_v,
              q₀, p₀)
+    end
+
+    function point_vortices_idae(q₀=q₀, p₀=point_vortices_p₀(q₀), λ₀=zero(q₀))
+        IDAE(point_vortices_f, point_vortices_ϑ,
+             point_vortices_u, point_vortices_g,
+             point_vortices_ϕ, point_vortices_v,
+             q₀, p₀, λ₀)
+    end
+
+    function point_vortices_dg(q₀=q₀)
+        IODE(point_vortices_ϑ, point_vortices_f,
+             point_vortices_g, point_vortices_v,
+             q₀, q₀)
+    end
+
+    function point_vortices_formal_lagrangian(q₀=q₀)
+        p₀ = point_vortices_p₀(q₀)
+        VODE(ϑ, point_vortices_f, point_vortices_g, point_vortices_v,
+             ω, dH, q₀, p₀)
     end
 
 end
