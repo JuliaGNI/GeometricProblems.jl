@@ -1,10 +1,12 @@
 module PointVortices
 
     using GeometricIntegrators.Equations
+    using GeometricIntegrators.Solutions
 
     export point_vortices_ode, point_vortices_iode, point_vortices_idae,
            point_vortices_dg, point_vortices_formal_lagrangian,
            hamiltonian, angular_momentum, ϑ1, ϑ2, ϑ3, ϑ4
+    export compute_energy_error, compute_angular_momentum_error
 
     const γ₁ = +0.5
     const γ₂ = +0.5
@@ -207,13 +209,13 @@ module PointVortices
 
     function point_vortices_p₀(q₀, t₀=0)
         p₀ = zero(q₀)
+        tq = zeros(eltype(q₀), size(q₀,1))
+        tp = zeros(eltype(p₀), size(p₀,1))
 
         if ndims(q₀) == 1
             ϑ(t₀, q₀, p₀)
         else
             for i in 1:size(q₀,2)
-                tq = zeros(eltype(q₀), size(q₀,1))
-                tp = zeros(eltype(p₀), size(p₀,1))
                 simd_copy_xy_first!(tq, q₀, i)
                 ϑ(t₀, tq, tp)
                 simd_copy_yx_first!(tp, p₀, i)
@@ -325,5 +327,31 @@ module PointVortices
         VODE(ϑ, point_vortices_f, point_vortices_g, point_vortices_v,
              ω, dH, q₀, p₀)
     end
+
+
+    function compute_energy_error(t, q::DataSeries{T}) where {T}
+        h = SDataSeries(T, q.nt)
+        e = SDataSeries(T, q.nt)
+
+        for i in axes(q,2)
+            h[i] = hamiltonian(t[i], q[:,i])
+            e[i] = (h[i] - h[0]) / h[0]
+        end
+
+        (h, e)
+    end
+
+    function compute_angular_momentum_error(t, q::DataSeries{T}) where {T}
+        m = SDataSeries(T, q.nt)
+        e = SDataSeries(T, q.nt)
+
+        for i in axes(q,2)
+            m[i] = angular_momentum(t[i], q[:,i])
+            e[i] = (m[i] - m[0]) / m[0]
+        end
+
+        (m, e)
+    end
+
 
 end
