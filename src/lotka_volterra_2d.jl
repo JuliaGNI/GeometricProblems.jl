@@ -2,24 +2,30 @@
 module LotkaVolterra2d
 
     using GeometricIntegrators.Equations
+    using GeometricIntegrators.Solutions
 
+    export set_parameters
     export lotka_volterra_2d_ode, lotka_volterra_2d_iode, lotka_volterra_2d_idae,
            lotka_volterra_2d_dg
     export compute_energy_error, compute_momentum_error
 
 
-    const A1=1.0
-    const A2=1.0
-    const B1=1.0
-    const B2=2.0
-
-    # const A1=1.0
-    # const A2=3.0
-    # const B1=1.0
-    # const B2=5.0
-
     const X0=1.0
     const Y0=1.0
+
+
+    A1=1.0
+    A2=1.0
+    B1=1.0
+    B2=2.0
+
+    function set_parameters(a1, a2, b1, b2)
+        A1=a1
+        A2=a2
+        B1=b1
+        B2=b2
+        nothing
+    end
 
 
     function ϑ₁(t, q)
@@ -265,12 +271,16 @@ module LotkaVolterra2d
     end
 
 
-    function compute_energy_error(t, q)
-        h = zeros(q.nt+1)
-        for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i])
+    function compute_energy_error(t, q::DataSeries{T}) where {T}
+        h = SDataSeries(T, q.nt)
+        e = SDataSeries(T, q.nt)
+
+        for i in axes(q,2)
+            h[i] = hamiltonian(t[i], q[:,i])
+            e[i] = (h[i] - h[0]) / h[0]
         end
-        h_error = (h .- h[1]) ./ h[1]
+
+        (h, e)
     end
 
     function compute_momentum_error(t, q, p)
