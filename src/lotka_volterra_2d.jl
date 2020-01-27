@@ -1,4 +1,3 @@
-
 module LotkaVolterra2d
 
     using GeometricIntegrators.Equations
@@ -7,12 +6,13 @@ module LotkaVolterra2d
     export set_parameters
     export lotka_volterra_2d_ode, lotka_volterra_2d_iode, lotka_volterra_2d_idae,
            lotka_volterra_2d_dg
+
+    export hamiltonian
     export compute_energy_error, compute_momentum_error
 
 
     const X0=1.0
     const Y0=1.0
-
 
     A1=1.0
     A2=1.0
@@ -243,21 +243,21 @@ module LotkaVolterra2d
 
 
     function lotka_volterra_2d_ode(q₀=q₀)
-        ODE(lotka_volterra_2d_v, q₀)
+        ODE(lotka_volterra_2d_v, q₀; h=hamiltonian)
     end
 
 
     function lotka_volterra_2d_iode(q₀=q₀, p₀=p₀)
         IODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-             lotka_volterra_2d_g, lotka_volterra_2d_v,
-             q₀, p₀)
+             lotka_volterra_2d_g, q₀, p₀;
+             h=hamiltonian, v=lotka_volterra_2d_v)
     end
 
     function lotka_volterra_2d_idae(q₀=q₀, p₀=p₀, λ₀=zero(q₀))
-        IDAE(lotka_volterra_2d_f, lotka_volterra_2d_ϑ,
+        IDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
              lotka_volterra_2d_u, lotka_volterra_2d_g,
-             lotka_volterra_2d_ϕ, lotka_volterra_2d_v,
-             q₀, p₀, λ₀)
+             lotka_volterra_2d_ϕ, q₀, p₀, λ₀;
+             v=lotka_volterra_2d_v)
     end
 
     function lotka_volterra_2d_dg(q₀=q₀; κ=0)
@@ -266,8 +266,8 @@ module LotkaVolterra2d
         lotka_volterra_2d_g_κ(t, q, λ, g) = lotka_volterra_2d_g(κ, t, q, λ, g)
 
         IODE(lotka_volterra_2d_ϑ_κ, lotka_volterra_2d_f_κ,
-             lotka_volterra_2d_g_κ, lotka_volterra_2d_v,
-             q₀, q₀)
+             lotka_volterra_2d_g_κ, q₀, p₀;
+             v=lotka_volterra_2d_v)
     end
 
 

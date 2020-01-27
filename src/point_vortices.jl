@@ -305,21 +305,21 @@ module PointVortices
 
     function point_vortices_iode(q₀=q₀, p₀=point_vortices_p₀(q₀))
         IODE(point_vortices_ϑ, point_vortices_f,
-             point_vortices_g, point_vortices_v,
-             q₀, p₀)
+             point_vortices_g, q₀, p₀;
+             v=point_vortices_v)
     end
 
     function point_vortices_idae(q₀=q₀, p₀=point_vortices_p₀(q₀), λ₀=zero(q₀))
-        IDAE(point_vortices_f, point_vortices_ϑ,
+        IDAE(point_vortices_ϑ, point_vortices_f,
              point_vortices_u, point_vortices_g,
-             point_vortices_ϕ, point_vortices_v,
-             q₀, p₀, λ₀)
+             point_vortices_ϕ, q₀, p₀, λ₀;
+             v=point_vortices_v)
     end
 
     function point_vortices_dg(q₀=q₀)
         IODE(point_vortices_ϑ, point_vortices_f,
-             point_vortices_g, point_vortices_v,
-             q₀, q₀)
+             point_vortices_g, q₀, q₀;
+             v=point_vortices_v)
     end
 
     function point_vortices_formal_lagrangian(q₀=q₀)
