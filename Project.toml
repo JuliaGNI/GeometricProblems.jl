@@ -7,9 +7,11 @@ version = "0.0.1"
 GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
 IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 
 [extras]
+SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test"]
+test = ["SafeTestsets", "Test"]
