@@ -1,4 +1,3 @@
-
 module LorenzAttractor
 
     using GeometricIntegrators.Equations
@@ -7,12 +6,15 @@ module LorenzAttractor
 
     export lorenz_attractor_ode, plot_lorenz_attractor
 
-    x, y, z = 1., 1., 1.
-    σ, ρ, β = 10., 28., 8/3
 
-    const q₀ = [x, y, z]
+    Δt = 0.01
+    nt = 1000
 
-    function lorenz_attractor_v(t, x, v)
+    const q₀ = [1., 1., 1.]
+    const default_params = (10., 28., 8/3)
+
+    function lorenz_attractor_v(t, x, v, params=default_params)
+        σ, ρ, β = params
         v[1] = σ * (x[2] - x[1])
         v[2] = x[1] * (ρ - x[3]) - x[2]
         v[3] = x[1] * x[2] - β * x[3]
