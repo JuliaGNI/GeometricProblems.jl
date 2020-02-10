@@ -2,6 +2,8 @@ __precompile__()
 
 module GeometricProblems
 
+    export Diagnostics
+    
     export ExponentialGrowth
     export HarmonicOscillator
     export LorenzAttractor
@@ -11,6 +13,7 @@ module GeometricProblems
     export Pendulum
     export PointVortices
 
+    include("diagnostics.jl")
 
     include("exponential_growth.jl")
     include("harmonic_oscillator.jl")
