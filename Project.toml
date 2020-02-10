@@ -4,6 +4,7 @@ authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
 version = "0.1.0"
 
 [deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
 IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
 ORCA = "47be7bcc-f1a6-5447-8b36-7eeeff7534fd"
@@ -14,6 +15,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 
 [compat]
+Documenter = "0.24"
 GeometricIntegrators = "0.2"
 IJulia = "^1.2"
 ORCA = "^0.3"
