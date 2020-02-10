@@ -21,7 +21,10 @@ jobs:
     - stage: "Documentation"
       julia: 1.1
       os: linux
-      script: bash ./docs/travis.sh
+      script:
+        - julia --color=yes --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
+                                               Pkg.instantiate()'
+        - julia --color=yes --project=docs/ docs/make.jl
       after_success: skip
 
 notifications:
