@@ -1,17 +1,22 @@
 module LotkaVolterra2d
 
+    using GeometricIntegrators.Solutions
     using Plots: @layout
     using RecipesBase
     using Reexport
 
-    @reexport using ..Diagnostics
     @reexport using GeometricIntegrators.TestProblems.LotkaVolterra2dProblem
 
+    import ..Diagnostics: compute_energy_error, compute_momentum_error
     import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
     export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
     export compute_energy_error, compute_momentum_error
     export f
+
+
+    compute_energy_error(t,q) = compute_energy_error(t,q,hamiltonian)
+    compute_momentum_error(t,q) = compute_momentum_error(t,q,ϑ)
 
 
     function ϑ(t::Number, q::Vector, k::Int)
