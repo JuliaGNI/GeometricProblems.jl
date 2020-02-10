@@ -14,16 +14,16 @@ julia:
 jobs:
   allow_failures:
     - julia: nightly
-  fast_finish: true
+    - stage: "Documentation"
   include:
     - stage: "Documentation"
       julia: 1.1
       os: linux
       script:
-        - julia --color=yes --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
-                                               Pkg.instantiate()'
-        - julia --color=yes --project=docs/ docs/make.jl
+        - julia --color=yes --project=. -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        - julia --color=yes --project=. docs/make.jl
       after_success: skip
+  fast_finish: true
 
 notifications:
   email: false
