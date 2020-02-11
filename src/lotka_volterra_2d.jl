@@ -1,13 +1,16 @@
 module LotkaVolterra2d
 
-    using GeometricIntegrators.Solutions
+    using Plots
+    using Plots.PlotMeasures
     using Plots: @layout
     using RecipesBase
     using Reexport
 
+    using GeometricIntegrators.Solutions
+
     @reexport using GeometricIntegrators.TestProblems.LotkaVolterra2dProblem
 
-    import ..Diagnostics: compute_energy_error, compute_momentum_error
+    import ..Diagnostics: compute_energy_error, compute_momentum_error, energy_ticks
     import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
     export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
@@ -16,10 +19,10 @@ module LotkaVolterra2d
 
 
     compute_energy_error(t,q) = compute_energy_error(t,q,hamiltonian)
-    compute_momentum_error(t,q) = compute_momentum_error(t,q,ϑ)
+    compute_momentum_error(t,q,p) = compute_momentum_error(t,q,p,ϑ)
 
 
-    function ϑ(t::Number, q::Vector, k::Int)
+    function ϑ(t::Number, q::AbstractVector, k::Int)
         if k == 1
             ϑ₁(t, q)
         elseif k == 2
@@ -46,18 +49,45 @@ module LotkaVolterra2d
         layout := @layout [solPlot{0.4w,1.0h} EPlot]
 
         @series begin
+            subplot := 1
+            # seriestype := :scatter
             xlabel := "x₁"
             ylabel := "x₂"
             aspectratio := 1
-            subplot := 1
             sol.q[1,:], sol.q[2,:]
         end
 
         @series begin
+            subplot := 2
             xlabel := "t"
             ylabel := "[H(t) - H(0)] / H(0)"
-            subplot := 2
+            yticks := energy_ticks(ΔH)
+            xlims  := (sol.t[0], Inf)
+            yformatter := :scientific
+            # widen := false
+            right_margin := 10mm
             sol.t, ΔH
+        end
+    end
+
+
+    @userplot PlotLotkaVolterra2dSolution
+    @recipe function f(p::PlotLotkaVolterra2dSolution)
+        if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
+            error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
+        end
+        sol = p.args[1]
+
+        legend := :none
+        size := (400,400)
+
+        # solution
+        @series begin
+            # seriestype := :scatter
+            xlabel := "x₁"
+            ylabel := "x₂"
+            aspectratio := 1
+            sol.q[1,:], sol.q[2,:]
         end
     end
 
@@ -83,17 +113,24 @@ module LotkaVolterra2d
 
         for i in 1:2
             @series begin
+                subplot := i
                 # xlabel := "t"
                 ylabel := ylabels[i]
-                subplot := i
+                xlims  := (sol.t[0], Inf)
+                right_margin := 10mm
                 sol.t, sol.q[i,:]
             end
         end
 
         @series begin
+            subplot := 3
             xlabel := "t"
             ylabel := "[H(t) - H(0)] / H(0)"
-            subplot := 3
+            yticks := energy_ticks(ΔH)
+            xlims  := (sol.t[0], Inf)
+            yformatter := :scientific
+            # widen := false
+            right_margin := 10mm
             sol.t, ΔH
         end
     end
