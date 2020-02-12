@@ -10,7 +10,7 @@ module LotkaVolterra2d
 
     @reexport using GeometricIntegrators.TestProblems.LotkaVolterra2dProblem
 
-    import ..Diagnostics: compute_energy_error, compute_momentum_error, energy_ticks
+    import ..Diagnostics: compute_energy_error, compute_momentum_error
     import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
     export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
@@ -54,6 +54,8 @@ module LotkaVolterra2d
             xlabel := "x₁"
             ylabel := "x₂"
             aspectratio := 1
+            guidefont := font(18)
+            tickfont := font(12)
             sol.q[1,:], sol.q[2,:]
         end
 
@@ -61,10 +63,10 @@ module LotkaVolterra2d
             subplot := 2
             xlabel := "t"
             ylabel := "[H(t) - H(0)] / H(0)"
-            yticks := energy_ticks(ΔH)
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
-            # widen := false
+            guidefont := font(18)
+            tickfont := font(12)
             right_margin := 10mm
             sol.t, ΔH
         end
@@ -87,6 +89,8 @@ module LotkaVolterra2d
             xlabel := "x₁"
             ylabel := "x₂"
             aspectratio := 1
+            guidefont := font(18)
+            tickfont := font(12)
             sol.q[1,:], sol.q[2,:]
         end
     end
@@ -114,9 +118,11 @@ module LotkaVolterra2d
         for i in 1:2
             @series begin
                 subplot := i
-                # xlabel := "t"
                 ylabel := ylabels[i]
                 xlims  := (sol.t[0], Inf)
+                xaxis := false
+                guidefont := font(18)
+                tickfont := font(12)
                 right_margin := 10mm
                 sol.t, sol.q[i,:]
             end
@@ -126,10 +132,10 @@ module LotkaVolterra2d
             subplot := 3
             xlabel := "t"
             ylabel := "[H(t) - H(0)] / H(0)"
-            yticks := energy_ticks(ΔH)
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
-            # widen := false
+            guidefont := font(18)
+            tickfont := font(12)
             right_margin := 10mm
             sol.t, ΔH
         end

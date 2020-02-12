@@ -70,24 +70,6 @@ module Diagnostics
     end
 
 
-    function energy_ticks(ΔH)
-        ticks = optimize_ticks(extrema(ΔH)...; k_min=4)[1]
-        # labels = Showoff.showoff(ticks, :scientific)
-        labels = format_fixed_scientific.(ticks, 2, false)
-
-        # if backend_name() == :gr
-        #     # for GR
-        #     yticks = (ticks, convert_sci_unicode.(labels))
-        # else
-        #     # for most backends
-        #     yticks = (ticks, labels)
-        # end
-        # yticks
-
-        (ticks, labels)
-    end
-
-
     @userplot PlotEnergyError
     @recipe function f(p::PlotEnergyError)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
@@ -108,11 +90,11 @@ module Diagnostics
         @series begin
             xlabel := "t"
             ylabel := "[H(t) - H(0)] / H(0)"
-            yticks := energy_ticks(ΔH)
-            right_margin := 10mm
             xlims  := (t[0], Inf)
             yformatter := :scientific
-            # widen := false
+            guidefont := font(18)
+            tickfont := font(12)
+            right_margin := 10mm
             t, ΔH
         end
     end
@@ -134,12 +116,12 @@ module Diagnostics
         @series begin
             xlabel := "t"
             ylabel := "ΔH Drift"
-            # yticks := energy_ticks(ΔH)
-            right_margin := 10mm
             xlims  := (t[0], Inf)
             yformatter := :scientific
-            # widen := false
-            t, d
+            guidefont := font(18)
+            tickfont := font(12)
+            right_margin := 10mm
+            t[1:end], d[1:end]
         end
     end
 
@@ -169,9 +151,14 @@ module Diagnostics
                 subplot := i
                 if i == Δp.nd
                     xlabel := "t"
+                else
+                    xaxis := false
                 end
                 ylabel := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
                 xlims  := (t[0], Inf)
+                yformatter := :scientific
+                guidefont := font(18)
+                tickfont := font(12)
                 right_margin := 10mm
                 t, Δp[i,:]
             end
@@ -204,9 +191,13 @@ module Diagnostics
                 subplot := i
                 if i == λ.nd
                     xlabel := "t"
+                else
+                    xaxis := false
                 end
                 ylabel := "λ" * subscript(i) * "(t)"
                 xlims  := (t[0], Inf)
+                guidefont := font(18)
+                tickfont := font(12)
                 right_margin := 10mm
                 t, λ[i,:]
             end
