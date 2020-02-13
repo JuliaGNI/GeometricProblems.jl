@@ -2,9 +2,6 @@ module Diagnostics
 
     using Plots
     using Plots.PlotMeasures
-    # using Plots: convert_sci_unicode
-    using Showoff
-    using Showoff: format_fixed_scientific
     using LaTeXStrings
     using RecipesBase
 
