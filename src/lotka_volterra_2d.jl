@@ -4,6 +4,7 @@ module LotkaVolterra2d
     using Plots.PlotMeasures
     using Plots: @layout
     using RecipesBase
+    using LaTeXStrings
     using Reexport
 
     using GeometricIntegrators.Solutions
@@ -51,8 +52,8 @@ module LotkaVolterra2d
         @series begin
             subplot := 1
             # seriestype := :scatter
-            xlabel := "x₁"
-            ylabel := "x₂"
+            xlabel := L"x_1"
+            ylabel := L"x_2"
             aspectratio := 1
             guidefont := font(18)
             tickfont := font(12)
@@ -61,8 +62,8 @@ module LotkaVolterra2d
 
         @series begin
             subplot := 2
-            xlabel := "t"
-            ylabel := "[H(t) - H(0)] / H(0)"
+            xlabel := L"t"
+            ylabel := L"[H(t) - H(0)] / H(0)"
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)
@@ -86,8 +87,8 @@ module LotkaVolterra2d
         # solution
         @series begin
             # seriestype := :scatter
-            xlabel := "x₁"
-            ylabel := "x₂"
+            xlabel := L"x_1"
+            ylabel := L"x_2"
             aspectratio := 1
             guidefont := font(18)
             tickfont := font(12)
@@ -113,7 +114,7 @@ module LotkaVolterra2d
                            x₂Plot
                            EPlot]
 
-        ylabels = ("x₁", "x₂")
+        ylabels = (L"x_1", L"x_2")
 
         for i in 1:2
             @series begin
@@ -130,8 +131,8 @@ module LotkaVolterra2d
 
         @series begin
             subplot := 3
-            xlabel := "t"
-            ylabel := "[H(t) - H(0)] / H(0)"
+            xlabel := L"t"
+            ylabel := L"[H(t) - H(0)] / H(0)"
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)

@@ -5,6 +5,7 @@ module Diagnostics
     # using Plots: convert_sci_unicode
     using Showoff
     using Showoff: format_fixed_scientific
+    using LaTeXStrings
     using RecipesBase
 
     using GeometricIntegrators.Solutions
@@ -88,8 +89,8 @@ module Diagnostics
         size := (800,400)
 
         @series begin
-            xlabel := "t"
-            ylabel := "[H(t) - H(0)] / H(0)"
+            xlabel := L"t"
+            ylabel := L"[H(t) - H(0)] / H(0)"
             xlims  := (t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)
@@ -114,8 +115,8 @@ module Diagnostics
         size := (800,400)
 
         @series begin
-            xlabel := "t"
-            ylabel := "ΔH Drift"
+            xlabel := L"t"
+            ylabel := L"\Delta H"
             xlims  := (t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)
@@ -150,11 +151,11 @@ module Diagnostics
             @series begin
                 subplot := i
                 if i == Δp.nd
-                    xlabel := "t"
+                    xlabel := L"t"
                 else
                     xaxis := false
                 end
-                ylabel := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
+                ylabel := latexstring("p_$i (t) - \\vartheta_$i (t)")
                 xlims  := (t[0], Inf)
                 yformatter := :scientific
                 guidefont := font(18)
@@ -190,11 +191,11 @@ module Diagnostics
             @series begin
                 subplot := i
                 if i == λ.nd
-                    xlabel := "t"
+                    xlabel := L"t"
                 else
                     xaxis := false
                 end
-                ylabel := "λ" * subscript(i) * "(t)"
+                ylabel := latexstring("\\lambda_$i (t)")
                 xlims  := (t[0], Inf)
                 guidefont := font(18)
                 tickfont := font(12)
