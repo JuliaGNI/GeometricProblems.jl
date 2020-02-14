@@ -7,7 +7,7 @@ module Diagnostics
 
     using GeometricIntegrators.Solutions
 
-    export compute_energy_error, compute_momentum_error, compute_error_drift
+    export compute_one_form, compute_invariant, compute_energy_error, compute_momentum_error, compute_error_drift
 
 
     subscript(i::Integer) = i<0 ? error("$i is negative") : join('₀'+d for d in reverse(digits(i)))
@@ -23,6 +23,15 @@ module Diagnostics
         end
 
         return e
+    end
+
+    function compute_invariant(t::TimeSeries, q::DataSeries{T}, invariant::Function) where {T}
+        invds = SDataSeries(T, 2, q.nt)
+        for i in 0:q.nt
+            invds[1,i] = invariant(t[i], q[:,i])
+            invds[2,i] = (invds[1,i] - invds[1,0]) / invds[1,0]
+        end
+        return invds
     end
 
     function compute_energy_error(t::TimeSeries, q::DataSeries{T}, energy::Function) where {T}
@@ -47,6 +56,24 @@ module Diagnostics
         end
 
         return e
+    end
+
+    function compute_momentum_error(p::DataSeries{DT}, ϑ::DataSeries{DT}) where {DT}
+        @assert p.nd == ϑ.nd
+        @assert p.nt == ϑ.nt
+        @assert p.ni == ϑ.ni
+
+        err = SDataSeries(DT, p.nd, p.nt, p.ni)
+
+        for k in 1:p.ni
+            for j in 0:p.nt
+                for i in 1:p.nd
+                    err[i,j,k] = p[i,j,k] - ϑ[i,j,k]
+                end
+            end
+        end
+
+        return err
     end
 
     function compute_error_drift(t::TimeSeries, e::DataSeries{T,1}, lint=100) where {T}
