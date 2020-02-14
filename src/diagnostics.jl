@@ -29,12 +29,33 @@ module Diagnostics
         return invds
     end
 
+    function compute_invariant(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Function) where {T}
+        invds = SDataSeries(T, 2, q.nt)
+        for i in axes(q,2)
+            invds[1,i] = invariant(t[i], q[:,i], p[:,i])
+            invds[2,i] = (invds[1,i] - invds[1,0]) / invds[1,0]
+        end
+        return invds
+    end
+
     function compute_energy_error(t::TimeSeries, q::DataSeries{T}, energy::Function) where {T}
         h = SDataSeries(T, q.nt)
         e = SDataSeries(T, q.nt)
 
         for i in axes(q,2)
             h[i] = energy(t[i], q[:,i])
+            e[i] = (h[i] - h[0]) / h[0]
+        end
+
+        (h, e)
+    end
+
+    function compute_energy_error(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, energy::Function) where {T}
+        h = SDataSeries(T, q.nt)
+        e = SDataSeries(T, q.nt)
+
+        for i in axes(q,2)
+            h[i] = energy(t[i], q[:,i], p[:,i])
             e[i] = (h[i] - h[0]) / h[0]
         end
 
