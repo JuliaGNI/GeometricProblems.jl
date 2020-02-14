@@ -17,12 +17,12 @@ module Diagnostics
             end
         end
 
-        return e
+        return p
     end
 
     function compute_invariant(t::TimeSeries, q::DataSeries{T}, invariant::Function) where {T}
         invds = SDataSeries(T, 2, q.nt)
-        for i in 0:q.nt
+        for i in axes(q,2)
             invds[1,i] = invariant(t[i], q[:,i])
             invds[2,i] = (invds[1,i] - invds[1,0]) / invds[1,0]
         end
