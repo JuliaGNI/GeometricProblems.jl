@@ -14,7 +14,7 @@ module Plots
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
-            H, ΔH = compute_energy_error(sol.t, sol.q, energy)
+            H, ΔH = compute_invariant_error(sol.t, sol.q, energy)
         elseif length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
             t  = p.args[1]
             ΔH = p.args[2]

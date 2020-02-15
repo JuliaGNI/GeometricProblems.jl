@@ -11,7 +11,7 @@ module LotkaVolterra2d
 
     @reexport using GeometricIntegrators.TestProblems.LotkaVolterra2dProblem
 
-    import ..Diagnostics: compute_energy_error, compute_momentum_error
+    import ..Diagnostics: compute_invariant_error, compute_momentum_error
     import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
     export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
@@ -19,7 +19,7 @@ module LotkaVolterra2d
     export f
 
 
-    compute_energy_error(t,q) = compute_energy_error(t,q,hamiltonian)
+    compute_energy_error(t,q) = compute_invariant_error(t,q,hamiltonian)
     compute_momentum_error(t,q,p) = compute_momentum_error(t,q,p,ϑ)
 
 
