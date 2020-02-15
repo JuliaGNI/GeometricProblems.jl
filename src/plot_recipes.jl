@@ -1,4 +1,4 @@
-module Plots
+module PlotRecipes
 
     using Plots
     using Plots.PlotMeasures

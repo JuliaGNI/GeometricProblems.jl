@@ -13,7 +13,7 @@ module GeometricProblems
     export PointVortices
 
     include("diagnostics.jl")
-    include("plots.jl")
+    include("plot_recipes.jl")
 
     include("exponential_growth.jl")
     include("harmonic_oscillator.jl")
