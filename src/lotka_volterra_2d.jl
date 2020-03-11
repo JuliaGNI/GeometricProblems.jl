@@ -2,7 +2,6 @@ module LotkaVolterra2d
 
     using Plots
     using Plots.PlotMeasures
-    using Plots: @layout
     using RecipesBase
     using LaTeXStrings
     using Reexport
@@ -35,51 +34,81 @@ module LotkaVolterra2d
 
 
     @userplot PlotLotkaVolterra2d
-    @recipe function f(p::PlotLotkaVolterra2d)
+    @recipe function f(p::PlotLotkaVolterra2d; nplot=1, xlims=:auto, ylims=:auto, latex=true)
         if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
             error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
 
-        legend := :none
-        size := (800,400)
-
         H, ΔH = compute_energy_error(sol.t, sol.q);
 
-        # solution
-        layout := @layout [solPlot{0.4w,1.0h} EPlot]
+        size   := (1000,400)
+        layout := @layout [solPlot{0.3w,1.0h} EPlot]
+        legend := :none
+
+        guidefont := font(18)
+        tickfont  := font(12)
 
         @series begin
             subplot := 1
+
+            if sol.nt ≤ 200
+                markersize := 5
+            else
+                markersize  := 1
+                markercolor := 1
+                linecolor   := 1
+                markerstrokewidth := 1
+                markerstrokecolor := 1
+            end
+
             # seriestype := :scatter
-            xlabel := L"x_1"
-            ylabel := L"x_2"
+            if latex
+                xlabel := L"x_1"
+                ylabel := L"x_2"
+            else
+                xlabel := "x₁"
+                ylabel := "x₂"
+            end
+            xlims  := xlims
+            ylims  := ylims
             aspectratio := 1
-            guidefont := font(18)
-            tickfont := font(12)
-            sol.q[1,:], sol.q[2,:]
+            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
         end
 
         @series begin
             subplot := 2
-            xlabel := L"t"
-            ylabel := L"[H(t) - H(0)] / H(0)"
+            if latex
+                xlabel := L"t"
+                ylabel := L"[H(t) - H(0)] / H(0)"
+            else
+                xlabel := "t"
+                ylabel := "[H(t) - H(0)] / H(0)"
+            end
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
-            guidefont := font(18)
-            tickfont := font(12)
             right_margin := 10mm
-            sol.t, ΔH
+            sol.t[0:nplot:end], ΔH[0:nplot:end]
         end
     end
 
 
     @userplot PlotLotkaVolterra2dSolution
-    @recipe function f(p::PlotLotkaVolterra2dSolution)
+    @recipe function f(p::PlotLotkaVolterra2dSolution; nplot=1, xlims=:auto, ylims=:auto, latex=true)
         if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
             error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
+
+        if sol.nt ≤ 200
+            markersize := 5
+        else
+            markersize  := 1
+            markercolor := 1
+            linecolor   := 1
+            markerstrokewidth := 1
+            markerstrokecolor := 1
+        end
 
         legend := :none
         size := (400,400)
@@ -87,34 +116,47 @@ module LotkaVolterra2d
         # solution
         @series begin
             # seriestype := :scatter
-            xlabel := L"x_1"
-            ylabel := L"x_2"
+            if latex
+                xlabel := L"x_1"
+                ylabel := L"x_2"
+            else
+                xlabel := "x₁"
+                ylabel := "x₂"
+            end
+            xlims  := xlims
+            ylims  := ylims
             aspectratio := 1
             guidefont := font(18)
             tickfont := font(12)
-            sol.q[1,:], sol.q[2,:]
+            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
         end
     end
 
 
     @userplot PlotLotkaVolterra2dTraces
-    @recipe function f(p::PlotLotkaVolterra2dTraces)
+    @recipe function f(p::PlotLotkaVolterra2dTraces; latex=true)
         if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
             error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
 
-        legend := :none
-        size := (800,600)
-
         H, ΔH = compute_energy_error(sol.t, sol.q);
+
+        size   := (800,600)
+        legend := :none
+        guidefont := font(18)
+        tickfont  := font(12)
 
         # traces
         layout := @layout [x₁Plot
                            x₂Plot
                            EPlot]
 
-        ylabels = (L"x_1", L"x_2")
+        if latex
+            ylabels = (L"x_1", L"x_2")
+        else
+            ylabels = ("x₁", "x₂")
+        end
 
         for i in 1:2
             @series begin
@@ -122,8 +164,6 @@ module LotkaVolterra2d
                 ylabel := ylabels[i]
                 xlims  := (sol.t[0], Inf)
                 xaxis := false
-                guidefont := font(18)
-                tickfont := font(12)
                 right_margin := 10mm
                 sol.t, sol.q[i,:]
             end
@@ -131,8 +171,13 @@ module LotkaVolterra2d
 
         @series begin
             subplot := 3
-            xlabel := L"t"
-            ylabel := L"[H(t) - H(0)] / H(0)"
+            if latex
+                xlabel := L"t"
+                ylabel := L"[H(t) - H(0)] / H(0)"
+            else
+                xlabel := "t"
+                ylabel := "[H(t) - H(0)] / H(0)"
+            end
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)
