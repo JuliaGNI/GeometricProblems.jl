@@ -1,16 +1,6 @@
 module GeometricProblems
 
-    export Diagnostics
-    export Plots
 
-    export ExponentialGrowth
-    export HarmonicOscillator
-    export LorenzAttractor
-    export LotkaVolterra2d
-    export LotkaVolterra2dsingular
-    export LotkaVolterra3d
-    export Pendulum
-    export PointVortices
 
     include("diagnostics.jl")
     include("plot_recipes.jl")
