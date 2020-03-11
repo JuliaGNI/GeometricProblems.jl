@@ -5,9 +5,6 @@ module Diagnostics
     export compute_one_form, compute_invariant, compute_invariant_error, compute_momentum_error, compute_error_drift
 
 
-    subscript(i::Integer) = i<0 ? error("$i is negative") : join('₀'+d for d in reverse(digits(i)))
-
-
     function compute_one_form(t::TimeSeries, q::DataSeries, one_form::Function=ϑ)
         p = similar(q)
 
@@ -99,12 +96,13 @@ module Diagnostics
         Tdrift = TimeSeries(nint, t.Δt*lint)
         Edrift = SDataSeries(T, nint)
 
-        compute_timeseries!(Tdrift, t[0])
+        Tdrift[0] = t[0]
 
         for i in 1:nint
             i1 = lint*(i-1)+1
             i2 = lint*i
             Edrift[i] = maximum(e[i1:i2])
+            Tdrift[i] = div(t[i1] + t[i2], 2)
         end
 
         (Tdrift, Edrift)
