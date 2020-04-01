@@ -1,6 +1,7 @@
 
 using Test
 using GeometricIntegrators
+using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
 using GeometricProblems.HarmonicOscillator
 
@@ -23,15 +24,15 @@ pdae = harmonic_oscillator_pdae()
 @testset "$(rpad("Harmonic Oscillator",80))" begin
 
     int = Integrator(ode, getTableauGLRK(2), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(ode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
     int = IntegratorVPRKpMidpoint(iode, getTableauVPGLRK(2), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
     int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(2), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
 end
