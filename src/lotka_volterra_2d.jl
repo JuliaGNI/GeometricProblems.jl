@@ -11,7 +11,8 @@ module LotkaVolterra2d
     @reexport using GeometricIntegrators.TestProblems.LotkaVolterra2dProblem
 
     import ..Diagnostics: compute_invariant_error, compute_momentum_error
-    import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω
+    import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω, f₁, f₂, g₁, g₂, dHd₁, dHd₂
+    import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: p
 
     export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
     export compute_energy_error, compute_momentum_error
@@ -31,6 +32,85 @@ module LotkaVolterra2d
             nothing
         end
     end
+
+
+    function d²ϑ₁d₁d₁(t, q)
+        + 2 * log(q[2]) / q[1]^3
+    end
+
+    function d²ϑ₁d₁d₂(t, q)
+        - 1 / (q[1]^2 * q[2])
+    end
+
+    function d²ϑ₁d₂d₁(t, q)
+        - 1 / (q[1]^2 * q[2])
+    end
+
+    function d²ϑ₁d₂d₂(t, q)
+        - 1 / (q[1] * q[2]^2)
+    end
+
+    function d²ϑ₂d₁d₁(t, q)
+        zero(eltype(q))
+    end
+
+    function d²ϑ₂d₁d₂(t, q)
+        zero(eltype(q))
+    end
+
+    function d²ϑ₂d₂d₁(t, q)
+        zero(eltype(q))
+    end
+
+    function d²ϑ₂d₂d₂(t, q)
+        zero(eltype(q))
+    end
+
+
+    function g̅₁(t, q, v)
+        d²ϑ₁d₁d₁(t,q) * q[1] * v[1] + d²ϑ₁d₂d₁(t,q) * q[1] * v[2] + d²ϑ₂d₁d₁(t,q) * q[2] * v[1] + d²ϑ₂d₂d₁(t,q) * q[2] * v[2]
+    end
+
+    function g̅₂(t, q, v)
+        d²ϑ₁d₁d₂(t,q) * q[1] * v[1] + d²ϑ₁d₂d₂(t,q) * q[1] * v[2] + d²ϑ₂d₁d₂(t,q) * q[2] * v[1] + d²ϑ₂d₂d₂(t,q) * q[2] * v[2]
+    end
+
+
+    function lotka_volterra_2d_ϑ(κ, t, q, v, Θ, params)
+        Θ[1] = (1-κ) * ϑ₁(t,q) - κ * f₁(t,q,q)
+        Θ[2] = (1-κ) * ϑ₂(t,q) - κ * f₂(t,q,q)
+        nothing
+    end
+
+    function lotka_volterra_2d_f(κ::Real, t::Real, q::Vector, v::Vector, f::Vector, params)
+        f[1] = (1-κ) * f₁(t,q,v) - κ * (g₁(t,q,v) + g̅₁(t,q,v)) - dHd₁(t, q, params)
+        f[2] = (1-κ) * f₂(t,q,v) - κ * (g₂(t,q,v) + g̅₂(t,q,v)) - dHd₂(t, q, params)
+        nothing
+    end
+
+    function lotka_volterra_2d_g(κ::Real, t::Real, q::Vector, v::Vector, g::Vector, params)
+        g[1] = (1-κ) * f₁(t,q,v) - κ * (g₁(t,q,v) + g̅₁(t,q,v))
+        g[2] = (1-κ) * f₂(t,q,v) - κ * (g₂(t,q,v) + g̅₂(t,q,v))
+        nothing
+    end
+
+    # function lotka_volterra_2d_g(κ::Real, t::Real, q::Vector, v::Vector, g::Vector)
+    #     g[1] = (1-κ) * g₁(t,q,v) - κ * g̅₁(t,q,v) - κ * f₁(t,q,v)
+    #     g[2] = (1-κ) * g₂(t,q,v) - κ * g̅₂(t,q,v) - κ * f₂(t,q,v)
+    #     nothing
+    # end
+
+
+    function lotka_volterra_2d_dg(q₀=q₀, params=p, κ=0)
+        lotka_volterra_2d_ϑ_κ(t, q, v, p, params) = lotka_volterra_2d_ϑ(κ, t, q, v, p, params)
+        lotka_volterra_2d_f_κ(t, q, v, f, params) = lotka_volterra_2d_f(κ, t, q, v, f, params)
+        lotka_volterra_2d_g_κ(t, q, λ, g, params) = lotka_volterra_2d_g(κ, t, q, λ, g, params)
+
+        IODE(lotka_volterra_2d_ϑ_κ, lotka_volterra_2d_f_κ,
+             lotka_volterra_2d_g_κ, q₀, p₀;
+             parameters=params, v=lotka_volterra_2d_v)
+    end
+
 
 
     @userplot PlotLotkaVolterra2d
