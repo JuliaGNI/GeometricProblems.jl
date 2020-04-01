@@ -13,15 +13,6 @@ julia:
 jobs:
   allow_failures:
     - julia: nightly
-    - stage: "Documentation"
-  include:
-    - stage: "Documentation"
-      julia: 1.1
-      os: linux
-      script:
-        - julia --color=yes --project=. -e 'using Pkg; Pkg.instantiate()'
-        - julia --color=yes --project=. docs/make.jl
-      after_success: skip
   fast_finish: true
 
 notifications:
