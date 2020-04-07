@@ -2,15 +2,18 @@ module PlotRecipes
 
     using Plots
     using Plots.PlotMeasures
-    using LaTeXStrings
     using RecipesBase
+    using LaTeXStrings
 
     using GeometricIntegrators.Solutions: DataSeries, TimeSeries, Solution
     using ..Diagnostics
 
 
+    subscript(i::Integer) = i<0 ? error("$i is negative") : join('₀'+d for d in reverse(digits(i)))
+
+
     @userplot PlotEnergyError
-    @recipe function f(p::PlotEnergyError; energy=nothing)
+    @recipe function f(p::PlotEnergyError; energy=nothing, nplot=1, latex=true)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
@@ -27,20 +30,25 @@ module PlotRecipes
         size := (800,400)
 
         @series begin
-            xlabel := L"t"
-            ylabel := L"[H(t) - H(0)] / H(0)"
+            if latex
+                xlabel := L"t"
+                ylabel := L"[H(t) - H(0)] / H(0)"
+            else
+                xlabel := "t"
+                ylabel := "[H(t) - H(0)] / H(0)"
+            end
             xlims  := (t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)
             tickfont := font(12)
             right_margin := 10mm
-            t, ΔH
+            t[0:nplot:end], ΔH[0:nplot:end]
         end
     end
 
 
     @userplot PlotEnergyDrift
-    @recipe function f(p::PlotEnergyDrift)
+    @recipe function f(p::PlotEnergyDrift; latex=true)
         if length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
             t = p.args[1]
             d = p.args[2]
@@ -53,8 +61,14 @@ module PlotRecipes
         size := (800,400)
 
         @series begin
-            xlabel := L"t"
-            ylabel := L"\Delta H"
+            seriestype := :scatter
+            if latex
+                xlabel := L"t"
+                ylabel := L"\Delta H"
+            else
+                xlabel := "t"
+                ylabel := "ΔH"
+            end
             xlims  := (t[0], Inf)
             yformatter := :scientific
             guidefont := font(18)
@@ -66,7 +80,7 @@ module PlotRecipes
 
 
     @userplot PlotMomentumError
-    @recipe function f(p::PlotMomentumError)
+    @recipe function f(p::PlotMomentumError; nplot=1, k=0, latex=true)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
@@ -79,34 +93,46 @@ module PlotRecipes
             error("Momentum error plots should be given a solution or a timeseries and a data series. Got: $(typeof(p.args))")
         end
 
+        ntrace = (k == 0 ?    Δp.nd  :    1 )
+        trange = (k == 0 ? (1:Δp.nd) : (k:k))
+
+        size   := (800,200*ntrace)
         legend := :none
-        size := (800,200*Δp.nd)
+        layout := (ntrace,1)
 
-        # traces
-        layout := (Δp.nd,1)
-
-        for i in 1:Δp.nd
+        for i in trange
             @series begin
-                subplot := i
-                if i == Δp.nd
-                    xlabel := L"t"
+                if k == 0
+                    subplot := i
+                end
+                if i == Δp.nd || k ≠ 0
+                    if latex
+                        xlabel := L"t"
+                    else
+                        xlabel := "t"
+                    end
                 else
                     xaxis := false
                 end
-                ylabel := latexstring("p_$i (t) - \\vartheta_$i (t)")
+                if latex
+                    ylabel := latexstring("p_$i (t) - \\vartheta_$i (t)")
+                else
+                    ylabel := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
+                end
                 xlims  := (t[0], Inf)
                 yformatter := :scientific
                 guidefont := font(18)
                 tickfont := font(12)
-                right_margin := 10mm
-                t, Δp[i,:]
+                right_margin := 24mm
+                right_margin := 12mm
+                t[0:nplot:end], Δp[i,0:nplot:end]
             end
         end
     end
 
 
     @userplot PlotLagrangeMultiplier
-    @recipe function f(p::PlotLagrangeMultiplier)
+    @recipe function f(p::PlotLagrangeMultiplier; nplot=1, latex=true)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
@@ -129,16 +155,24 @@ module PlotRecipes
             @series begin
                 subplot := i
                 if i == λ.nd
-                    xlabel := L"t"
+                    if latex
+                        xlabel := L"t"
+                    else
+                        xlabel := "t"
+                    end
                 else
                     xaxis := false
                 end
-                ylabel := latexstring("\\lambda_$i (t)")
+                if latex
+                    ylabel := latexstring("\\lambda_$i (t)")
+                else
+                    ylabel := "λ" * subscript(i) * "(t)"
+                end
                 xlims  := (t[0], Inf)
                 guidefont := font(18)
                 tickfont := font(12)
                 right_margin := 10mm
-                t, λ[i,:]
+                t[0:nplot:end], λ[i,0:nplot:end]
             end
         end
     end

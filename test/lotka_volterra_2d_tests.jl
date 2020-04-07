@@ -1,6 +1,7 @@
 
 using Test
 using GeometricIntegrators
+using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
 using GeometricProblems.LotkaVolterra2d
 
@@ -19,22 +20,22 @@ const ref = [0.530592013081557, 1.1995663801610505]
     idae = lotka_volterra_2d_idae()
 
     int = Integrator(ode, getTableauGLRK(1), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(ode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
     int = IntegratorVPRKpMidpoint(iode, getTableauVPGLRK(1), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
     int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(1), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
     int = Integrator(idae, getTableauVSPARKGLRKpMidpoint(1), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(idae, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
     int = Integrator(idae, getTableauVSPARKGLRKpSymmetric(1), Δt)
-    sol = integrate(int, nt)
+    sol = integrate(idae, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 end
