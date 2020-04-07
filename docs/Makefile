@@ -1,8 +1,8 @@
 
-#all: documenter html
+all: documenter
 
 documenter:
-	julia --project=.. --color=yes make.jl
+	julia --project=. --color=yes make.jl
 
-#html:
-#	mkdocs build --clean
+clean:
+	rm -Rf build

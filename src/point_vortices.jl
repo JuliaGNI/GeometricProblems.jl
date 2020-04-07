@@ -6,6 +6,7 @@ module PointVortices
     export point_vortices_ode, point_vortices_iode, point_vortices_idae,
            point_vortices_dg, point_vortices_formal_lagrangian,
            hamiltonian, angular_momentum, ϑ1, ϑ2, ϑ3, ϑ4
+    
     export compute_energy_error, compute_angular_momentum_error
 
     const γ₁ = +0.5

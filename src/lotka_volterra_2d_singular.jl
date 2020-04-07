@@ -1,5 +1,7 @@
 module LotkaVolterra2dsingular
 
+    using Parameters
+
     using GeometricIntegrators.Equations
     using GeometricIntegrators.Solutions
 
@@ -15,6 +17,8 @@ module LotkaVolterra2dsingular
 
     const X0=1.0
     const Y0=1.0
+
+    const p = (A1=A1, A2=A2, B1=B1, B2=B2)
 
 
     function ϑ₁(t, q)
@@ -39,77 +43,76 @@ module LotkaVolterra2dsingular
     const p₀=[ϑ₁(0, q₀), ϑ₂(0, q₀)]
 
 
-    function hamiltonian(t, q)
+    function hamiltonian(t, q, params)
+        @unpack A1, A2, B1, B2 = params
         A1*q[1] + A2*q[2] - B1*log(q[1]) - B2*log(q[2])
     end
 
 
-    function lotka_volterra_2d_ode_v(t, q, v)
+    function lotka_volterra_2d_ode_v(t, q, v, params)
+        @unpack A1, A2, B1, B2 = params
         v[1] = q[1] / (1 + q[1]*q[2]) * (A2 * q[2] - B2)
         v[2] = q[2] / (1 + q[1]*q[2]) * (B1 - A1 * q[1])
         nothing
     end
 
-    function lotka_volterra_2d_ode(q₀=q₀)
-        ODE(lotka_volterra_2d_ode_v, q₀; h=hamiltonian)
+    function lotka_volterra_2d_ode(q₀=q₀, params=p)
+        ODE(lotka_volterra_2d_ode_v, q₀; parameters=params, h=hamiltonian)
     end
 
 
-    function lotka_volterra_2d_iode_ϑ(t, q, p)
+    function lotka_volterra_2d_iode_ϑ(t, q, p, params)
         p[1] = ϑ₁(t,q)
         p[2] = ϑ₂(t,q)
         nothing
     end
 
-    function lotka_volterra_2d_iode_ϑ(t, q, v, p)
-        lotka_volterra_2d_iode_ϑ(t, q, p)
+    function lotka_volterra_2d_iode_ϑ(t, q, v, p, params)
+        lotka_volterra_2d_iode_ϑ(t, q, p, params)
     end
 
-    function lotka_volterra_2d_iode_f(t, q, v, f)
+    function lotka_volterra_2d_iode_f(t, q, v, f, params)
+        @unpack A1, A2, B1, B2 = params
         f[1] = f₁(t,q,v) - A1 + B1 / q[1]
         f[2] = f₂(t,q,v) - A2 + B2 / q[2]
         nothing
     end
 
-    function lotka_volterra_2d_iode_g(t, q, λ, g)
+    function lotka_volterra_2d_iode_g(t, q, λ, g, params)
         g[1] = f₁(t,q,λ)
         g[2] = f₂(t,q,λ)
         nothing
     end
 
-    function lotka_volterra_2d_iode_v(t, q, p, v)
-        lotka_volterra_2d_ode_v(t, q, v)
-    end
-
-    function lotka_volterra_2d_iode(q₀=q₀, p₀=p₀)
+    function lotka_volterra_2d_iode(q₀=q₀, p₀=p₀, params=p)
         IODE(lotka_volterra_2d_iode_ϑ, lotka_volterra_2d_iode_f,
              lotka_volterra_2d_iode_g, q₀, p₀;
-             h=hamiltonian, v=lotka_volterra_2d_iode_v)
+             parameters=params, h=hamiltonian, v=lotka_volterra_2d_ode_v)
     end
 
-    function lotka_volterra_2d_idae_u(t, q, p, λ, u)
+    function lotka_volterra_2d_idae_u(t, q, p, λ, u, params)
         u[1] = λ[1]
         u[2] = λ[2]
         nothing
     end
 
-    function lotka_volterra_2d_idae_g(t, q, p, λ, g)
+    function lotka_volterra_2d_idae_g(t, q, p, λ, g, params)
         g[1] = f₁(t,q,λ)
         g[2] = f₂(t,q,λ)
         nothing
     end
 
-    function lotka_volterra_2d_idae_ϕ(t, q, p, ϕ)
+    function lotka_volterra_2d_idae_ϕ(t, q, p, ϕ, params)
         ϕ[1] = p[1] - ϑ₁(t,q)
         ϕ[2] = p[2] - ϑ₂(t,q)
         nothing
     end
 
-    function lotka_volterra_2d_idae(q₀=q₀, p₀=p₀, λ₀=zero(q₀))
+    function lotka_volterra_2d_idae(q₀=q₀, p₀=p₀, λ₀=zero(q₀), params=p)
         IDAE(lotka_volterra_2d_iode_ϑ, lotka_volterra_2d_iode_f,
              lotka_volterra_2d_idae_u, lotka_volterra_2d_idae_g,
              lotka_volterra_2d_idae_ϕ, q₀, p₀, λ₀;
-             v=lotka_volterra_2d_iode_v)
+             parameters=params, v=lotka_volterra_2d_ode_v)
     end
 
 
