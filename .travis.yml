@@ -13,6 +13,7 @@ julia:
 jobs:
   allow_failures:
     - julia: nightly
+    - os: windows
   fast_finish: true
 
 notifications:
