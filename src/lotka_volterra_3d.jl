@@ -1,13 +1,15 @@
 @doc raw"""
-    Lotka-Volterra model in 3D
+# Lotka-Volterra Model in 3D
+
+The Lotka–Volterra model in 3D is an example of a Hamiltonian system with degenerate Poisson structure.
 
 The equations read
 ```math
-\begin{align*}
-\dot{q}_{1} &= q_{1} ( - A_{2} q_{2} + A_{3} q_{3} + B_{2} - B_{3} ) , &
-\dot{q}_{2} &= q_{2} (   A_{1} q_{1} - A_{3} q_{3} - B_{1} + B_{3} ) , &
-\dot{q}_{3} &= q_{3} ( - A_{1} q_{1} + A_{2} q_{2} + B_{1} - B_{2} ) ,
-\end{align*}
+\begin{aligned}
+\dot{q}_{1} &= q_{1} (           -  a_{2} q_{2} + a_{3} q_{3} - b_{2} + b_{3} ) , \\
+\dot{q}_{2} &= q_{2} ( \hphantom{-} a_{1} q_{1} - a_{3} q_{3} + b_{1} - b_{3} ) , \\
+\dot{q}_{3} &= q_{3} (           -  a_{1} q_{1} + a_{2} q_{2} - b_{1} + b_{2} ) , \\
+\end{aligned}
 ```
 which can be written in Poisson-form as
 ```math
@@ -16,24 +18,24 @@ which can be written in Poisson-form as
 with Poisson matrix
 ```math
 P(q) = \begin{pmatrix}
-            0 & - q_{1} q_{2} &   q_{1} q_{3} \\
-  q_{1} q_{2} &             0 & - q_{2} q_{3} \\
-- q_{1} q_{3} &   q_{2} q_{3} & 0             \\
+            0 & - q_{1} q_{2} & \hphantom{-} q_{1} q_{3} \\
+\hphantom{-} q_{1} q_{2} &             0 & - q_{2} q_{3} \\
+- q_{1} q_{3} & \hphantom{-} q_{2} q_{3} & 0             \\
 \end{pmatrix} ,
 ```
 and Hamiltonian
 ```math
-H(q) = A_{1} q_{1} + A_{2} q_{2} + A_{3} q_{3} - B_{1} \ln q_{1} - B_{2} \ln q_{2} - B_{3} \ln q_{3} .
+H(q) = a_{1} q_{1} + a_{2} q_{2} + a_{3} q_{3} + b_{1} \ln q_{1} + b_{2} \ln q_{2} + b_{3} \ln q_{3} .
 ```
 
 References:
-    A. M. Perelomov. Selected topics on classical integrable systems,
-                Troisième cycle de la physique, expanded version of lectures
-                delivered in May 1995.
+* A. M. Perelomov. Selected topics on classical integrable systems,
+  Troisième cycle de la physique, expanded version of lectures
+  delivered in May 1995.
 
-    Yuri B. Suris. Integrable discretizations for lattice systems: local
-                equations of motion and their Hamiltonian properties,
-                Rev. Math. Phys. 11, pp. 727–822, 1999.
+* Yuri B. Suris. Integrable discretizations for lattice systems: local
+  equations of motion and their Hamiltonian properties,
+  Rev. Math. Phys. 11, pp. 727–822, 1999.
 """
 module LotkaVolterra3d
 

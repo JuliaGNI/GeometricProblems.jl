@@ -1,7 +1,7 @@
 
-# Mathematical Pendulum
+# Double Pendulum
 
 ```@autodocs
-Modules = [GeometricProblems.Pendulum]
+Modules = [GeometricProblems.DoublePendulum]
 Order   = [:constant, :type, :macro, :function]
 ```

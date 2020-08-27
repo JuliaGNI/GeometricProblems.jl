@@ -1,5 +1,5 @@
 
-# Point Vortices
+# Planar Point Vortices
 
 ```@autodocs
 Modules = [GeometricProblems.PointVortices]

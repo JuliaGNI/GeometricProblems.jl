@@ -31,11 +31,11 @@ module PlotRecipes
 
         @series begin
             if latex
-                xlabel := L"t"
-                ylabel := L"[H(t) - H(0)] / H(0)"
+                xguide := L"t"
+                yguide := L"[H(t) - H(0)] / H(0)"
             else
-                xlabel := "t"
-                ylabel := "[H(t) - H(0)] / H(0)"
+                xguide := "t"
+                yguide := "[H(t) - H(0)] / H(0)"
             end
             xlims  := (t[0], Inf)
             yformatter := :scientific
@@ -63,11 +63,11 @@ module PlotRecipes
         @series begin
             seriestype := :scatter
             if latex
-                xlabel := L"t"
-                ylabel := L"\Delta H"
+                xguide := L"t"
+                yguide := L"\Delta H"
             else
-                xlabel := "t"
-                ylabel := "ΔH"
+                xguide := "t"
+                yguide := "ΔH"
             end
             xlims  := (t[0], Inf)
             yformatter := :scientific
@@ -107,17 +107,17 @@ module PlotRecipes
                 end
                 if i == Δp.nd || k ≠ 0
                     if latex
-                        xlabel := L"t"
+                        xguide := L"t"
                     else
-                        xlabel := "t"
+                        xguide := "t"
                     end
                 else
                     xaxis := false
                 end
                 if latex
-                    ylabel := latexstring("p_$i (t) - \\vartheta_$i (t)")
+                    yguide := latexstring("p_$i (t) - \\vartheta_$i (t)")
                 else
-                    ylabel := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
+                    yguide := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
                 end
                 xlims  := (t[0], Inf)
                 yformatter := :scientific
@@ -156,17 +156,17 @@ module PlotRecipes
                 subplot := i
                 if i == λ.nd
                     if latex
-                        xlabel := L"t"
+                        xguide := L"t"
                     else
-                        xlabel := "t"
+                        xguide := "t"
                     end
                 else
                     xaxis := false
                 end
                 if latex
-                    ylabel := latexstring("\\lambda_$i (t)")
+                    yguide := latexstring("\\lambda_$i (t)")
                 else
-                    ylabel := "λ" * subscript(i) * "(t)"
+                    yguide := "λ" * subscript(i) * "(t)"
                 end
                 xlims  := (t[0], Inf)
                 guidefont := font(18)
