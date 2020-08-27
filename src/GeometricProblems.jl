@@ -14,6 +14,7 @@ module GeometricProblems
     include("lotka_volterra_2d_symmetric.jl")
     include("lotka_volterra_2d_plots.jl")
     include("lotka_volterra_3d.jl")
+    include("lotka_volterra_4d.jl")
     include("pendulum.jl")
     include("point_vortices.jl")
 

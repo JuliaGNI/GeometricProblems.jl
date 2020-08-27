@@ -10,6 +10,7 @@ Pages = [
 "lorenz_attractor.md",
 "lotka_volterra_2d.md",
 "lotka_volterra_3d.md",
+"lotka_volterra_4d.md",
 "pendulum.md",
 "point_vortices.md"
 ]

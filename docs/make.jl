@@ -12,6 +12,7 @@ makedocs(
              "Lotka-Volterra 3d"    => "lotka_volterra_3d.md",
              "Pendulum"             => "pendulum.md",
              "Point Vortices"       => "point_vortices.md"
+             "Lotka-Volterra 4d"         => "lotka_volterra_4d.md",
             ]
 )
 
