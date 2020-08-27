@@ -23,5 +23,6 @@ module GeometricProblems
     include("morse_oscillator.jl")
     include("pendulum.jl")
     include("point_vortices.jl")
+    include("point_vortices_linear.jl")
 
 end
