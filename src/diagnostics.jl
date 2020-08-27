@@ -159,7 +159,7 @@ module Diagnostics
     is oscillating such as the energy error of Hamiltonian systems with symplectic integrators.
     """
     function compute_error_drift(t::TimeSeries, invariant_error::DataSeries{T,1}, interval_length=100) where {T}
-        @assert t.nt == invariant_error.nt
+        @assert t.n == invariant_error.nt
         @assert mod(t.n, interval_length) == 0
 
         nint   = div(invariant_error.nt, interval_length)
@@ -171,7 +171,7 @@ module Diagnostics
         for i in 1:nint
             i1 = interval_length*(i-1)+1
             i2 = interval_length*i
-            Idrift[i] = maximum(abs(invariant_error[i1:i2]))
+            Idrift[i] = maximum(abs.(invariant_error[i1:i2]))
             Tdrift[i] = div(t[i1] + t[i2], 2)
         end
 
