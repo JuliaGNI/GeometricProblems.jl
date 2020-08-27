@@ -9,7 +9,6 @@ Pages = [
 "harmonic_oscillator.md",
 "lorenz_attractor.md",
 "lotka_volterra_2d.md",
-"lotka_volterra_2d_singular.md",
 "lotka_volterra_3d.md",
 "pendulum.md",
 "point_vortices.md"
