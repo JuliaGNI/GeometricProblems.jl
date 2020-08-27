@@ -5,7 +5,7 @@
 [GeometricIntegrators.jl](https://github.com/DDMGNI/GeometricIntegrators.jl).*
 
 [![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://ddmgni.github.io/GeometricProblems.jl/stable/)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://ddmgni.github.io/GeometricProblems.jl/latest/)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://ddmgni.github.io/GeometricProblems.jl/dev/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
 [![Build Status](https://travis-ci.org/DDMGNI/GeometricProblems.jl.svg?branch=master)](https://travis-ci.org/DDMGNI/GeometricProblems.jl)
 [![Coverage Status](https://coveralls.io/repos/github/DDMGNI/GeometricProblems.jl/badge.svg)](https://coveralls.io/github/DDMGNI/GeometricProblems.jl)
