@@ -35,7 +35,7 @@ module LotkaVolterra2dPlots
         H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.h(t,q,params))
 
         size   := (1000,400)
-        layout := @layout [solPlot{0.3w,1.0h} EPlot]
+        layout := @layout [solPlot{0.4w,1.0h} EPlot]
         legend := :none
 
         right_margin := 10mm
