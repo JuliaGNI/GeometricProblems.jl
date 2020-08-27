@@ -1,4 +1,5 @@
 @doc raw"""
+# Planar Point Vortices with linear one-form
 
 """
 module PointVorticesLinear

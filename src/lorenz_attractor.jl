@@ -1,3 +1,7 @@
+@doc raw"""
+# Lorenz Attractor
+
+"""
 module LorenzAttractor
 
     using GeometricIntegrators.Equations

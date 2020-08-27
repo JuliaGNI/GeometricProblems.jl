@@ -1,3 +1,7 @@
+@doc raw"""
+# Harmonic Oscillator
+
+"""
 module HarmonicOscillator
 
     using Reexport

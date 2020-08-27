@@ -1,4 +1,7 @@
+@doc raw"""
+# Mathematical Pendulum
 
+"""
 module Pendulum
 
     using GeometricIntegrators.Equations

@@ -1,4 +1,7 @@
+@doc raw"""
+# Exponential Growth
 
+"""
 module ExponentialGrowth
 
     using GeometricIntegrators.Equations

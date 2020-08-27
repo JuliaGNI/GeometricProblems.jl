@@ -1,3 +1,7 @@
+@doc raw"""
+# Planar Point Vortices
+
+"""
 module PointVortices
 
     using GeometricIntegrators.Equations
