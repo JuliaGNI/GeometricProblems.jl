@@ -3,15 +3,11 @@ using Test
 using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
-using GeometricProblems.LotkaVolterra2dsingular
+using GeometricProblems.LotkaVolterra2dSingular
+using GeometricProblems.LotkaVolterra2dSingular: Δt, nt, reference_solution
 
 set_config(:nls_atol, 8eps())
 set_config(:nls_rtol, 2eps())
-
-const Δt = 0.01
-const nt = 1000
-
-const ref = [0.35005370250145684, 2.115866819186877]
 
 
 @testset "$(rpad("Lotka-Volterra 2D with singular Lagrangian",80))" begin
@@ -21,21 +17,21 @@ const ref = [0.35005370250145684, 2.115866819186877]
 
     int = Integrator(ode, getTableauGLRK(2), Δt)
     sol = integrate(ode, int, nt)
-    @test rel_err(sol.q, ref) < 4E-11
+    @test rel_err(sol.q, reference_solution) < 5E-4
 
-    int = IntegratorVPRKpMidpoint(iode, getTableauVPGLRK(1), Δt)
+    int = IntegratorVPRKpMidpoint(iode, getTableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, ref) < 5E-5
+    @test rel_err(sol.q, reference_solution) < 5E-4
 
-    int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(1), Δt)
+    int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, ref) < 5E-5
+    @test rel_err(sol.q, reference_solution) < 5E-4
 
-    int = Integrator(idae, getTableauVSPARKGLRKpMidpoint(1), Δt)
+    int = Integrator(idae, getTableauVSPARKGLRKpMidpoint(2), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, ref) < 5E-5
+    @test rel_err(sol.q, reference_solution) < 5E-4
 
-    int = Integrator(idae, getTableauVSPARKGLRKpSymmetric(1), Δt)
+    int = Integrator(idae, getTableauVSPARKGLRKpSymmetric(2), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, ref) < 5E-5
+    @test rel_err(sol.q, reference_solution) < 5E-4
 end

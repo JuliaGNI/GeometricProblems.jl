@@ -12,6 +12,7 @@ const nt = 1000
 
 const q₀ = [2.0, 1.0]
 const parameters = (a₁=-1.0, a₂=-1.0, b₁=1.0, b₂=2.0)
+const reference_solution = [0.34520671417508214, 1.1140647339845946]
 
 
 "Creates an ODE object for the Lotka-Volterra 2D model."
