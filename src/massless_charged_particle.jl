@@ -44,8 +44,9 @@ module MasslessChargedParticle
     using Plots.PlotMeasures
     # using RecipesBase
 
-    export massless_charged_particle_ode, massless_charged_particle_iode
     export ϑ, A, B, ϕ, E, hamiltonian
+    export massless_charged_particle_ode, massless_charged_particle_iode
+    export compute_energy_error
 
     # default simulation parameters
     Δt = 0.2
@@ -153,10 +154,23 @@ module MasslessChargedParticle
     compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
 
 
+    """
+    Plots the solution of a massless charged particle together with the energy error.
+
+    Arguments:
+    * `sol <: Solution`
+    * `params <: NamedTuple`
+
+    Keyword aguments:
+    * `nplot=1`: plot every `nplot`th time step
+    * `xlims=:auto`: xlims for solution plot
+    * `ylims=:auto`: ylims for solution plot
+    * `latex=true`: use LaTeX guides
+    """
     @userplot Plot_Massless_Charged_Particle
     @recipe function f(p::Plot_Massless_Charged_Particle; nplot=1, xlims=:auto, ylims=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
-            error("Lotka-Volterra plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
+            error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
         params = p.args[2]
@@ -214,4 +228,122 @@ module MasslessChargedParticle
             sol.t[0:nplot:end], ΔH[0:nplot:end]
         end
     end
+
+
+    """
+    Plots the solution of a massless charged particle.
+
+    Arguments:
+    * `sol <: Solution`
+    * `params <: NamedTuple`
+
+    Keyword aguments:
+    * `nplot=1`: plot every `nplot`th time step
+    * `xlims=:auto`: xlims for solution plot
+    * `ylims=:auto`: ylims for solution plot
+    * `latex=true`: use LaTeX guides
+    """
+    @userplot Plot_Massless_Charged_Particle_Solution
+    @recipe function f(p::Plot_Massless_Charged_Particle_Solution; nplot=1, xlims=:auto, ylims=:auto, latex=true)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+            error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
+        end
+        sol = p.args[1]
+        params = p.args[2]
+
+        if sol.nt ≤ 200
+            markersize := 5
+        else
+            markersize  := 1
+            markercolor := 1
+            linecolor   := 1
+            markerstrokewidth := 1
+            markerstrokecolor := 1
+        end
+
+        legend := :none
+        size := (400,400)
+
+        # solution
+        @series begin
+            # seriestype := :scatter
+            if latex
+                xguide := L"x_1"
+                yguide := L"x_2"
+            else
+                xguide := "x₁"
+                yguide := "x₂"
+            end
+            xlims  := xlims
+            ylims  := ylims
+            aspect_ratio := 1
+            guidefont := font(18)
+            tickfont := font(12)
+            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
+        end
+    end
+
+    """
+    Plots time traces of the solution of a massless charged particle and its energy error.
+
+    Arguments:
+    * `sol <: Solution`
+    * `params <: NamedTuple`
+
+    Keyword aguments:
+    * `nplot=1`: plot every `nplot`th time step
+    * `latex=true`: use LaTeX guides
+    """
+    @userplot Plot_Massless_Charged_Particle_Traces
+    @recipe function f(p::Plot_Massless_Charged_Particle_Traces; nplot=1, latex=true)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+            error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
+        end
+        sol = p.args[1]
+        params = p.args[2]
+
+        H, ΔH = compute_energy_error(sol.t, sol.q, params);
+
+        size   := (800,600)
+        legend := :none
+        guidefont := font(18)
+        tickfont  := font(12)
+        right_margin := 10mm
+
+        # traces
+        layout := @layout [x₁Plot
+                            x₂Plot
+                            EPlot]
+
+        if latex
+            ylabels = (L"x_1", L"x_2")
+        else
+            ylabels = ("x₁", "x₂")
+        end
+
+        for i in 1:2
+            @series begin
+                subplot := i
+                yguide := ylabels[i]
+                xlims  := (sol.t[0], Inf)
+                xaxis := false
+                sol.t[0:nplot:end], sol.q[i,0:nplot:end]
+            end
+        end
+
+        @series begin
+            subplot := 3
+            if latex
+                xguide := L"t"
+                yguide := L"[H(t) - H(0)] / H(0)"
+            else
+                xguide := "t"
+                yguide := "[H(t) - H(0)] / H(0)"
+            end
+            xlims  := (sol.t[0], Inf)
+            yformatter := :scientific
+            sol.t[0:nplot:end], ΔH[0:nplot:end]
+        end
+    end
+
 end
