@@ -34,7 +34,7 @@ nothing
 
 ## Sub-models
 
-The Euler-Lagrange equations of the Lotka-Volterra model can be obtained from different Lagrangians, some of which are connected by gauge transformations, others are not.
+The Euler-Lagrange equations of the Lotka-Volterra model can be obtained from different Lagrangians, which are connected by gauge transformations.
 Although they all lead to the same equations of motion, they lead to different variational integrators. Therefore different models based on different Lagrangians are implemented.
 
 ```@docs
