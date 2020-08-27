@@ -1,5 +1,5 @@
 
-# Lorenz Attractor
+# Lorenz Attractor in 3d
 
 ```@autodocs
 Modules = [GeometricProblems.LorenzAttractor]

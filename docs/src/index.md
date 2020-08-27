@@ -1,32 +1,39 @@
 
 # GeometricProblems.jl
 
+GeometricProblems.jl is a collection of ODEs and DAEs with interesting geometric structures
+together with useful diagnostics and plotting tools.
+
+Typical structures are
+* Variational structure, i.e., the equations can defined in terms of a Lagrangian function and be obtained from an action principle;
+* Hamiltonian structure, i.e., the equations can be defined in terms of a Hamiltonian function together with a symplectic or Poisson matrix;
+* Invariants, i.e., the equations have symmetries and associated conservation laws;
+* Volume preservation, i.e., the flow of the equations is divergence-free.
+
+
+## Contents
 
 ```@contents
 Pages = [
 "diagnostics.md",
 "exponential_growth.md",
-"harmonic_oscillator.md",
+"henon_heiles.md",
+"kepler_problem.md",
 "lorenz_attractor.md",
 "lotka_volterra_2d.md",
 "lotka_volterra_3d.md",
 "lotka_volterra_4d.md",
+"massless_charged_particle.md",
+"harmonic_oscillator.md",
+"nonlinear_oscillators.md",
 "pendulum.md",
-"point_vortices.md"
+"double_pendulum.md",
+"point_vortices.md",
+"inner_solar_system.md",
+"outer_solar_system.md",
 ]
+Depth = 1
 ```
-
-
-## References
-
-- Michael Kraus. Hamilton-Pontryagin-Galerkin Integrators.
-- Michael Kraus. Projected Variational Integrators for Degenerate Lagrangian Systems.
-- Michael Kraus. SPARK Methods for Degenerate Lagrangian Systems.
-- Michael Kraus. Symplectic Runge-Kutta Methods for Certain Degenerate Lagrangian Systems.
-- Michael Kraus. Symplectic Lobatto Runge-Kutta Methods for Degenerate Lagrangian Systems.
-- Michael Kraus. Variational Integrators for Degenerate Lagrangians.
-- Michael Kraus. Variational Integrators for Noncanonical Hamiltonian Systems.
-- Michael Kraus, Joshua Burby. Conservation of Poincaré Integral Invariants in Numerical Simulations.
 
 
 ## Figure License
