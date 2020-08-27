@@ -1,37 +1,30 @@
+@doc raw"""
+# Lotka-Volterra model in 2D
+
+```math
+\begin{aligned}
+L (q, \dot{q}) &= \bigg( q_2 + \frac{\log q_2}{q_1} \bigg) \, \dot{q_1} + q_1 \, \dot{q_2} - H(q) , \\
+H(q) &= a_1 \, q_1 + a_2 \, q_2 + b_1 \, \log q_1 + b_2 \, \log q_2
+\end{aligned}
+```
+
+"""
 module LotkaVolterra2d
 
-    using Plots
-    using Plots.PlotMeasures
-    using RecipesBase
-    using LaTeXStrings
-    using Reexport
+    export lotka_volterra_2d_dg_gauge
 
-    using GeometricIntegrators.Solutions
+    ϑ₁(t, q) = q[2] + log(q[2]) / q[1]
+    ϑ₂(t, q) = q[1]
 
-    @reexport using GeometricIntegrators.TestProblems.LotkaVolterra2dProblem
+    dϑ₁dx₁(t, q) = - log(q[2]) / q[1]^2
+    dϑ₁dx₂(t, q) = 1 + 1 / (q[1] * q[2])
 
-    import ..Diagnostics: compute_invariant_error, compute_momentum_error
-    import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: hamiltonian, ϑ, ϑ₁, ϑ₂, ω, f₁, f₂, g₁, g₂, dHd₁, dHd₂
-    import GeometricIntegrators.TestProblems.LotkaVolterra2dProblem: p
+    dϑ₂dx₁(t, q) = one(eltype(q))
+    dϑ₂dx₂(t, q) = zero(eltype(q))
 
-    export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
-    export compute_energy_error, compute_momentum_error
-    export f
-
-
-    compute_energy_error(t,q) = compute_invariant_error(t,q,hamiltonian)
-    compute_momentum_error(t,q,p) = compute_momentum_error(t,q,p,ϑ)
-
-
-    function ϑ(t::Number, q::AbstractVector, k::Int)
-        if k == 1
-            ϑ₁(t, q)
-        elseif k == 2
-            ϑ₂(t, q)
-        else
-            nothing
-        end
-    end
+    
+    include("lotka_volterra_2d_common.jl")
+    include("lotka_volterra_2d_equations.jl")
 
 
     function d²ϑ₁d₁d₁(t, q)
@@ -101,7 +94,7 @@ module LotkaVolterra2d
     # end
 
 
-    function lotka_volterra_2d_dg(q₀=q₀, params=p, κ=0)
+    function lotka_volterra_2d_dg_gauge(q₀=q₀, p₀=ϑ(0, q₀), κ=0; params=parameters)
         lotka_volterra_2d_ϑ_κ(t, q, v, p, params) = lotka_volterra_2d_ϑ(κ, t, q, v, p, params)
         lotka_volterra_2d_f_κ(t, q, v, f, params) = lotka_volterra_2d_f(κ, t, q, v, f, params)
         lotka_volterra_2d_g_κ(t, q, λ, g, params) = lotka_volterra_2d_g(κ, t, q, λ, g, params)
@@ -109,162 +102,6 @@ module LotkaVolterra2d
         IODE(lotka_volterra_2d_ϑ_κ, lotka_volterra_2d_f_κ,
              lotka_volterra_2d_g_κ, q₀, p₀;
              parameters=params, v=lotka_volterra_2d_v)
-    end
-
-
-
-    @userplot PlotLotkaVolterra2d
-    @recipe function f(p::PlotLotkaVolterra2d; nplot=1, xlims=:auto, ylims=:auto, latex=true)
-        if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
-            error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
-        end
-        sol = p.args[1]
-
-        H, ΔH = compute_energy_error(sol.t, sol.q);
-
-        size   := (1000,400)
-        layout := @layout [solPlot{0.3w,1.0h} EPlot]
-        legend := :none
-
-        guidefont := font(18)
-        tickfont  := font(12)
-
-        @series begin
-            subplot := 1
-
-            if sol.nt ≤ 200
-                markersize := 5
-            else
-                markersize  := 1
-                markercolor := 1
-                linecolor   := 1
-                markerstrokewidth := 1
-                markerstrokecolor := 1
-            end
-
-            # seriestype := :scatter
-            if latex
-                xlabel := L"x_1"
-                ylabel := L"x_2"
-            else
-                xlabel := "x₁"
-                ylabel := "x₂"
-            end
-            xlims  := xlims
-            ylims  := ylims
-            aspectratio := 1
-            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
-        end
-
-        @series begin
-            subplot := 2
-            if latex
-                xlabel := L"t"
-                ylabel := L"[H(t) - H(0)] / H(0)"
-            else
-                xlabel := "t"
-                ylabel := "[H(t) - H(0)] / H(0)"
-            end
-            xlims  := (sol.t[0], Inf)
-            yformatter := :scientific
-            right_margin := 10mm
-            sol.t[0:nplot:end], ΔH[0:nplot:end]
-        end
-    end
-
-
-    @userplot PlotLotkaVolterra2dSolution
-    @recipe function f(p::PlotLotkaVolterra2dSolution; nplot=1, xlims=:auto, ylims=:auto, latex=true)
-        if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
-            error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
-        end
-        sol = p.args[1]
-
-        if sol.nt ≤ 200
-            markersize := 5
-        else
-            markersize  := 1
-            markercolor := 1
-            linecolor   := 1
-            markerstrokewidth := 1
-            markerstrokecolor := 1
-        end
-
-        legend := :none
-        size := (400,400)
-
-        # solution
-        @series begin
-            # seriestype := :scatter
-            if latex
-                xlabel := L"x_1"
-                ylabel := L"x_2"
-            else
-                xlabel := "x₁"
-                ylabel := "x₂"
-            end
-            xlims  := xlims
-            ylims  := ylims
-            aspectratio := 1
-            guidefont := font(18)
-            tickfont := font(12)
-            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
-        end
-    end
-
-
-    @userplot PlotLotkaVolterra2dTraces
-    @recipe function f(p::PlotLotkaVolterra2dTraces; latex=true)
-        if length(p.args) != 1 || !(typeof(p.args[1]) <: Solution)
-            error("Lotka-Volterra plots should be given a solution. Got: $(typeof(p.args))")
-        end
-        sol = p.args[1]
-
-        H, ΔH = compute_energy_error(sol.t, sol.q);
-
-        size   := (800,600)
-        legend := :none
-        guidefont := font(18)
-        tickfont  := font(12)
-
-        # traces
-        layout := @layout [x₁Plot
-                           x₂Plot
-                           EPlot]
-
-        if latex
-            ylabels = (L"x_1", L"x_2")
-        else
-            ylabels = ("x₁", "x₂")
-        end
-
-        for i in 1:2
-            @series begin
-                subplot := i
-                ylabel := ylabels[i]
-                xlims  := (sol.t[0], Inf)
-                xaxis := false
-                right_margin := 10mm
-                sol.t, sol.q[i,:]
-            end
-        end
-
-        @series begin
-            subplot := 3
-            if latex
-                xlabel := L"t"
-                ylabel := L"[H(t) - H(0)] / H(0)"
-            else
-                xlabel := "t"
-                ylabel := "[H(t) - H(0)] / H(0)"
-            end
-            xlims  := (sol.t[0], Inf)
-            yformatter := :scientific
-            guidefont := font(18)
-            tickfont := font(12)
-            right_margin := 10mm
-            sol.t, ΔH
-        end
     end
 
 end

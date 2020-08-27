@@ -1,7 +1,8 @@
 
-# Mathematical Pendulum
+# Lotka-Volterra 4d
 
 ```@autodocs
-Modules = [GeometricProblems.Pendulum]
+Modules = [GeometricProblems.LotkaVolterra4d]
 Order   = [:constant, :type, :macro, :function]
 ```
+
