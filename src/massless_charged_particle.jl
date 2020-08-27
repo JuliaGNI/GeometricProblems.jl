@@ -193,11 +193,14 @@ module MasslessChargedParticle
             if sol.nt ≤ 200
                 markersize := 5
             else
-                markersize  := 1
+                markersize  := .5
                 markercolor := 1
                 linecolor   := 1
-                markerstrokewidth := 1
+                markerstrokewidth := .5
                 markerstrokecolor := 1
+            end
+            if nplot > 1
+                seriestype := :scatter
             end
 
             if latex
@@ -254,11 +257,14 @@ module MasslessChargedParticle
         if sol.nt ≤ 200
             markersize := 5
         else
-            markersize  := 1
+            markersize  := .5
             markercolor := 1
             linecolor   := 1
-            markerstrokewidth := 1
+            markerstrokewidth := .5
             markerstrokecolor := 1
+        end
+        if nplot > 1
+            seriestype := :scatter
         end
 
         legend := :none
@@ -266,7 +272,6 @@ module MasslessChargedParticle
 
         # solution
         @series begin
-            # seriestype := :scatter
             if latex
                 xguide := L"x_1"
                 yguide := L"x_2"
