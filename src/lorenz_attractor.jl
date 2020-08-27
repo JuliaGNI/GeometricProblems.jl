@@ -11,7 +11,7 @@ module LorenzAttractor
     nt = 1000
 
     const q₀ = [1., 1., 1.]
-    const default_params = (10., 28., 8/3)
+    const default_params = (σ = 10., ρ = 28., β = 8/3)
 
     function lorenz_attractor_v(t, x, v, params=default_params)
         σ, ρ, β = params
