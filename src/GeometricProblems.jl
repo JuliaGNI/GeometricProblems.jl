@@ -1,6 +1,7 @@
+"""
+GeometricProblems.jl is a collection of ODEs and DAEs with interesting geometric structures.
+"""
 module GeometricProblems
-
-
 
     include("diagnostics.jl")
     include("plot_recipes.jl")
