@@ -24,6 +24,19 @@ function ϑ(t::Number, q::AbstractVector, k::Int)
     end
 end
 
+function lotka_volterra_2d_pᵢ(qᵢ, tᵢ=0)
+    pᵢ = zero(qᵢ)
+
+    if ndims(qᵢ) == 1
+        ϑ(tᵢ, qᵢ, pᵢ)
+    else
+        for i in 1:size(qᵢ,2)
+            ϑ(tᵢ, (@view qᵢ[:,i]), (@view pᵢ[:,i]))
+        end
+    end
+    pᵢ
+end
+
 function ω(t, q, Ω)
     Ω[1,1] = 0
     Ω[1,2] = dϑ₁dx₂(t,q) - dϑ₂dx₁(t,q)
