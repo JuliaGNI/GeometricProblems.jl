@@ -44,7 +44,7 @@ module MasslessChargedParticle
     using Plots.PlotMeasures
     # using RecipesBase
 
-    import ..Diagnostics: compute_momentum_error
+    import ..Diagnostics: compute_invariant_error, compute_momentum_error
 
     export ϑ, A, B, ϕ, E, hamiltonian
     export massless_charged_particle_ode, massless_charged_particle_iode,
@@ -90,7 +90,7 @@ module MasslessChargedParticle
 
     ϑ(t, q, params) = [ϑ₁(t, q, params), ϑ₂(t, q, params)]
 
-    function ϑ(t::Number, q::AbstractVector, params, k::Int)
+    function ϑ(t::Number, q::AbstractVector, params::NamedTuple, k::Int)
         if k == 1
             ϑ₁(t, q, params)
         elseif k == 2
