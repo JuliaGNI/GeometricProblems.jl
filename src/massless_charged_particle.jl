@@ -47,7 +47,8 @@ module MasslessChargedParticle
     import ..Diagnostics: compute_momentum_error
 
     export ϑ, A, B, ϕ, E, hamiltonian
-    export massless_charged_particle_ode, massless_charged_particle_iode, massless_charged_particle_idae
+    export massless_charged_particle_ode, massless_charged_particle_iode,
+           massless_charged_particle_idae, massless_charged_particle_idae_spark
     export compute_energy_error, compute_momentum_error
 
     # default simulation parameters
@@ -146,6 +147,12 @@ module MasslessChargedParticle
         nothing
     end
 
+    function massless_charged_particle_f̄(t, q, v, f, params)
+        f[1] = - dHd₁(t, q, params)
+        f[2] = - dHd₂(t, q, params)
+        nothing
+    end
+
     function massless_charged_particle_g(t, q, v, g, params)
         g[1] = f₁(t, q, v, params)
         g[2] = f₂(t, q, v, params)
@@ -193,6 +200,15 @@ module MasslessChargedParticle
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
                 parameters=params, h=hamiltonian, v=massless_charged_particle_v)
+    end
+
+    "Creates an implicit DAE object for the massless charged particle in 2D."
+    function massless_charged_particle_idae_spark(q₀=q₀; params=parameters)
+        IDAE(massless_charged_particle_ϑ, massless_charged_particle_f̄,
+                massless_charged_particle_u, massless_charged_particle_g,
+                massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
+                v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
+                h=hamiltonian, parameters=params)
     end
 
 
