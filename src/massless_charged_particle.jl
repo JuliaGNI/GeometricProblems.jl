@@ -232,12 +232,21 @@ module MasslessChargedParticle
     * `ylims=:auto`: ylims for solution plot
     """
     @userplot Plot_Massless_Charged_Particle
-    @recipe function f(p::Plot_Massless_Charged_Particle; xlims=:auto, ylims=:auto, elims=:auto, nplot=1)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+    @recipe function f(p::Plot_Massless_Charged_Particle; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
-        params = p.args[2]
+        equ = p.args[2]
+        params = equ.parameters
+
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
 
         H, ΔH = compute_energy_error(sol.t, sol.q, params);
 
@@ -292,7 +301,7 @@ module MasslessChargedParticle
             xlims  := (sol.t[0], Inf)
             ylims  := elims
             yformatter := :scientific
-            sol.t[0:nplot:end], ΔH[0:nplot:end]
+            sol.t[0:nplot:nt], ΔH[0:nplot:nt]
         end
     end
 
@@ -310,14 +319,23 @@ module MasslessChargedParticle
     * `ylims=:auto`: ylims for solution plot
     """
     @userplot Plot_Massless_Charged_Particle_Solution
-    @recipe function f(p::Plot_Massless_Charged_Particle_Solution; nplot=1, xlims=:auto, ylims=:auto)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Solution; nplot=1, nt=:auto, xlims=:auto, ylims=:auto)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
-        params = p.args[2]
+        equ = p.args[2]
+        params = equ.parameters
 
-        if sol.nt ≤ 200
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
+
+        if ntime(sol) ≤ 200
             markersize := 5
         else
             markersize  := .5
@@ -354,7 +372,7 @@ module MasslessChargedParticle
             xlims  := xlims
             ylims  := ylims
             aspect_ratio := 1
-            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
+            sol.q[1,0:nplot:nt], sol.q[2,0:nplot:nt]
         end
     end
 
@@ -370,12 +388,21 @@ module MasslessChargedParticle
     * `nplot=1`: plot every `nplot`th time step
     """
     @userplot Plot_Massless_Charged_Particle_Energy_Error
-    @recipe function f(p::Plot_Massless_Charged_Particle_Energy_Error; nplot=1)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Energy_Error; nplot=1, nt=:auto)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
-        params = p.args[2]
+        equ = p.args[2]
+        params = equ.parameters
+
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
 
         H, ΔH = compute_energy_error(sol.t, sol.q, params);
 
@@ -402,7 +429,7 @@ module MasslessChargedParticle
 
             xlims  := (sol.t[0], Inf)
             yformatter := :scientific
-            sol.t[0:nplot:end], ΔH[0:nplot:end]
+            sol.t[0:nplot:nt], ΔH[0:nplot:nt]
         end
     end
 
@@ -419,12 +446,21 @@ module MasslessChargedParticle
     * `k=0`: index of momentum component (0 plots all components)
     """
     @userplot Plot_Massless_Charged_Particle_Momentum_Error
-    @recipe function f(p::Plot_Massless_Charged_Particle_Momentum_Error; k=0, nplot=1)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Momentum_Error; k=0, nplot=1, nt=:auto)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
-        params = p.args[2]
+        equ = p.args[2]
+        params = equ.parameters
+
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
 
         Δp = compute_momentum_error(sol.t, sol.q, sol.p, params)
 
@@ -480,7 +516,7 @@ module MasslessChargedParticle
                 end
                 xlims  := (sol.t[0], Inf)
                 yformatter := :scientific
-                sol.t[0:nplot:end], Δp[i,0:nplot:end]
+                sol.t[0:nplot:nt], Δp[i,0:nplot:nt]
             end
         end
     end
@@ -497,12 +533,21 @@ module MasslessChargedParticle
     * `nplot=1`: plot every `nplot`th time step
     """
     @userplot Plot_Massless_Charged_Particle_Traces
-    @recipe function f(p::Plot_Massless_Charged_Particle_Traces; xlims=:auto, ylims=:auto, elims=:auto, nplot=1)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: NamedTuple)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Traces; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
-        params = p.args[2]
+        equ = p.args[2]
+        params = equ.parameters
+
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
 
         H, ΔH = compute_energy_error(sol.t, sol.q, params);
 
@@ -552,7 +597,7 @@ module MasslessChargedParticle
                 #     bottom_margin := -1mm
                 # end
 
-                sol.t[0:nplot:end], sol.q[i,0:nplot:end]
+                sol.t[0:nplot:nt], sol.q[i,0:nplot:nt]
             end
         end
 
@@ -573,7 +618,7 @@ module MasslessChargedParticle
             xlims := (sol.t[0], Inf)
             ylims := elims
             yformatter := :scientific
-            sol.t[0:nplot:end], ΔH[0:nplot:end]
+            sol.t[0:nplot:nt], ΔH[0:nplot:nt]
         end
     end
 
