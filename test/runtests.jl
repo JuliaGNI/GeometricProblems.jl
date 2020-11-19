@@ -9,4 +9,5 @@ using SafeTestsets
 @safetestset "Lotka-Volterra 2D with symmetric Lagrangian with gauge terms                    " begin include("lotka_volterra_2d_gauge_tests.jl") end
 @safetestset "Lotka-Volterra 3D                                                               " begin include("lotka_volterra_3d_tests.jl") end
 @safetestset "Lotka-Volterra 4D                                                               " begin include("lotka_volterra_4d_tests.jl") end
+@safetestset "Lotka-Volterra 4D (Lagrangian)                                                  " begin include("lotka_volterra_4d_lagrangian_tests.jl") end
 @safetestset "Point Vortices                                                                  " begin include("point_vortices_tests.jl") end

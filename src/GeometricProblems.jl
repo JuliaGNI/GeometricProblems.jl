@@ -19,6 +19,7 @@ module GeometricProblems
     include("lotka_volterra_2d_plots.jl")
     include("lotka_volterra_3d.jl")
     include("lotka_volterra_4d.jl")
+    include("lotka_volterra_4d_lagrangian.jl")
     include("massless_charged_particle.jl")
     include("mathews_lakshmanan_oscillator.jl")
     include("morse_oscillator.jl")
