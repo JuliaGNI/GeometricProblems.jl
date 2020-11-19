@@ -13,7 +13,7 @@ module PlotRecipes
 
 
     @userplot PlotEnergyError
-    @recipe function f(p::PlotEnergyError; energy=nothing, nplot=1, latex=true)
+    @recipe function f(p::PlotEnergyError; energy=nothing, nplot=1, nt=:auto, latex=true)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
@@ -28,6 +28,14 @@ module PlotRecipes
             @assert length(t) == length(ΔH)
         else
             error("Energy error plot should be given a solution or a timeseries and a data series. Got: $(typeof(p.args))")
+        end
+
+        if nt == :auto
+            nt = ntime(t)
+        end
+
+        if nt > ntime(t)
+            nt = ntime(t)
         end
 
         legend := :none
@@ -46,19 +54,27 @@ module PlotRecipes
             guidefont := font(18)
             tickfont := font(12)
             right_margin := 10mm
-            t[0:nplot:end], ΔH[0:nplot:end]
+            t[0:nplot:nt], ΔH[0:nplot:nt]
         end
     end
 
 
     @userplot PlotEnergyDrift
-    @recipe function f(p::PlotEnergyDrift; latex=true)
+    @recipe function f(p::PlotEnergyDrift; nt=:auto, latex=true)
         if length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
             t = p.args[1]
             d = p.args[2]
             @assert length(t) == length(d)
         else
-            error("Energy drift plot should be given a timeseries and a data series. Got: $(typeof(p.args))")
+            error("Energy drift plot should be given a timeseries and a dataseries. Got: $(typeof(p.args))")
+        end
+
+        if nt == :auto
+            nt = ntime(t)
+        end
+
+        if nt > ntime(t)
+            nt = ntime(t)
         end
 
         legend := :none
@@ -78,23 +94,32 @@ module PlotRecipes
             guidefont := font(18)
             tickfont := font(12)
             right_margin := 10mm
-            t[1:end], d[1:end]
+            t[1:nt], d[1:nt]
         end
     end
 
 
-    @userplot PlotMomentumError
-    @recipe function f(p::PlotMomentumError; nplot=1, k=0, latex=true)
+    @userplot PlotConstraintError
+    @recipe function f(p::PlotConstraintError; nplot=1, nt=:auto, k=0, latex=true, plot_title=nothing)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
             Δp = compute_momentum_error(sol.t, sol.q, sol.p)
+            # TODO: fix
         elseif length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
             t  = p.args[1]
             Δp = p.args[2]
             @assert t.n == Δp.nt
         else
-            error("Momentum error plots should be given a solution or a timeseries and a data series. Got: $(typeof(p.args))")
+            error("Constraint error plots should be given a solution or a timeseries and a dataseries. Got: $(typeof(p.args))")
+        end
+
+        if nt == :auto
+            nt = ntime(t)
+        end
+
+        if nt > ntime(t)
+            nt = ntime(t)
         end
 
         ntrace = (k == 0 ?    Δp.nd  :    1 )
@@ -108,6 +133,13 @@ module PlotRecipes
             @series begin
                 if k == 0
                     subplot := i
+                end
+                if plot_title !== nothing
+                    if i == trange[begin]
+                        title := plot_title
+                    else
+                        title := "   "
+                    end
                 end
                 if i == Δp.nd || k ≠ 0
                     if latex
@@ -129,14 +161,14 @@ module PlotRecipes
                 tickfont := font(12)
                 right_margin := 24mm
                 right_margin := 12mm
-                t[0:nplot:end], Δp[i,0:nplot:end]
+                t[0:nplot:nt], Δp[i,0:nplot:nt]
             end
         end
     end
 
 
     @userplot PlotLagrangeMultiplier
-    @recipe function f(p::PlotLagrangeMultiplier; k=0, nplot=1, latex=true)
+    @recipe function f(p::PlotLagrangeMultiplier; nplot=1, nt=:auto, k=0, latex=true, plot_title=nothing)
         if length(p.args) == 1 && typeof(p.args[1]) <: Solution
             sol = p.args[1]
             t = sol.t
@@ -147,6 +179,14 @@ module PlotRecipes
             @assert t.n == λ.nt
         else
             error("Lagrange multiplier plots should be given a solution or a timeseries and a data series. Got: $(typeof(p.args))")
+        end
+
+        if nt == :auto
+            nt = ntime(t)
+        end
+
+        if nt > ntime(t)
+            nt = ntime(t)
         end
 
         ntrace = (k == 0 ?    λ.nd  :    1 )
@@ -169,6 +209,13 @@ module PlotRecipes
             @series begin
                 if k == 0
                     subplot := i
+                end
+                if plot_title !== nothing
+                    if i == trange[begin]
+                        title := plot_title
+                    else
+                        title := "   "
+                    end
                 end
                 if i == λ.nd || k ≠ 0
                     if latex
@@ -200,10 +247,9 @@ module PlotRecipes
                     yguide := "λ" * subscript(i) * "(t)"
                 end
                 xlims  := (t[0], Inf)
-                t[0:nplot:end], λ[i,0:nplot:end]
+                t[0:nplot:nt], λ[i,0:nplot:nt]
             end
         end
     end
-
 
 end
