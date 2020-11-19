@@ -24,13 +24,21 @@ module LotkaVolterra2dPlots
     * `latex=true`: use LaTeX guides
     """
     @userplot Plot_Lotka_Volterra_2d
-    @recipe function f(p::Plot_Lotka_Volterra_2d; nplot=1, xlims=:auto, ylims=:auto, latex=true)
+    @recipe function f(p::Plot_Lotka_Volterra_2d; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
-            error("Lotka-Volterra plots should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
+            error("Lotka-Volterra plot should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
         equ = p.args[2]
         params = equ.parameters
+
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
 
         H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.h(t,q,params))
 
@@ -47,7 +55,7 @@ module LotkaVolterra2dPlots
         @series begin
             subplot := 1
 
-            if sol.nt ≤ 200
+            if ntime(sol) ≤ 200
                 markersize := 5
             else
                 markersize  := 1
@@ -68,7 +76,7 @@ module LotkaVolterra2dPlots
             xlims  := xlims
             ylims  := ylims
             aspect_ratio := 1
-            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
+            sol.q[1,0:nplot:nt], sol.q[2,0:nplot:nt]
         end
 
         @series begin
@@ -84,7 +92,7 @@ module LotkaVolterra2dPlots
             ylims  := :auto
             yformatter := :scientific
             right_margin := 10mm
-            sol.t[0:nplot:end], ΔH[0:nplot:end]
+            sol.t[0:nplot:nt], ΔH[0:nplot:nt]
         end
     end
 
@@ -103,15 +111,23 @@ module LotkaVolterra2dPlots
     * `latex=true`: use LaTeX guides
     """
     @userplot Plot_Lotka_Volterra_2d_Solution
-    @recipe function f(p::Plot_Lotka_Volterra_2d_Solution; nplot=1, xlims=:auto, ylims=:auto, latex=true)
+    @recipe function f(p::Plot_Lotka_Volterra_2d_Solution; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
-            error("Lotka-Volterra plots should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
+            error("Lotka-Volterra solution plot should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
         equ = p.args[2]
         params = equ.parameters
 
-        if sol.nt ≤ 200
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
+
+        if ntime(sol) ≤ 200
             markersize := 5
         else
             markersize  := 1
@@ -139,7 +155,7 @@ module LotkaVolterra2dPlots
             aspect_ratio := 1
             guidefont := font(18)
             tickfont := font(12)
-            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
+            sol.q[1,0:nplot:nt], sol.q[2,0:nplot:nt]
         end
     end
 
@@ -156,13 +172,21 @@ module LotkaVolterra2dPlots
     * `latex=true`: use LaTeX guides
     """
     @userplot Plot_Lotka_Volterra_2d_Traces
-    @recipe function f(p::Plot_Lotka_Volterra_2d_Traces; nplot=1, latex=true)
+    @recipe function f(p::Plot_Lotka_Volterra_2d_Traces; nplot=1, nt=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
-            error("Lotka-Volterra plots should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
+            error("Lotka-Volterra traces plot should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
         equ = p.args[2]
         params = equ.parameters
+
+        if nt == :auto
+            nt = ntime(sol)
+        end
+
+        if nt > ntime(sol)
+            nt = ntime(sol)
+        end
 
         H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.h(t,q,params))
 
@@ -189,7 +213,7 @@ module LotkaVolterra2dPlots
                 xlims  := (sol.t[0], Inf)
                 xaxis := false
                 right_margin := 10mm
-                sol.t[0:nplot:end], sol.q[i,0:nplot:end]
+                sol.t[0:nplot:nt], sol.q[i,0:nplot:nt]
             end
         end
 
@@ -207,7 +231,7 @@ module LotkaVolterra2dPlots
             guidefont := font(18)
             tickfont := font(12)
             right_margin := 10mm
-            sol.t[0:nplot:end], ΔH[0:nplot:end]
+            sol.t[0:nplot:nt], ΔH[0:nplot:nt]
         end
     end
 
