@@ -191,7 +191,8 @@ module MasslessChargedParticle
     function massless_charged_particle_iode(q₀=q₀; params=parameters)
         IODE(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g, q₀, ϑ(0., q₀, params);
-                parameters=params, h=hamiltonian, v=massless_charged_particle_v)
+                v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
+                parameters=params, h=hamiltonian)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
@@ -199,7 +200,8 @@ module MasslessChargedParticle
         IDAE(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
-                parameters=params, h=hamiltonian, v=massless_charged_particle_v)
+                v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
+                h=hamiltonian, parameters=params)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
