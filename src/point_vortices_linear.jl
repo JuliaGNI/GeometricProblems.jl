@@ -248,20 +248,20 @@ module PointVorticesLinear
     function point_vortices_iode(q₀=q₀)
         p₀ = point_vortices_p₀(q₀)
         IODE(point_vortices_iode_ϑ, point_vortices_iode_f,
-             point_vortices_iode_g, point_vortices_iode_v,
-             q₀, p₀)
+             point_vortices_iode_g, q₀, p₀;
+             v̄=point_vortices_iode_v)
     end
 
     function point_vortices_dg(q₀=q₀)
         IODE(point_vortices_iode_ϑ, point_vortices_iode_f,
-             point_vortices_iode_g, point_vortices_iode_v,
-             q₀, q₀)
+             point_vortices_iode_g, q₀, q₀;
+             v̄=point_vortices_iode_v)
     end
 
     function point_vortices_formal_lagrangian(q₀=q₀)
         p₀ = point_vortices_p₀(q₀)
-        VODE(ϑ, point_vortices_iode_f, point_vortices_iode_g, point_vortices_ode_v,
-             ω, dH, q₀, p₀)
+        VODE(ϑ, point_vortices_iode_f, point_vortices_iode_g, q₀, p₀;
+             v̄=point_vortices_iode_v, Ω=ω, ∇H=dH)
     end
 
 
