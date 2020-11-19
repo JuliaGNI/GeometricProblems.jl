@@ -60,8 +60,7 @@ module Pendulum
 
     function pendulum_iode(q₀=[acos(0.4), 0.0], p₀=[0.0, 0.0])
         IODE(pendulum_iode_α, pendulum_iode_f,
-             pendulum_iode_g, pendulum_iode_v,
-             q₀, p₀)
+             pendulum_iode_g, q₀, p₀; v̄=pendulum_iode_v)
     end
 
 
@@ -118,8 +117,8 @@ module Pendulum
     function pendulum_idae(q₀=[acos(0.4), 0.0], p₀=[0.0, 0.0], λ₀=[0.0, 0.0])
         IDAE(pendulum_iode_f, pendulum_iode_α,
              pendulum_idae_u, pendulum_idae_g,
-             pendulum_idae_ϕ, pendulum_iode_v,
-             q₀, p₀, λ₀)
+             pendulum_idae_ϕ, q₀, p₀, λ₀;
+             v̄=pendulum_iode_v)
     end
 
 end
