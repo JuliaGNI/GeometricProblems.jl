@@ -25,7 +25,7 @@ const ref = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.42
     sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 3E-2
 
-    int = Integrator(idae, getTableauVSPARKGLRKpSymmetric(1), Δt)
+    int = Integrator(idae, TableauVSPARKGLRKpSymmetric(1), Δt)
     sol = integrate(idae, int, nt)
     @test rel_err(sol.q, ref) < 3E-2
 end

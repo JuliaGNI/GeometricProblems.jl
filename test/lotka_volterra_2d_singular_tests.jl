@@ -27,11 +27,11 @@ set_config(:nls_rtol, 2eps())
     sol = integrate(iode, int, nt)
     @test rel_err(sol.q, reference_solution) < 5E-4
 
-    int = Integrator(idae, getTableauVSPARKGLRKpMidpoint(2), Δt)
+    int = Integrator(idae, TableauVSPARKGLRKpMidpoint(2), Δt)
     sol = integrate(idae, int, nt)
     @test rel_err(sol.q, reference_solution) < 5E-4
 
-    int = Integrator(idae, getTableauVSPARKGLRKpSymmetric(2), Δt)
+    int = Integrator(idae, TableauVSPARKGLRKpSymmetric(2), Δt)
     sol = integrate(idae, int, nt)
     @test rel_err(sol.q, reference_solution) < 5E-4
 end
