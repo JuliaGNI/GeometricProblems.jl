@@ -23,6 +23,8 @@ function ϑ(t::Number, q::AbstractVector, k::Int)
         nothing
     end
 end
+    
+ϑ(t::Number, q::AbstractVector, params::NamedTuple, k::Int) = ϑ(t,q,k)
 
 function lotka_volterra_2d_pᵢ(qᵢ, tᵢ=0)
     pᵢ = zero(qᵢ)

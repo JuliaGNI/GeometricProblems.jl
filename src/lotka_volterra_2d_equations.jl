@@ -2,6 +2,8 @@
 using GeometricIntegrators.Equations
 using PoincareInvariants
 
+import ..Diagnostics: compute_invariant_error
+
 export lotka_volterra_2d_ode, 
         lotka_volterra_2d_pode, lotka_volterra_2d_pdae,
         lotka_volterra_2d_iode, lotka_volterra_2d_idae,
@@ -11,6 +13,8 @@ export lotka_volterra_2d_ode,
 
 export lotka_volterra_2d_ode_poincare_invariant_1st,
        lotka_volterra_2d_iode_poincare_invariant_1st
+
+export compute_energy_error
 
 const Δt = 0.1
 const nt = 1000
@@ -48,6 +52,8 @@ function initial_conditions_loop(n)
    return q₀
 end
 
+
+compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
 
 
 "Creates an ODE object for the Lotka-Volterra 2D model."
