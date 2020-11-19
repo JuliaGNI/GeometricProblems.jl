@@ -6,7 +6,8 @@ export lotka_volterra_2d_ode,
         lotka_volterra_2d_pode, lotka_volterra_2d_pdae,
         lotka_volterra_2d_iode, lotka_volterra_2d_idae,
         lotka_volterra_2d_vode, lotka_volterra_2d_vdae,
-        lotka_volterra_2d_dg, lotka_volterra_2d_slrk
+        lotka_volterra_2d_dg, lotka_volterra_2d_slrk,
+        lotka_volterra_2d_idae_spark
 
 export lotka_volterra_2d_ode_poincare_invariant_1st,
        lotka_volterra_2d_iode_poincare_invariant_1st
@@ -81,6 +82,15 @@ function lotka_volterra_2d_idae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ
             lotka_volterra_2d_u, lotka_volterra_2d_g,
             lotka_volterra_2d_ϕ, q₀, p₀, λ₀;
             parameters=params, h=hamiltonian, v=lotka_volterra_2d_v)
+end
+
+"Creates an implicit DAE object for the Lotka-Volterra 2D model."
+function lotka_volterra_2d_idae_spark(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
+    IDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
+            lotka_volterra_2d_u, lotka_volterra_2d_g,
+            lotka_volterra_2d_ϕ, q₀, p₀, λ₀;
+            parameters=params, h=hamiltonian,
+            v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end
 
 "Creates a partitioned DAE object for the Lotka-Volterra 2D model."
