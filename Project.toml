@@ -21,7 +21,7 @@ SymEngine = "123dc426-2d89-5057-bbad-38513e3affd8"
 
 [compat]
 Documenter = "0.23, 0.24, 0.25"
-GeometricIntegrators = "0.5"
+GeometricIntegrators = "0.5, 0.4"
 IJulia = "1"
 LaTeXStrings = "1.0, 1.1"
 ModelingToolkit = "4"
