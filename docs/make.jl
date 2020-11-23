@@ -26,5 +26,5 @@ makedocs(
 )
 
 deploydocs(
-    repo   = "github.com/DDMGNI/GeometricProblems.jl",
+    repo   = "github.com/JuliaGNI/GeometricProblems.jl",
 )
