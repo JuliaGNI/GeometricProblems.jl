@@ -36,6 +36,33 @@ Depth = 1
 ```
 
 
+## References
+
+If you use the figures or implementations provided here, please consider citing GeometricIntegrators.jl as
+
+```
+@misc{Kraus:2020:GeometricIntegratorsRepo,
+  title={GeometricIntegrators.jl: Geometric Numerical Integration in Julia},
+  author={Kraus, Michael},
+  year={2020},
+  howpublished={\url{https://github.com/JuliaGNI/GeometricIntegrators.jl}},
+  doi={10.5281/zenodo.3648325}
+}
+```
+
+as well as this repository as
+
+```
+@misc{Kraus:2020:GeometricProblemsRepo,
+  title={GeometricProblems.jl: Collection of Differential Equations with Geometric Structure.},
+  author={Kraus, Michael},
+  year={2020},
+  howpublished={\url{https://github.com/JuliaGNI/GeometricProblems.jl}},
+  doi={10.5281/zenodo.4285904}
+}
+```
+
+
 ## Figure License
 
 > Copyright (c) Michael Kraus <michael.kraus@ipp.mpg.de>
