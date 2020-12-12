@@ -15,16 +15,16 @@ set_config(:nls_rtol, 2eps())
     iode = lotka_volterra_2d_iode()
     idae = lotka_volterra_2d_idae()
 
-    int = Integrator(ode, getTableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGLRK(2), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, reference_solution) < 4E-4
 
-    int = IntegratorVPRKpMidpoint(iode, getTableauVPGLRK(2), Δt)
+    int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
     # println(rel_err(sol.q, reference_solution))
     @test rel_err(sol.q, reference_solution) < 2E-3
 
-    int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(2), Δt)
+    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
     @test rel_err(sol.q, reference_solution) < 5E-4
 

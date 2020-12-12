@@ -23,15 +23,15 @@ pdae = harmonic_oscillator_pdae()
 
 @testset "$(rpad("Harmonic Oscillator",80))" begin
 
-    int = Integrator(ode, getTableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGLRK(2), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
-    int = IntegratorVPRKpMidpoint(iode, getTableauVPGLRK(2), Δt)
+    int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 
-    int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(2), Δt)
+    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 

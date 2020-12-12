@@ -17,11 +17,11 @@ const ref = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.42
     iode = point_vortices_iode()
     idae = point_vortices_idae()
 
-    int = Integrator(ode, getTableauGLRK(1), Δt)
+    int = Integrator(ode, TableauGLRK(1), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, ref) < 3E-2
 
-    int = IntegratorVPRKpSymmetric(iode, getTableauVPGLRK(1), Δt)
+    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(1), Δt)
     sol = integrate(iode, int, nt)
     @test rel_err(sol.q, ref) < 3E-2
 
