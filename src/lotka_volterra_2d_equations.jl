@@ -1,6 +1,6 @@
 
 using GeometricIntegrators.Equations
-using PoincareInvariants
+using Requires
 
 import ..Diagnostics: compute_invariant_error
 
@@ -142,10 +142,15 @@ function lotka_volterra_2d_loop_iode(n)
    lotka_volterra_2d_iode(initial_conditions_loop(n))
 end
 
-function lotka_volterra_2d_ode_poincare_invariant_1st(Δt, nloop, ntime, nsave, DT=Float64)
-   PoincareInvariant1st(lotka_volterra_2d_ode, f_loop, ϑ, Δt, 2, nloop, ntime, nsave, DT)
-end
 
-function lotka_volterra_2d_iode_poincare_invariant_1st(Δt, nloop, ntime, nsave, DT=Float64)
-   PoincareInvariant1st(lotka_volterra_2d_iode, f_loop, ϑ, Δt, 2, nloop, ntime, nsave, DT)
+@require PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4" begin
+
+   function lotka_volterra_2d_ode_poincare_invariant_1st(Δt, nloop, ntime, nsave, DT=Float64)
+      PoincareInvariant1st(lotka_volterra_2d_ode, f_loop, ϑ, Δt, 2, nloop, ntime, nsave, DT)
+   end
+
+   function lotka_volterra_2d_iode_poincare_invariant_1st(Δt, nloop, ntime, nsave, DT=Float64)
+      PoincareInvariant1st(lotka_volterra_2d_iode, f_loop, ϑ, Δt, 2, nloop, ntime, nsave, DT)
+   end
+
 end
