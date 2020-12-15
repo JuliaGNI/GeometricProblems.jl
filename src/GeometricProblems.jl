@@ -10,6 +10,7 @@ module GeometricProblems
     include("duffing_oscillator.jl")
     include("exponential_growth.jl")
     include("harmonic_oscillator.jl")
+    include("kubo_oscillator.jl")
     include("lennard_jones_oscillator.jl")
     include("lorenz_attractor.jl")
     include("lotka_volterra_2d.jl")
