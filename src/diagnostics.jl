@@ -29,9 +29,17 @@ module Diagnostics
     """
     function compute_one_form(t::TimeSeries, q::DataSeries, one_form::Function)
         ϑ = similar(q)
-        for i in axes(p,2)
-            for k in axes(p,1)
-                ϑ[k,i] = one_form(t[i], q[:,i], k)
+        try
+            for i in axes(p,2)
+                for k in axes(p,1)
+                    ϑ[k,i] = one_form(t[i], q[:,i], k)
+                end
+            end
+        catch ex
+            if isa(ex, DomainError)
+                @warn("DOMAIN ERROR: One-form diagnostics crashed.")
+            else
+                throw(ex)
             end
         end
         return ϑ
@@ -49,8 +57,16 @@ module Diagnostics
     """
     function compute_invariant(t::TimeSeries, q::DataSeries{T}, invariant::Function) where {T}
         invds = SDataSeries(T, q.nt)
-        for i in eachindex(invds)
-            invds[i] = invariant(t[i], q[:,i])
+        try
+            for i in eachindex(invds)
+                invds[i] = invariant(t[i], q[:,i])
+            end
+        catch ex
+            if isa(ex, DomainError)
+                @warn("DOMAIN ERROR: Invariant diagnostics crashed.")
+            else
+                throw(ex)
+            end
         end
         return invds
     end
@@ -67,8 +83,16 @@ module Diagnostics
     """
     function compute_invariant(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Function) where {T}
         invds = SDataSeries(T, q.nt)
-        for i in eachindex(invds)
-            invds[i] = invariant(t[i], q[:,i], p[:,i])
+        try
+            for i in eachindex(invds)
+                invds[i] = invariant(t[i], q[:,i], p[:,i])
+            end
+        catch ex
+            if isa(ex, DomainError)
+                @warn("DOMAIN ERROR: Invariant diagnostics crashed.")
+            else
+                throw(ex)
+            end
         end
         return invds
     end
