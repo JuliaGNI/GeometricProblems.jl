@@ -35,15 +35,15 @@ module LotkaVolterra4d
     # const p  = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-4.0, b₃=-2.0, b₄=-3.0)
 
 
-    # ϑ₁(t, q) = 0.5 * ( + log(q[2]) - log(q[3]) + log(q[4]) ) / q[1]
-    # ϑ₂(t, q) = 0.5 * ( - log(q[1]) + log(q[3]) - log(q[4]) ) / q[2]
-    # ϑ₃(t, q) = 0.5 * ( + log(q[1]) - log(q[2]) + log(q[4]) ) / q[3]
-    # ϑ₄(t, q) = 0.5 * ( - log(q[1]) + log(q[2]) - log(q[3]) ) / q[4]
+    ϑ₁(t, q) = 0.5 * ( + log(q[2]) - log(q[3]) + log(q[4]) ) / q[1]
+    ϑ₂(t, q) = 0.5 * ( - log(q[1]) + log(q[3]) - log(q[4]) ) / q[2]
+    ϑ₃(t, q) = 0.5 * ( + log(q[1]) - log(q[2]) + log(q[4]) ) / q[3]
+    ϑ₄(t, q) = 0.5 * ( - log(q[1]) + log(q[2]) - log(q[3]) ) / q[4]
 
-    ϑ₁(t, q) = ( log(q[2]) + log(q[4]) ) / q[1]
-    ϑ₂(t, q) = ( log(q[3]) ) / q[2]
-    ϑ₃(t, q) = ( log(q[1]) + log(q[4]) ) / q[3]
-    ϑ₄(t, q) = ( log(q[2]) ) / q[4]
+    # ϑ₁(t, q) = ( log(q[2]) + log(q[4]) ) / q[1]
+    # ϑ₂(t, q) = ( log(q[3]) ) / q[2]
+    # ϑ₃(t, q) = ( log(q[1]) + log(q[4]) ) / q[3]
+    # ϑ₄(t, q) = ( log(q[2]) ) / q[4]
 
     # ϑ₁(t, q) = ( + log(q[2]) - log(q[3]) + log(q[4]) ) / q[1] / 2 + q[2] + q[3] + q[4]
     # ϑ₂(t, q) = ( - log(q[1]) + log(q[3]) - log(q[4]) ) / q[2] / 2 + q[1] + q[3] + q[4]
@@ -77,46 +77,46 @@ module LotkaVolterra4d
     end
 
 
-    # dϑ₁dx₁(t, q) = ( - log(q[2]) + log(q[3]) - log(q[4]) ) / q[1]^2 / 2
-    # dϑ₁dx₂(t, q) = + 1 / (q[1] * q[2]) / 2
-    # dϑ₁dx₃(t, q) = - 1 / (q[1] * q[3]) / 2
-    # dϑ₁dx₄(t, q) = + 1 / (q[1] * q[4]) / 2
+    dϑ₁dx₁(t, q) = ( - log(q[2]) + log(q[3]) - log(q[4]) ) / q[1]^2 / 2
+    dϑ₁dx₂(t, q) = + 1 / (q[1] * q[2]) / 2
+    dϑ₁dx₃(t, q) = - 1 / (q[1] * q[3]) / 2
+    dϑ₁dx₄(t, q) = + 1 / (q[1] * q[4]) / 2
 
-    # dϑ₂dx₁(t, q) = - 1 / (q[2] * q[1]) / 2
-    # dϑ₂dx₂(t, q) = ( + log(q[1]) - log(q[3]) + log(q[4]) ) / q[2]^2 / 2
-    # dϑ₂dx₃(t, q) = + 1 / (q[2] * q[3]) / 2
-    # dϑ₂dx₄(t, q) = - 1 / (q[2] * q[4]) / 2
+    dϑ₂dx₁(t, q) = - 1 / (q[2] * q[1]) / 2
+    dϑ₂dx₂(t, q) = ( + log(q[1]) - log(q[3]) + log(q[4]) ) / q[2]^2 / 2
+    dϑ₂dx₃(t, q) = + 1 / (q[2] * q[3]) / 2
+    dϑ₂dx₄(t, q) = - 1 / (q[2] * q[4]) / 2
 
-    # dϑ₃dx₁(t, q) = + 1 / (q[3] * q[1]) / 2
-    # dϑ₃dx₂(t, q) = - 1 / (q[3] * q[2]) / 2
-    # dϑ₃dx₃(t, q) = ( - log(q[1]) + log(q[2]) - log(q[4]) ) / q[3]^2 / 2
-    # dϑ₃dx₄(t, q) = + 1 / (q[3] * q[4]) / 2
+    dϑ₃dx₁(t, q) = + 1 / (q[3] * q[1]) / 2
+    dϑ₃dx₂(t, q) = - 1 / (q[3] * q[2]) / 2
+    dϑ₃dx₃(t, q) = ( - log(q[1]) + log(q[2]) - log(q[4]) ) / q[3]^2 / 2
+    dϑ₃dx₄(t, q) = + 1 / (q[3] * q[4]) / 2
 
-    # dϑ₄dx₁(t, q) = - 1 / (q[4] * q[1]) / 2
-    # dϑ₄dx₂(t, q) = + 1 / (q[4] * q[2]) / 2
-    # dϑ₄dx₃(t, q) = - 1 / (q[4] * q[3]) / 2
-    # dϑ₄dx₄(t, q) = ( + log(q[1]) - log(q[2]) + log(q[3]) ) / q[4]^2 / 2
+    dϑ₄dx₁(t, q) = - 1 / (q[4] * q[1]) / 2
+    dϑ₄dx₂(t, q) = + 1 / (q[4] * q[2]) / 2
+    dϑ₄dx₃(t, q) = - 1 / (q[4] * q[3]) / 2
+    dϑ₄dx₄(t, q) = ( + log(q[1]) - log(q[2]) + log(q[3]) ) / q[4]^2 / 2
 
 
-    dϑ₁dx₁(t, q) = - ( log(q[2]) + log(q[4]) ) / q[1]^2
-    dϑ₁dx₂(t, q) = 1 / (q[1] * q[2])
-    dϑ₁dx₃(t, q) = zero(eltype(q))
-    dϑ₁dx₄(t, q) = 1 / (q[1] * q[4])
+    # dϑ₁dx₁(t, q) = - ( log(q[2]) + log(q[4]) ) / q[1]^2
+    # dϑ₁dx₂(t, q) = 1 / (q[1] * q[2])
+    # dϑ₁dx₃(t, q) = zero(eltype(q))
+    # dϑ₁dx₄(t, q) = 1 / (q[1] * q[4])
 
-    dϑ₂dx₁(t, q) = zero(eltype(q))
-    dϑ₂dx₂(t, q) = - ( log(q[3]) ) / q[2]^2
-    dϑ₂dx₃(t, q) = 1 / (q[2] * q[3])
-    dϑ₂dx₄(t, q) = zero(eltype(q))
+    # dϑ₂dx₁(t, q) = zero(eltype(q))
+    # dϑ₂dx₂(t, q) = - ( log(q[3]) ) / q[2]^2
+    # dϑ₂dx₃(t, q) = 1 / (q[2] * q[3])
+    # dϑ₂dx₄(t, q) = zero(eltype(q))
 
-    dϑ₃dx₁(t, q) = + 1 / (q[3] * q[1])
-    dϑ₃dx₂(t, q) = zero(eltype(q))
-    dϑ₃dx₃(t, q) = - ( log(q[1]) + log(q[4]) ) / q[3]^2
-    dϑ₃dx₄(t, q) = + 1 / (q[3] * q[4])
+    # dϑ₃dx₁(t, q) = + 1 / (q[3] * q[1])
+    # dϑ₃dx₂(t, q) = zero(eltype(q))
+    # dϑ₃dx₃(t, q) = - ( log(q[1]) + log(q[4]) ) / q[3]^2
+    # dϑ₃dx₄(t, q) = + 1 / (q[3] * q[4])
 
-    dϑ₄dx₁(t, q) = zero(eltype(q))
-    dϑ₄dx₂(t, q) = 1 / (q[4] * q[2])
-    dϑ₄dx₃(t, q) = zero(eltype(q))
-    dϑ₄dx₄(t, q) = - ( log(q[2]) ) / q[4]^2
+    # dϑ₄dx₁(t, q) = zero(eltype(q))
+    # dϑ₄dx₂(t, q) = 1 / (q[4] * q[2])
+    # dϑ₄dx₃(t, q) = zero(eltype(q))
+    # dϑ₄dx₄(t, q) = - ( log(q[2]) ) / q[4]^2
 
 
     # dϑ₁dx₁(t, q) = ( - log(q[2]) + log(q[3]) - log(q[4]) ) / q[1]^2 / 2
