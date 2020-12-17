@@ -39,6 +39,7 @@ References:
 """
 module LotkaVolterra3d
 
+    using GeometricIntegrators.Common
     using GeometricIntegrators.Equations
     using GeometricIntegrators.Solutions
 
@@ -103,24 +104,24 @@ module LotkaVolterra3d
     end
 
 
-    function compute_energy_error(t, q::DataSeries{T}) where {T}
-        h = SDataSeries(T, q.nt)
-        e = SDataSeries(T, q.nt)
+    function compute_energy_error(t, q::DataSeries{<:AbstractVector{T}}) where {T}
+        h = SDataSeries(T, ntime(q))
+        e = SDataSeries(T, ntime(q))
 
-        for i in axes(q,2)
-            h[i] = hamiltonian(t[i], q[:,i])
+        for i in axes(q,1)
+            h[i] = hamiltonian(t[i], q[i])
             e[i] = (h[i] - h[0]) / h[0]
         end
 
         (h, e)
     end
 
-    function compute_casimir_error(t, q::DataSeries{T}) where {T}
-        c = SDataSeries(T, q.nt)
-        e = SDataSeries(T, q.nt)
+    function compute_casimir_error(t, q::DataSeries{<:AbstractVector{T}}) where {T}
+        c = SDataSeries(T, ntime(q))
+        e = SDataSeries(T, ntime(q))
 
-        for i in axes(q,2)
-            c[i] = casimir(t[i], q[:,i])
+        for i in axes(q,1)
+            c[i] = casimir(t[i], q[i])
             e[i] = (c[i] - c[0]) / c[0]
         end
 

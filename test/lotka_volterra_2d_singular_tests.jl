@@ -1,4 +1,4 @@
-
+using SimpleSolvers
 using Test
 using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK
@@ -6,8 +6,8 @@ using GeometricIntegrators.Utils
 using GeometricProblems.LotkaVolterra2dSingular
 using GeometricProblems.LotkaVolterra2dSingular: Δt, nt, reference_solution
 
-set_config(:nls_atol, 8eps())
-set_config(:nls_rtol, 2eps())
+SimpleSolvers.set_config(:nls_atol, 8eps())
+SimpleSolvers.set_config(:nls_rtol, 2eps())
 
 
 @testset "$(rpad("Lotka-Volterra 2D with singular Lagrangian",80))" begin

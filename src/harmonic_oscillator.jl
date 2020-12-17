@@ -78,7 +78,7 @@ module HarmonicOscillator
     end
 
     function harmonic_oscillator_pode(q₀=[q₀[1]], p₀=[p₀[1]], params=p)
-        @assert length(q₀) == length(p₀)
+        # @assert length(q₀) == length(p₀)
         # @assert all([length(q) == length(p) == 1 for (q,p) in zip(q₀,p₀)])
         # @assert size(q₀,1) == size(p₀,1) == 1
         PODE(oscillator_pode_v, oscillator_pode_f, q₀, p₀; parameters=params)

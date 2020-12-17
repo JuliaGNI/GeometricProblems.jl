@@ -1,4 +1,3 @@
-
 using Test
 using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK

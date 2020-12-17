@@ -1,11 +1,12 @@
 
+using SimpleSolvers
 using Test
 using GeometricIntegrators
 using GeometricIntegrators.Utils
 using GeometricProblems.LotkaVolterra3d
 
-set_config(:nls_atol, 8eps())
-set_config(:nls_rtol, 2eps())
+SimpleSolvers.set_config(:nls_atol, 8eps())
+SimpleSolvers.set_config(:nls_rtol, 2eps())
 
 const Δt = 0.01
 const nt = 1000
