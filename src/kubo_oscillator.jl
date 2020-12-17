@@ -9,7 +9,9 @@ module KuboOscillator
     export kubo_oscillator_ode
 
     q_init_A=[0.5, 0.0]
-    q_init_B=[0.5 0.0 -0.5; 0.0 0.5 0.0]
+    q_init_B=[[ 0.5, 0.0],
+              [ 0.0, 0.5],
+              [-0.5, 0.0]]
 
     const noise_intensity = 0.1
     const p = (ν = noise_intensity,)
@@ -75,8 +77,8 @@ module KuboOscillator
     q_init_C=[0.5]
     p_init_C=[0.0]
 
-    q_init_D=[0.5 0.0 -0.5]
-    p_init_D=[0.0 0.5 0.0]
+    q_init_D=[[0.5], [0.0], [-0.5]]
+    p_init_D=[[0.0], [0.5], [ 0.0]]
 
 
     function kubo_oscillator_psde_v(t, q, p, v_out, params)
