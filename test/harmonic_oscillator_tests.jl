@@ -14,14 +14,14 @@ const nt = 1000
 
 const ref = [-0.012420428712136283, -0.35344429048339926]
 
-ode  = harmonic_oscillator_ode()
-dae  = harmonic_oscillator_dae()
-iode = harmonic_oscillator_iode()
-idae = harmonic_oscillator_idae()
-pode = harmonic_oscillator_pode()
-pdae = harmonic_oscillator_pdae()
-
 @testset "$(rpad("Harmonic Oscillator",80))" begin
+
+    ode  = harmonic_oscillator_ode()
+    pode = harmonic_oscillator_pode()
+    iode = harmonic_oscillator_iode()
+    dae  = harmonic_oscillator_dae()
+    idae = harmonic_oscillator_idae()
+    pdae = harmonic_oscillator_pdae()
 
     int = Integrator(ode, TableauGLRK(2), Δt)
     sol = integrate(ode, int, nt)

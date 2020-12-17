@@ -69,19 +69,19 @@ module LotkaVolterra2d
     end
 
 
-    function lotka_volterra_2d_ϑ(κ, t, q, v, Θ, params)
+    function lotka_volterra_2d_ϑ_κ(κ, t, q, v, Θ, params)
         Θ[1] = (1-κ) * ϑ₁(t,q) - κ * f₁(t,q,q)
         Θ[2] = (1-κ) * ϑ₂(t,q) - κ * f₂(t,q,q)
         nothing
     end
 
-    function lotka_volterra_2d_f(κ::Real, t::Real, q::Vector, v::Vector, f::Vector, params)
+    function lotka_volterra_2d_f_κ(κ::Real, t::Real, q::Vector, v::Vector, f::Vector, params)
         f[1] = (1-κ) * f₁(t,q,v) - κ * (g₁(t,q,v) + g̅₁(t,q,v)) - dHd₁(t, q, params)
         f[2] = (1-κ) * f₂(t,q,v) - κ * (g₂(t,q,v) + g̅₂(t,q,v)) - dHd₂(t, q, params)
         nothing
     end
 
-    function lotka_volterra_2d_g(κ::Real, t::Real, q::Vector, v::Vector, g::Vector, params)
+    function lotka_volterra_2d_g_κ(κ::Real, t::Real, q::Vector, v::Vector, g::Vector, params)
         g[1] = (1-κ) * f₁(t,q,v) - κ * (g₁(t,q,v) + g̅₁(t,q,v))
         g[2] = (1-κ) * f₂(t,q,v) - κ * (g₂(t,q,v) + g̅₂(t,q,v))
         nothing
@@ -95,13 +95,13 @@ module LotkaVolterra2d
 
 
     function lotka_volterra_2d_dg_gauge(q₀=q₀, p₀=ϑ(0, q₀), κ=0; params=parameters)
-        lotka_volterra_2d_ϑ_κ(t, q, v, p, params) = lotka_volterra_2d_ϑ(κ, t, q, v, p, params)
-        lotka_volterra_2d_f_κ(t, q, v, f, params) = lotka_volterra_2d_f(κ, t, q, v, f, params)
-        lotka_volterra_2d_g_κ(t, q, λ, g, params) = lotka_volterra_2d_g(κ, t, q, λ, g, params)
+        lotka_volterra_2d_ϑ = (t, q, v, p, params) -> lotka_volterra_2d_ϑ_κ(κ, t, q, v, p, params)
+        lotka_volterra_2d_f = (t, q, v, f, params) -> lotka_volterra_2d_f_κ(κ, t, q, v, f, params)
+        lotka_volterra_2d_g = (t, q, λ, g, params) -> lotka_volterra_2d_g_κ(κ, t, q, λ, g, params)
 
-        IODE(lotka_volterra_2d_ϑ_κ, lotka_volterra_2d_f_κ,
-             lotka_volterra_2d_g_κ, q₀, p₀;
-             parameters=params, v=lotka_volterra_2d_v)
+        IODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
+             lotka_volterra_2d_g, q₀, p₀;
+             parameters=params, v̄=lotka_volterra_2d_v)
     end
 
 end
