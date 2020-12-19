@@ -17,9 +17,6 @@ module LotkaVolterra4d
            lotka_volterra_4d_dg
 
 
-    include("lotka_volterra_4d_plots.jl")
-       
-
     Δt = 0.1
     nt = 1000
 
