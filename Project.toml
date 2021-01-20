@@ -16,7 +16,7 @@ SymEngine = "123dc426-2d89-5057-bbad-38513e3affd8"
 [compat]
 Documenter = "0.23, 0.24, 0.25, 0.26"
 GeometricIntegrators = "0.7"
-ModelingToolkit = "4"
+ModelingToolkit = "4, 5.0"
 Parameters = "0.12"
 Reexport = "0.2, 1.0"
 Requires = "1"
