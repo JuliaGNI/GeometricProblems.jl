@@ -129,7 +129,7 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
 
     ref_int = Integrator(ref_idae, TableauVSPARKGLRKpMidpoint(2), Δt)
     ref_sol = integrate(ref_idae, ref_int, nt)
-    @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
+    @test rel_err(sol.q, ref_sol.q[end]) < 2E-14
 
     int = Integrator(idae, TableauVSPARKGLRKpSymmetric(2), Δt)
     sol = integrate(idae, int, nt)
