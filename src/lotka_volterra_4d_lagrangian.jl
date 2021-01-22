@@ -15,7 +15,6 @@ module LotkaVolterra4dLagrangian
     using ModelingToolkit
     using Parameters
     using RuntimeGeneratedFunctions
-    using SymEngine
 
     using GeometricIntegrators.Equations
     using GeometricIntegrators.Solutions
@@ -43,7 +42,7 @@ module LotkaVolterra4dLagrangian
 
     const reference_solution = [1.6390462434739954, 1.3764800055785835, 0.37903204434372284, 1.4399236281802124]
 
-    const A_antisym = 1//2 * [
+    const A_antisym = 1//2 .* [
                 0 -1 +1 -1
                +1  0 -1 +1
                -1 +1  0 -1
@@ -67,13 +66,13 @@ module LotkaVolterra4dLagrangian
                -1 +1  0  0
                +1 -1 +1  0]
     
-    const A_quasicanonical_antisym = 1//2 * [
+    const A_quasicanonical_antisym = 1//2 .* [
                 0 -1 +1 -1
                +1  0 -1  0
                -1 +1  0 -1
                +1  0 +1  0]
 
-    const A_quasicanonical_reduced = 1//2 * [
+    const A_quasicanonical_reduced = 1//2 .* [
                 0  0 +1  0
                +2  0 -2  0
                -1  0  0  0
@@ -85,50 +84,9 @@ module LotkaVolterra4dLagrangian
                 1  1  1  0]
 
 
-    # TODO: Remove H₁ and H₂ as soon as ModelingToolkit is fixed.
     H(x, a, b) = sum(a .* x) + sum(b .* log.(x))
     K(x, v, A, B) = sum(log.(x) .* (A * (v ./ x))) + sum(x .* (B * v))
     L(x, v, A, B, a, b) = K(x, v, A, B) - H(x, a, b)
-
-    # function poisson(x, A, B)
-    #     x₁, x₂, x₃, x₄ = symbols("x₁, x₂, x₃, x₄")
-    #     Ω = ( [(A[1,1] - A[1,1])/x₁/x₁   (A[1,2] - A[2,1])/x₁/x₂   (A[1,3] - A[3,1])/x₁/x₃   (A[1,4] - A[4,1])/x₁/x₄
-    #            (A[2,1] - A[1,2])/x₂/x₁   (A[2,2] - A[2,2])/x₂/x₂   (A[2,3] - A[3,2])/x₂/x₃   (A[2,4] - A[4,2])/x₂/x₄
-    #            (A[3,1] - A[1,3])/x₃/x₁   (A[3,2] - A[2,3])/x₃/x₂   (A[3,3] - A[3,3])/x₃/x₃   (A[3,4] - A[4,3])/x₃/x₄
-    #            (A[4,1] - A[1,4])/x₄/x₁   (A[4,2] - A[2,4])/x₄/x₂   (A[4,3] - A[3,4])/x₄/x₃   (A[4,4] - A[4,4])/x₄/x₄]
-    #        .+ [(B[1,1] - B[1,1])         (B[1,2] - B[2,1])         (B[1,3] - B[3,1])         (B[1,4] - B[4,1])
-    #            (B[2,1] - B[1,2])         (B[2,2] - B[2,2])         (B[2,3] - B[3,2])         (B[2,4] - B[4,2])
-    #            (B[3,1] - B[1,3])         (B[3,2] - B[2,3])         (B[3,3] - B[3,3])         (B[3,4] - B[4,3])
-    #            (B[4,1] - B[1,4])         (B[4,2] - B[2,4])         (B[4,3] - B[3,4])         (B[4,4] - B[4,4])]
-    #         )
-
-    #     P = expand.(inv(Ω))
-
-    #     body = convert(Expr, P)
-    #     code = quote
-    #         let (x₁, x₂, x₃, x₄) = $x
-    #             $body
-    #         end
-    #     end
-        
-    #     eval(code)
-    # end
-
-    function poisson(Ω, X)
-        # TODO: Replace SymEngine with ModelingToolkit as soon as it is fixed.
-        x₁, x₂, x₃, x₄ = symbols("x₁, x₂, x₃, x₄")
-        code = ModelingToolkit.build_function(Ω, X...)[1]
-        Ωfnc = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code))
-        Ωsym = Ωfnc(x₁, x₂, x₃, x₄)
-        Psym = expand.(inv(Ωsym))
-        body = convert(Expr, Psym)
-        code = quote
-            let (x₁, x₂, x₃, x₄) = $X
-                $body
-            end
-        end
-        eval(code)
-    end
 
 
     function substitute_ẋ_with_v!(eqs, ẋ, v)
@@ -137,75 +95,52 @@ module LotkaVolterra4dLagrangian
         end
     end
 
-    function substitute_inverses!(eqs, x, v, Dv)
-        for i in eachindex(eqs)
-            for j in eachindex(x,v,Dv)
-                eqs[i] = substitute(eqs[i], expand_derivatives(Dv[j](v[j] / x[j]  )) => 1/x[j]  )
-                eqs[i] = substitute(eqs[i], expand_derivatives(Dv[j](v[j] / x[j]^2)) => 1/x[j]^2)
-                eqs[i] = substitute(eqs[i], inv(x[j]) => 1/x[j])
-            end
-        end
-    end
-
     function substitute_variables!(eqs, x, v, X, V)
         for i in eachindex(eqs)
             eqs[i] = substitute(eqs[i], [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
-            eqs[i] = substitute(eqs[i],  0//1 => Num( 0))
-            eqs[i] = substitute(eqs[i],  1//1 => Num( 1))
-            eqs[i] = substitute(eqs[i], -1//1 => Num(-1))
         end
     end
 
 
     function get_functions(A,B,a,b)
         @parameters t
-        @derivatives Dt'~t
 
         @variables x₁(t), x₂(t), x₃(t), x₄(t)
         @variables v₁(t), v₂(t), v₃(t), v₄(t)
-        @variables X₁, X₂, X₃, X₄
-        @variables V₁, V₂, V₃, V₄
-        @variables P₁, P₂, P₃, P₄
-        @variables F₁, F₂, F₃, F₄
+        @variables X[1:4]
+        @variables V[1:4]
+        @variables P[1:4]
+        @variables F[1:4]
 
         x = [x₁, x₂, x₃, x₄]
         v = [v₁, v₂, v₃, v₄]
-        X = [X₁, X₂, X₃, X₄]
-        V = [V₁, V₂, V₃, V₄]
-        P = [P₁, P₂, P₃, P₄]
-        F = [F₁, F₂, F₃, F₄]
 
+        Dt = Differential(t)
         Dx = Differential.(x)
         Dv = Differential.(v)
         DX = Differential.(X)
         DV = Differential.(V)
 
-        let L = L(x, v, A, B, a, b), K = K(x, v, A, B), H = H(x, a, b)
+        let L = simplify(L(x, v, A, B, a, b)), K = simplify(K(x, v, A, B)), H = simplify(H(x, a, b))
             EL = [expand_derivatives(Dx[i](L) - Dt(Dv[i](L))) for i in eachindex(Dx,Dv)]
-            ∇H = [expand_derivatives(Dx[i](H)) for i in eachindex(Dx)]
-            f  = [expand_derivatives(Dx[i](L)) for i in eachindex(Dx)]
-            f̄  = [expand_derivatives(Dx[i](K)) for i in eachindex(Dx)]
-            g  = [expand_derivatives(Dt(Dv[i](L))) for i in eachindex(Dv)]
-            ϑ  = [expand_derivatives(Dv[i](L)) for i in eachindex(Dv)]
+            ∇H = [expand_derivatives(dx(H)) for dx in Dx]
+            f  = [expand_derivatives(dx(L)) for dx in Dx]
+            f̄  = [expand_derivatives(dx(K)) for dx in Dx]
+            g  = [expand_derivatives(Dt(dv(L))) for dv in Dv]
+            ϑ  = [expand_derivatives(dv(L)) for dv in Dv]
             ω  = [expand_derivatives(simplify(Dx[i](ϑ[j]) - Dx[j](ϑ[i]))) for i in eachindex(Dx,ϑ), j in eachindex(Dx,ϑ)]
+            Σ  = simplify.(inv(ω))
+            ẋ  = simplify.(Σ * ∇H)
 
-            for eq in (EL, ∇H, f, f̄, g, ϑ, ω, P)
+            for eq in (EL, ∇H, f, f̄, g, ϑ, ω, Σ, ẋ)
                 substitute_ẋ_with_v!(eq, Dt.(x), v)
-                substitute_inverses!(eq, x, v, Dv) # TODO: Remove as soon as ModelingToolkit is fixed.
                 substitute_variables!(eq, x, v, X, V)
             end
-
-            Σ = poisson(ω, X)
-            substitute_variables!(Σ, x, v, X, V)
-            ẋ = simplify.(Σ * ∇H)
 
             H = substitute(H, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
             ϕ = P .- ϑ
             ψ = F .- g
 
-            substitute_variables!(ẋ, x, v, X, V)
-            substitute_inverses!(ẋ, X, V, DV)
-            
             # component wise code generation
             # code_EL = [build_function(eq, t, X, V)[2] for eq in EL]
             # code_f  = [build_function(eq, t, X, V)[2] for eq in f ]

@@ -52,6 +52,24 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
 
     @test iode.p₀ == ref_iode.p₀
 
+    ϑ1 = zero(iode.q₀[begin])
+    ϑ2 = zero(ref_iode.q₀[begin])
+    iode.ϑ(iode.t₀, iode.q₀[begin], v1, ϑ1)
+    ref_eqs[:ϑ](ref_iode.t₀, ref_iode.q₀[begin], v2, ϑ2)
+    @test ϑ1 ≈ ϑ2  atol=1E-14
+
+    f1 = zero(iode.q₀[begin])
+    f2 = zero(ref_iode.q₀[begin])
+    iode.f(iode.t₀, iode.q₀[begin], v1, f1)
+    ref_eqs[:f](ref_iode.t₀, ref_iode.q₀[begin], v2, f2)
+    @test f1 ≈ f2  atol=1E-14
+
+    g1 = zero(iode.q₀[begin])
+    g2 = zero(ref_iode.q₀[begin])
+    iode.g(iode.t₀, iode.q₀[begin], v1, g1)
+    ref_eqs[:g](ref_iode.t₀, ref_iode.q₀[begin], v2, g2)
+    @test g1 ≈ g2  atol=1E-14
+
     v1 = zero(iode.q₀[begin])
     v2 = zero(ref_iode.q₀[begin])
     iode.v̄(iode.t₀, iode.q₀[begin], v1)
