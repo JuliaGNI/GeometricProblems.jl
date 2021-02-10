@@ -1,5 +1,6 @@
 module Diagnostics
 
+    using GeometricIntegrators.Common
     using GeometricIntegrators.Solutions
 
     export compute_one_form, compute_invariant, compute_invariant_error, compute_momentum_error, compute_error_drift
@@ -55,11 +56,11 @@ module Diagnostics
 
     Returns a 1d DataSeries holding the time series of the invariant.
     """
-    function compute_invariant(t::TimeSeries, q::DataSeries{T}, invariant::Function) where {T}
-        invds = SDataSeries(T, q.nt)
+    function compute_invariant(t::TimeSeries, q::DataSeries{<:AbstractArray{T}}, invariant::Function) where {T}
+        invds = SDataSeries(T, ntime(q))
         try
             for i in eachindex(invds)
-                invds[i] = invariant(t[i], q[:,i])
+                invds[i] = invariant(t[i], q[i])
             end
         catch ex
             if isa(ex, DomainError)
@@ -81,8 +82,8 @@ module Diagnostics
 
     Returns a 1d DataSeries holding the time series of the invariant.
     """
-    function compute_invariant(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Function) where {T}
-        invds = SDataSeries(T, q.nt)
+    function compute_invariant(t::TimeSeries, q::DataSeries{<:AbstractArray{T}}, p::DataSeries{<:AbstractArray{T}}, invariant::Function) where {T}
+        invds = SDataSeries(T, ntime(q))
         try
             for i in eachindex(invds)
                 invds[i] = invariant(t[i], q[:,i], p[:,i])
@@ -183,11 +184,11 @@ module Diagnostics
     is oscillating such as the energy error of Hamiltonian systems with symplectic integrators.
     """
     function compute_error_drift(t::TimeSeries, invariant_error::DataSeries{T,1}, interval_length=100) where {T}
-        @assert t.n == invariant_error.nt
+        @assert ntime(t) == ntime(invariant_error)
         @assert mod(t.n, interval_length) == 0
 
-        nint   = div(invariant_error.nt, interval_length)
-        Tdrift = TimeSeries(nint, t.Δt*interval_length)
+        nint   = div(ntime(invariant_error), interval_length)
+        Tdrift = TimeSeries(nint, timestep(t)*interval_length)
         Idrift = SDataSeries(T, nint)
 
         Tdrift[0] = t[0]
