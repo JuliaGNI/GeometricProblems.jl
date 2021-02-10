@@ -61,7 +61,7 @@ const ref = [-0.012420428712136283, -0.35344429048339926]
     @test_nowarn pdae_equs[:f̄](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], zero(pdae.p₀[begin]))
 
     
-    int = Integrator(ode, TableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, ref) < 1E-4
 

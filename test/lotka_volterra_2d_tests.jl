@@ -100,7 +100,7 @@ SimpleSolvers.set_config(:nls_rtol, 2eps())
     @test_nowarn vdae_equs[:h](vdae.t₀, vdae.q₀[begin])
 
 
-    int = Integrator(ode, TableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, reference_solution) < 5E-4
 

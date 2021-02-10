@@ -15,7 +15,7 @@ SimpleSolvers.set_config(:nls_rtol, 2eps())
     iode = lotka_volterra_4d_iode()
     idae = lotka_volterra_4d_idae()
 
-    int = Integrator(ode, TableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, reference_solution) < 8E-4
 

@@ -17,7 +17,7 @@ const ref = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
 @testset "$(rpad("Lotka-Volterra 3D",80))" begin
     ode  = lotka_volterra_3d_ode()
 
-    int = Integrator(ode, TableauGLRK(1), Δt)
+    int = Integrator(ode, TableauGauss(1), Δt)
     sol = integrate(ode, int, nt)
     H, ΔH = compute_energy_error(sol.t, sol.q)
     C, ΔC = compute_casimir_error(sol.t, sol.q)
@@ -25,7 +25,7 @@ const ref = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
     @test ΔH[end] < 4E-6
     @test ΔC[end] < 8E-6
 
-    int = Integrator(ode, TableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
     H, ΔH = compute_energy_error(sol.t, sol.q)
     C, ΔC = compute_casimir_error(sol.t, sol.q)

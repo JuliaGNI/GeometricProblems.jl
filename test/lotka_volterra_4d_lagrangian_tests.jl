@@ -39,11 +39,11 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
     h2 = ref_eqs[:h](ref_ode.t₀, ref_ode.q₀[begin])
     @test h1 ≈ h2  atol=1E-14
 
-    int = Integrator(ode, TableauGLRK(2), Δt)
+    int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
     @test rel_err(sol.q, reference_solution) < 8E-4
 
-    ref_int = Integrator(ref_ode, TableauGLRK(2), Δt)
+    ref_int = Integrator(ref_ode, TableauGauss(2), Δt)
     ref_sol = integrate(ref_ode, ref_int, nt)
     @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
 
