@@ -7,7 +7,7 @@ import ..Diagnostics: compute_invariant_error
 export lotka_volterra_2d_ode,  lotka_volterra_2d_dae,
        lotka_volterra_2d_pode, lotka_volterra_2d_pdae,
        lotka_volterra_2d_iode, lotka_volterra_2d_idae,
-       lotka_volterra_2d_vode, lotka_volterra_2d_vdae,
+       lotka_volterra_2d_lode, lotka_volterra_2d_ldae,
        lotka_volterra_2d_hode, lotka_volterra_2d_hdae,
        lotka_volterra_2d_dg,   lotka_volterra_2d_slrk,
        lotka_volterra_2d_idae_spark
@@ -84,8 +84,8 @@ function lotka_volterra_2d_pode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); pa
 end
 
 "Creates a variational ODE object for the Lotka-Volterra 2D model."
-function lotka_volterra_2d_vode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
-    VODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
+function lotka_volterra_2d_lode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
+    LODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
          lotka_volterra_2d_g, q₀, p₀;
          parameters=params, h=hamiltonian, v̄=lotka_volterra_2d_v,
          Ω=lotka_volterra_2d_ω, ∇H=lotka_volterra_2d_dH)
@@ -134,8 +134,8 @@ function lotka_volterra_2d_pdae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ
 end
 
 "Creates a variational DAE object for the Lotka-Volterra 2D model."
-function lotka_volterra_2d_vdae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
-    VDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
+function lotka_volterra_2d_ldae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
+    LDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
          lotka_volterra_2d_g, lotka_volterra_2d_g̅,
          lotka_volterra_2d_ϕ, lotka_volterra_2d_ψ,
          q₀, p₀, λ₀; parameters=params, h=hamiltonian,
@@ -144,7 +144,7 @@ end
 
 "Creates a variational DAE object for the Lotka-Volterra 2D model for use with SLRK integrators."
 function lotka_volterra_2d_slrk(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
-    VDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
+    LDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
             lotka_volterra_2d_g, lotka_volterra_2d_g̅,
             lotka_volterra_2d_ϕ, lotka_volterra_2d_ψ,
             q₀, p₀, λ₀; parameters=params, h=hamiltonian,

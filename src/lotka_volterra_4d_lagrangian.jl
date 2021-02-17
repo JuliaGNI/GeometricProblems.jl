@@ -25,8 +25,8 @@ module LotkaVolterra4dLagrangian
 
     export lotka_volterra_4d_ode, 
            lotka_volterra_4d_iode, lotka_volterra_4d_idae,
-           lotka_volterra_4d_vode
-        #    lotka_volterra_4d_vdae,
+           lotka_volterra_4d_lode
+        #    lotka_volterra_4d_ldae,
         #    lotka_volterra_4d_dg
 
 
@@ -203,9 +203,9 @@ module LotkaVolterra4dLagrangian
              v̄=(t,x,v) -> funcs[:ẋ](v,t,x), h=funcs[:H])
     end
 
-    function lotka_volterra_4d_vode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
+    function lotka_volterra_4d_lode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
         funcs = get_functions(A,B,a,b)
-        VODE((t,x,v,ϑ) -> funcs[:ϑ](ϑ,t,x),
+        LODE((t,x,v,ϑ) -> funcs[:ϑ](ϑ,t,x),
              (t,x,v,f) -> funcs[:f](f,t,x,v),
              (t,x,v,f̄) -> funcs[:f̄](f̄,t,x,v),
              q₀, funcs[:p](0, q₀);
@@ -226,8 +226,8 @@ module LotkaVolterra4dLagrangian
              v̄=(t,x,v) -> funcs[:ẋ](v,t,x), h=funcs[:H])
     end
 
-    # function lotka_volterra_4d_vdae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
-    #     VDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
+    # function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
+    #     LDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
     #          lotka_volterra_4d_g, lotka_volterra_4d_g̅,
     #          lotka_volterra_4d_ϕ, lotka_volterra_4d_ψ,
     #          q₀, p₀, λ₀; parameters=params, h=hamiltonian, v=lotka_volterra_4d_v)

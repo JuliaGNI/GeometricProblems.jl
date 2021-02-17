@@ -329,7 +329,7 @@ module PointVortices
 
     function point_vortices_formal_lagrangian(q₀=q₀)
         p₀ = point_vortices_p₀(q₀)
-        VODE(ϑ, point_vortices_f, point_vortices_g, q₀, p₀;
+        LODE(ϑ, point_vortices_f, point_vortices_g, q₀, p₀;
              v̄=point_vortices_v, Ω=ω, ∇H=dH)
     end
 
