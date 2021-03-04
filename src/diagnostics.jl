@@ -86,7 +86,7 @@ module Diagnostics
         invds = SDataSeries(T, ntime(q))
         try
             for i in eachindex(invds)
-                invds[i] = invariant(t[i], q[:,i], p[:,i])
+                invds[i] = invariant(t[i], q[i], p[i])
             end
         catch ex
             if isa(ex, DomainError)

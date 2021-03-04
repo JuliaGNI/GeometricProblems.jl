@@ -22,10 +22,13 @@ module HarmonicOscillator
     const p = (k=k, ω=ω)
 
 
+    ϑ₁(t,q) = q[2]
+    ϑ₂(t,q) = zero(eltype(q))
+
     function ϑ(q)
         p = zero(q)
-        p[1] = q[2]
-        p[2] = 0
+        p[1] = ϑ₁(0,q)
+        p[2] = ϑ₂(0,q)
         return p
     end
 
@@ -37,6 +40,10 @@ module HarmonicOscillator
     function hamiltonian(t, q, p, params)
         @unpack k = params
         p[1]^2 / 2 + k * q[1]^2 / 2
+    end
+
+    function lagrangian(t, q, v, params)
+        ϑ₁(t,q) * v[1] + ϑ₂(t,q) * v[2] - hamiltonian(t, q, params)
     end
 
 
@@ -62,7 +69,7 @@ module HarmonicOscillator
 
     function harmonic_oscillator_ode(x₀=q₀, params=p)
         # @assert size(x₀,1) == 2
-        ODE(oscillator_ode_v, x₀; parameters=params, h=hamiltonian)
+        ODE(oscillator_ode_v, x₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
 
@@ -81,7 +88,7 @@ module HarmonicOscillator
         # @assert length(q₀) == length(p₀)
         # @assert all([length(q) == length(p) == 1 for (q,p) in zip(q₀,p₀)])
         # @assert size(q₀,1) == size(p₀,1) == 1
-        PODE(oscillator_pode_v, oscillator_pode_f, q₀, p₀; parameters=params)
+        PODE(oscillator_pode_v, oscillator_pode_f, q₀, p₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
 
@@ -160,7 +167,7 @@ module HarmonicOscillator
         # @assert size(q₀,1) == size(p₀,1) == 2
         IODE(oscillator_iode_ϑ, oscillator_iode_f,
              oscillator_iode_g, q₀, p₀;
-             parameters=params,
+             invariants=(h=hamiltonian,), parameters=params,
              v̄=oscillator_iode_v)
     end
 
@@ -188,8 +195,8 @@ module HarmonicOscillator
         # @assert size(λ₀,1) == 1
         # @assert all([length(z) == 3 for z in z₀])
         # @assert all([length(λ) == 1 for λ in λ₀])
-        DAE(oscillator_dae_v, oscillator_dae_u, oscillator_dae_ϕ, z₀, λ₀;
-            v̄=oscillator_ode_v, parameters=params)
+        DAE(oscillator_dae_v, oscillator_dae_u, oscillator_dae_ϕ,
+            z₀, λ₀; invariants=(h=hamiltonian,), parameters=params, v̄=oscillator_ode_v)
     end
 
 
@@ -232,9 +239,8 @@ module HarmonicOscillator
     function harmonic_oscillator_idae(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀), params=p)
         # @assert size(q₀,1) == size(p₀,1) == size(λ₀,1) == 2
         IDAE(oscillator_iode_ϑ, oscillator_iode_f,
-             oscillator_idae_u, oscillator_idae_g,
-             oscillator_idae_ϕ, q₀, p₀, λ₀;
-             parameters=params, v̄=oscillator_iode_v)
+             oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ,
+             q₀, p₀, λ₀; invariants=(h=hamiltonian,), parameters=params, v̄=oscillator_iode_v)
     end
 
     function oscillator_pdae_v(t, q, p, v, params)
@@ -254,19 +260,16 @@ module HarmonicOscillator
     function harmonic_oscillator_pdae(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀), params=p)
         # @assert size(q₀,1) == size(p₀,1) == 2
         PDAE(oscillator_pdae_v, oscillator_pdae_f,
-             oscillator_idae_u, oscillator_idae_g,
-             oscillator_idae_ϕ, q₀, p₀, λ₀;
-             parameters=params)
+             oscillator_idae_u,  oscillator_idae_g, oscillator_idae_ϕ,
+             q₀, p₀, λ₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
     function harmonic_oscillator_hdae(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀), params=p)
         # @assert size(q₀,1) == size(p₀,1) == 2
-        HDAE(oscillator_pdae_v, oscillator_pdae_f,
-             oscillator_idae_u, oscillator_idae_g,
-             oscillator_idae_ū, oscillator_idae_ḡ,
-             oscillator_idae_ϕ, oscillator_idae_ψ,
-             hamiltonian, q₀, p₀, λ₀;
-             parameters=params)
+        HDAE(oscillator_pdae_v, oscillator_pdae_f, 
+             oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ,
+             oscillator_idae_ū, oscillator_idae_ḡ, oscillator_idae_ψ,
+             hamiltonian, q₀, p₀, λ₀; parameters=params)
     end
 
 

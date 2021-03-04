@@ -55,7 +55,14 @@ function hamiltonian(t, q, params)
     a₁*q[1] + a₂*q[2] + b₁*log(q[1]) + b₂*log(q[2])
 end
 
-hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
+hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
+
+hamiltonian_pode(t, q, p, params) = hamiltonian(t, q, params)
+
+function lagrangian(t, q, v, params)
+    ϑ₁(t,q) * v[1] + ϑ₂(t,q) * v[2] - hamiltonian(t, q, params)
+end
+
 
 function dHd₁(t, q, params)
     @unpack a₁, b₁ = params
@@ -89,6 +96,7 @@ g₂(t, q, v) = dϑ₂dx₁(t,q) * v[1] + dϑ₂dx₂(t,q) * v[2]
 lotka_volterra_2d_ϑ(t, q, Θ, params) = ϑ(t, q, Θ)
 lotka_volterra_2d_ϑ(t, q, v, Θ, params) = ϑ(t, q, Θ)
 lotka_volterra_2d_ω(t, q, Ω, params) = ω(t, q, Ω)
+lotka_volterra_2d_ω(t, q, v, Ω, params) = ω(t, q, Ω)
 
 
 function lotka_volterra_2d_dH(t, q, dH, params)
@@ -198,5 +206,11 @@ end
 function lotka_volterra_2d_ψ(t, q, p, v, f, ψ, params)
     ψ[1] = f[1] - g₁(t,q,v)
     ψ[2] = f[2] - g₂(t,q,v)
+    nothing
+end
+
+function lotka_volterra_2d_ψ_lode(t, q, p, v, f, ψ, params)
+    ψ[1] = f₁(t,q,v) - g₁(t,q,v) - dHd₁(t, q, params)
+    ψ[2] = f₂(t,q,v) - g₂(t,q,v) - dHd₂(t, q, params)
     nothing
 end

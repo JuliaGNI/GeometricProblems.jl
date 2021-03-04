@@ -228,9 +228,9 @@ module LotkaVolterra4d
         a₁*q[1] + a₂*q[2] + a₃*q[3] + a₄*q[4] + b₁*log(q[1]) + b₂*log(q[2]) + b₃*log(q[3]) + b₄*log(q[4])
     end
 
-    function hamiltonian(t, q, p, params)
-        hamiltonian(t, q, params)
-    end
+    hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
+
+    hamiltonian_pode(t, q, p, params) = hamiltonian(t, q, params)
 
 
     function dHd₁(t, q, params)
@@ -356,25 +356,25 @@ module LotkaVolterra4d
 
 
     function lotka_volterra_4d_ode(q₀=q₀, params=p)
-        ODE(lotka_volterra_4d_v, q₀; parameters=params, h=hamiltonian)
+        ODE(lotka_volterra_4d_v, q₀; parameters=params, invariants=(h=hamiltonian,))
     end
 
 
     function lotka_volterra_4d_pode(q₀=q₀, p₀=ϑ(0, q₀), params=p)
         PODE(lotka_volterra_4d_v, lotka_volterra_4d_f,
-             q₀, p₀; parameters=params, h=hamiltonian)
+             q₀, p₀; parameters=params, invariants=(h=hamiltonian_pode,))
     end
 
     function lotka_volterra_4d_iode(q₀=q₀, p₀=ϑ(0, q₀), params=p)
         IODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
              lotka_volterra_4d_g, q₀, p₀;
-             parameters=params, h=hamiltonian, v̄=lotka_volterra_4d_v)
+             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
     end
 
     function lotka_volterra_4d_lode(q₀=q₀, p₀=ϑ(0, q₀), params=p)
         LODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
              lotka_volterra_4d_g, q₀, p₀;
-             parameters=params, h=hamiltonian, v̄=lotka_volterra_4d_v,
+             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v,
              Ω=lotka_volterra_4d_ω, ∇H=lotka_volterra_4d_dH)
     end
 
@@ -382,7 +382,7 @@ module LotkaVolterra4d
         IDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
              lotka_volterra_4d_u, lotka_volterra_4d_g,
              lotka_volterra_4d_ϕ, q₀, p₀, λ₀;
-             parameters=params, h=hamiltonian, v̄=lotka_volterra_4d_v)
+             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
     end
 
     function lotka_volterra_4d_pdae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
@@ -390,21 +390,21 @@ module LotkaVolterra4d
              lotka_volterra_4d_u, lotka_volterra_4d_g,
              lotka_volterra_4d_ϕ, q₀, p₀, λ₀;
              v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,
-             parameters=params, h=hamiltonian)
+             parameters=params, invariants=(h=hamiltonian_pode,))
     end
 
     function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
         LDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
              lotka_volterra_4d_g, lotka_volterra_4d_g̅,
              lotka_volterra_4d_ϕ, lotka_volterra_4d_ψ,
-             q₀, p₀, λ₀; parameters=params, h=hamiltonian,
+             q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_iode,),
              v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,)
     end
 
     function lotka_volterra_4d_dg(q₀=q₀, p₀=ϑ(0, q₀), params=p)
         IODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
              lotka_volterra_4d_g, q₀, p₀;
-             parameters=params, h=hamiltonian, v̄=lotka_volterra_4d_v)
+             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
     end
 
 end

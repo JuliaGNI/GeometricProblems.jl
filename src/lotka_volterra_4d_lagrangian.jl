@@ -15,6 +15,7 @@ module LotkaVolterra4dLagrangian
     using ModelingToolkit
     using Parameters
     using RuntimeGeneratedFunctions
+    using Symbolics
 
     using GeometricIntegrators.Equations
     using GeometricIntegrators.Solutions
@@ -138,6 +139,7 @@ module LotkaVolterra4dLagrangian
             end
 
             H = substitute(H, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
+            L = substitute(L, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
             ϕ = P .- ϑ
             ψ = F .- g
 
@@ -169,21 +171,23 @@ module LotkaVolterra4dLagrangian
             code_ϕ  = build_function(ϕ,  t, X, P)[2]
             code_ψ  = build_function(ψ,  t, X, V, P, F)[2]
             code_H  = build_function(H,  t, X)
+            code_L  = build_function(L,  t, X, V)
             
             return (
-                EL = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_EL)),
-                ∇H = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_∇H)),
-                f  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_f)),
-                f̄  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_f̄)),
-                g  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_g)),
-                p  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_p)),
-                ϑ  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_ϑ)),
-                ω  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_ω)),
-                P  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_P)),
-                ẋ  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_ẋ)),
-                ϕ  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_ϕ)),
-                ψ  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_ψ)),
-                H  = @RuntimeGeneratedFunction(ModelingToolkit.inject_registered_module_functions(code_H)),
+                EL = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_EL)),
+                ∇H = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_∇H)),
+                f  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_f)),
+                f̄  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_f̄)),
+                g  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_g)),
+                p  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_p)),
+                ϑ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ϑ)),
+                ω  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ω)),
+                P  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_P)),
+                ẋ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ẋ)),
+                ϕ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ϕ)),
+                ψ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ψ)),
+                H  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_H)),
+                L  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_L)),
             )
         end
     end
@@ -191,7 +195,8 @@ module LotkaVolterra4dLagrangian
 
     function lotka_volterra_4d_ode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
         funcs = get_functions(A,B,a,b)
-        ODE((t,x,ẋ) -> funcs[:ẋ](ẋ,t,x), q₀; h=funcs[:H])
+        ODE((t,x,ẋ) -> funcs[:ẋ](ẋ,t,x), q₀;
+            invariants = (h = funcs[:H],))
     end
 
     function lotka_volterra_4d_iode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
@@ -200,7 +205,8 @@ module LotkaVolterra4dLagrangian
              (t,x,v,f) -> funcs[:f](f,t,x,v),
              (t,x,v,f̄) -> funcs[:f̄](f̄,t,x,v),
              q₀, funcs[:p](0, q₀);
-             v̄=(t,x,v) -> funcs[:ẋ](v,t,x), h=funcs[:H])
+             v̄ = (t,x,v) -> funcs[:ẋ](v,t,x),
+             invariants = (h = (t,x,v) -> funcs[:H](t,x),))
     end
 
     function lotka_volterra_4d_lode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
@@ -208,11 +214,11 @@ module LotkaVolterra4dLagrangian
         LODE((t,x,v,ϑ) -> funcs[:ϑ](ϑ,t,x),
              (t,x,v,f) -> funcs[:f](f,t,x,v),
              (t,x,v,f̄) -> funcs[:f̄](f̄,t,x,v),
+             (t,x,v)   -> funcs[:L](t,x,v),
+             (t,x,v,ω) -> funcs[:ω](ω,t,x),
              q₀, funcs[:p](0, q₀);
-             v̄  = (t,x,v) -> funcs[:ẋ](v,t,x),
-             h  = funcs[:H],
-             Ω  = (t,x,ω) -> funcs[:ω](ω,t,x),
-             ∇H = (t,x,∇H) -> funcs[:∇H](∇H,t,x))
+             v̄ = (t,x,v) -> funcs[:ẋ](v,t,x),
+             invariants = (h = (t,x,v) -> funcs[:H](t,x),))
     end
 
     function lotka_volterra_4d_idae(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
@@ -223,7 +229,8 @@ module LotkaVolterra4dLagrangian
              (t,x,p,v,f̄) -> funcs[:f̄](f̄,t,x,v),
              (t,x,p,ϕ) -> funcs[:ϕ](ϕ,t,x,p),
              q₀, funcs[:p](0, q₀), zero(q₀);
-             v̄=(t,x,v) -> funcs[:ẋ](v,t,x), h=funcs[:H])
+             v̄ = (t,x,v) -> funcs[:ẋ](v,t,x),
+             invariants = (h = (t,x,v) -> funcs[:H](t,x),))
     end
 
     # function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)

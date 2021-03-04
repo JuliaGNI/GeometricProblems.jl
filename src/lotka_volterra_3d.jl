@@ -86,6 +86,8 @@ module LotkaVolterra3d
         A1*q[1] + A2*q[2] + A3*q[3] - B1*log(q[1]) - B2*log(q[2]) - B3*log(q[3])
     end
 
+    hamiltonian_iode(t, q, v) = hamiltonian(t, q)
+
     function casimir(t, q)
         log(q[1]) + log(q[2]) + log(q[3])
     end
@@ -100,7 +102,7 @@ module LotkaVolterra3d
 
 
     function lotka_volterra_3d_ode(q₀=q₀)
-        ODE(lotka_volterra_3d_v, q₀; h=hamiltonian)
+        ODE(lotka_volterra_3d_v, q₀; invariants=(h=hamiltonian,))
     end
 
 

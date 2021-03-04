@@ -27,16 +27,17 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
     ref_iode = LotkaVolterra4d.lotka_volterra_4d_iode()
     ref_idae = LotkaVolterra4d.lotka_volterra_4d_idae()
 
-    ref_eqs = get_function_tuple(ref_ode)
+    ref_equs = get_functions(ref_ode)
+    ref_invs = get_invariants(ref_ode)
 
     v1 = zero(ode.q₀[begin])
     v2 = zero(ref_ode.q₀[begin])
     ode.v(ode.t₀, ode.q₀[begin], v1)
-    ref_eqs[:v](ref_ode.t₀, ref_ode.q₀[begin], v2)
+    ref_equs[:v](ref_ode.t₀, ref_ode.q₀[begin], v2)
     @test v1 ≈ v2  atol=1E-14
 
-    h1 = ode.h(ode.t₀, ode.q₀[begin])
-    h2 = ref_eqs[:h](ref_ode.t₀, ref_ode.q₀[begin])
+    h1 = ode.invariants[:h](ode.t₀, ode.q₀[begin])
+    h2 = ref_invs[:h](ref_ode.t₀, ref_ode.q₀[begin])
     @test h1 ≈ h2  atol=1E-14
 
     int = Integrator(ode, TableauGauss(2), Δt)
@@ -48,42 +49,43 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
     @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
 
 
-    ref_eqs = get_function_tuple(ref_iode)
+    ref_equs = get_functions(ref_iode)
+    ref_invs = get_invariants(ref_iode)
 
     @test iode.p₀ == ref_iode.p₀
 
     ϑ1 = zero(iode.q₀[begin])
     ϑ2 = zero(ref_iode.q₀[begin])
     iode.ϑ(iode.t₀, iode.q₀[begin], v1, ϑ1)
-    ref_eqs[:ϑ](ref_iode.t₀, ref_iode.q₀[begin], v2, ϑ2)
+    ref_equs[:ϑ](ref_iode.t₀, ref_iode.q₀[begin], v2, ϑ2)
     @test ϑ1 ≈ ϑ2  atol=1E-14
 
     f1 = zero(iode.q₀[begin])
     f2 = zero(ref_iode.q₀[begin])
     iode.f(iode.t₀, iode.q₀[begin], v1, f1)
-    ref_eqs[:f](ref_iode.t₀, ref_iode.q₀[begin], v2, f2)
+    ref_equs[:f](ref_iode.t₀, ref_iode.q₀[begin], v2, f2)
     @test f1 ≈ f2  atol=1E-14
 
     g1 = zero(iode.q₀[begin])
     g2 = zero(ref_iode.q₀[begin])
     iode.g(iode.t₀, iode.q₀[begin], v1, g1)
-    ref_eqs[:g](ref_iode.t₀, ref_iode.q₀[begin], v2, g2)
+    ref_equs[:g](ref_iode.t₀, ref_iode.q₀[begin], v2, g2)
     @test g1 ≈ g2  atol=1E-14
 
     v1 = zero(iode.q₀[begin])
     v2 = zero(ref_iode.q₀[begin])
     iode.v̄(iode.t₀, iode.q₀[begin], v1)
-    ref_eqs[:v̄](ref_iode.t₀, ref_iode.q₀[begin], v2)
+    ref_equs[:v̄](ref_iode.t₀, ref_iode.q₀[begin], v2)
     @test v1 ≈ v2  atol=1E-14
 
     f1 = zero(iode.q₀[begin])
     f2 = zero(ref_iode.q₀[begin])
     iode.f̄(iode.t₀, iode.q₀[begin], v1, f1)
-    ref_eqs[:f̄](ref_iode.t₀, ref_iode.q₀[begin], v2, f2)
+    ref_equs[:f̄](ref_iode.t₀, ref_iode.q₀[begin], v2, f2)
     @test f1 ≈ f2  atol=1E-14
 
-    h1 = iode.h(iode.t₀, iode.q₀[begin])
-    h2 = ref_eqs[:h](ref_iode.t₀, ref_iode.q₀[begin])
+    h1 = iode.invariants[:h](iode.t₀, iode.q₀[begin], zero(iode.q₀[begin]))
+    h2 = ref_invs[:h](ref_iode.t₀, ref_iode.q₀[begin], zero(ref_iode.q₀[begin]))
     @test h1 ≈ h2  atol=1E-14
 
     int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
@@ -103,24 +105,25 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
     @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
 
 
-    ref_eqs = get_function_tuple(ref_idae)
+    ref_equs = get_functions(ref_idae)
+    ref_invs = get_invariants(ref_idae)
 
     @test idae.p₀ == ref_idae.p₀
 
     v1 = zero(idae.q₀[begin])
     v2 = zero(ref_idae.q₀[begin])
     idae.v̄(idae.t₀, idae.q₀[begin], v1)
-    ref_eqs[:v̄](ref_idae.t₀, ref_idae.q₀[begin], v2)
+    ref_equs[:v̄](ref_idae.t₀, ref_idae.q₀[begin], v2)
     @test v1 ≈ v2  atol=1E-14
 
     f1 = zero(idae.q₀[begin])
     f2 = zero(ref_idae.q₀[begin])
     idae.f̄(idae.t₀, idae.q₀[begin], v1, f1)
-    ref_eqs[:f̄](ref_idae.t₀, ref_idae.q₀[begin], v2, f2)
+    ref_equs[:f̄](ref_idae.t₀, ref_idae.q₀[begin], v2, f2)
     @test f1 ≈ f2  atol=1E-14
 
-    h1 = idae.h(idae.t₀, idae.q₀[begin])
-    h2 = ref_eqs[:h](ref_idae.t₀, ref_idae.q₀[begin])
+    h1 = idae.invariants[:h](idae.t₀, idae.q₀[begin], zero(idae.q₀[begin]))
+    h2 = ref_invs[:h](ref_idae.t₀, ref_idae.q₀[begin], zero(ref_idae.q₀[begin]))
     @test h1 ≈ h2  atol=1E-14
 
     int = Integrator(idae, TableauVSPARKGLRKpMidpoint(2), Δt)

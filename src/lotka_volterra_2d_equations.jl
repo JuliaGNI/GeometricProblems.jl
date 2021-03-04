@@ -61,12 +61,12 @@ compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamilto
 
 "Creates an ODE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_ode(q₀=q₀; params=parameters)
-    ODE(lotka_volterra_2d_v, q₀; parameters=params, h=hamiltonian)
+    ODE(lotka_volterra_2d_v, q₀; parameters=params, invariants=(h=hamiltonian,))
 end
 
 "Creates a Hamiltonian ODE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_hode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
-    HODE(lotka_volterra_2d_v, lotka_volterra_2d_f, hamiltonian, q₀, p₀;
+    HODE(lotka_volterra_2d_v, lotka_volterra_2d_f, hamiltonian_pode, q₀, p₀;
          parameters=params)
 end
 
@@ -74,88 +74,84 @@ end
 function lotka_volterra_2d_iode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
     IODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
          lotka_volterra_2d_g, q₀, p₀;
-         parameters=params, h=hamiltonian, v̄=lotka_volterra_2d_v)
+         parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_2d_v)
 end
 
 "Creates a partitioned ODE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_pode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
-    PODE(lotka_volterra_2d_v, lotka_volterra_2d_f,
-         q₀, p₀; parameters=params, h=hamiltonian)
+    PODE(lotka_volterra_2d_v, lotka_volterra_2d_f, q₀, p₀;
+         parameters=params, invariants=(h=hamiltonian_pode,))
 end
 
 "Creates a variational ODE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_lode(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
     LODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-         lotka_volterra_2d_g, q₀, p₀;
-         parameters=params, h=hamiltonian, v̄=lotka_volterra_2d_v,
-         Ω=lotka_volterra_2d_ω, ∇H=lotka_volterra_2d_dH)
+         lotka_volterra_2d_g, lagrangian, lotka_volterra_2d_ω, q₀, p₀;
+         parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_2d_v)
 end
 
 "Creates a DAE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_dae(q₀=vcat(q₀,v₀), λ₀=zero(q₀); params=parameters)
     DAE(lotka_volterra_2d_v_dae, lotka_volterra_2d_u_dae, lotka_volterra_2d_ϕ_dae, q₀, λ₀;
-        parameters=params, h=hamiltonian)
+        parameters=params, invariants=(h=hamiltonian,))
 end
 
 "Creates a Hamiltonian DAE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_hdae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀); params=parameters)
-    HDAE(lotka_volterra_2d_v, lotka_volterra_2d_f,
-         lotka_volterra_2d_u, lotka_volterra_2d_g,
-         lotka_volterra_2d_u̅, lotka_volterra_2d_g̅,
-         lotka_volterra_2d_ϕ, lotka_volterra_2d_ψ,
-         hamiltonian, q₀, p₀, λ₀;
-         parameters=params)
+    HDAE(lotka_volterra_2d_v, lotka_volterra_2d_f, 
+         lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+         lotka_volterra_2d_u̅, lotka_volterra_2d_g̅, lotka_volterra_2d_ψ,
+         hamiltonian_pode, q₀, p₀, λ₀; parameters=params)
 end
 
 "Creates an implicit DAE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_idae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
     IDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-         lotka_volterra_2d_u, lotka_volterra_2d_g,
-         lotka_volterra_2d_ϕ, q₀, p₀, λ₀;
-         parameters=params, h=hamiltonian, v̄=lotka_volterra_2d_v)
+         lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+         q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_iode,),
+         v̄=lotka_volterra_2d_v)
 end
 
 "Creates an implicit DAE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_idae_spark(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
     IDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
-         lotka_volterra_2d_u, lotka_volterra_2d_g,
-         lotka_volterra_2d_ϕ, q₀, p₀, λ₀;
-         parameters=params, h=hamiltonian,
+         lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+         q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_iode,),
          v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end
 
 "Creates a partitioned DAE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_pdae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
     PDAE(lotka_volterra_2d_v_ham, lotka_volterra_2d_f_ham,
-         lotka_volterra_2d_u, lotka_volterra_2d_g,
-         lotka_volterra_2d_ϕ, q₀, p₀, λ₀;
-         parameters=params, h=hamiltonian,
+         lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+         q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_pode,),
          v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end
 
 "Creates a variational DAE object for the Lotka-Volterra 2D model."
 function lotka_volterra_2d_ldae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
     LDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
-         lotka_volterra_2d_g, lotka_volterra_2d_g̅,
-         lotka_volterra_2d_ϕ, lotka_volterra_2d_ψ,
-         q₀, p₀, λ₀; parameters=params, h=hamiltonian,
+         lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+         lotka_volterra_2d_u̅, lotka_volterra_2d_g̅, lotka_volterra_2d_ψ_lode,
+         lagrangian, lotka_volterra_2d_ω,
+         q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_iode,),
          v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end
 
 "Creates a variational DAE object for the Lotka-Volterra 2D model for use with SLRK integrators."
 function lotka_volterra_2d_slrk(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); params=parameters)
     LDAE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-            lotka_volterra_2d_g, lotka_volterra_2d_g̅,
-            lotka_volterra_2d_ϕ, lotka_volterra_2d_ψ,
-            q₀, p₀, λ₀; parameters=params, h=hamiltonian,
+            lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+            lotka_volterra_2d_u̅, lotka_volterra_2d_g̅, lotka_volterra_2d_ψ,
+            lagrangian, lotka_volterra_2d_ω,
+            q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_iode,),
             v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end
 
 "Creates an implicit ODE object for the Lotka-Volterra 2D model for use with DG integrators."
 function lotka_volterra_2d_dg(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀); params=parameters)
-    IODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-            lotka_volterra_2d_g, q₀, p₀;
-            parameters=params, h=hamiltonian, v̄=lotka_volterra_2d_v)
+    IODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f, lotka_volterra_2d_g,
+         q₀, p₀; parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_2d_v)
 end
 
 
