@@ -55,6 +55,7 @@ function hamiltonian(t, q, params)
     a₁*q[1] + a₂*q[2] + b₁*log(q[1]) + b₂*log(q[2])
 end
 
+hamiltonian_iode(t, q, params) = hamiltonian(t, q, params) # This is a workaround. It should be removed asap.
 hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
 
 hamiltonian_pode(t, q, p, params) = hamiltonian(t, q, params)
