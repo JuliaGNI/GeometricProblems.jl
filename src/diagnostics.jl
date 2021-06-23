@@ -188,7 +188,7 @@ module Diagnostics
         @assert mod(t.n, interval_length) == 0
 
         nint   = div(ntime(invariant_error), interval_length)
-        Tdrift = TimeSeries(nint, timestep(t)*interval_length)
+        Tdrift = TimeSeries(nint, (t[end] - t[begin]) / nint)
         Idrift = SDataSeries(T, nint)
 
         Tdrift[0] = t[0]
