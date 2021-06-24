@@ -92,7 +92,7 @@ module MasslessChargedParticle
         elseif k == 2
             ϑ₂(t, q, params)
         else
-            nothing
+            throw(BoundsError(ϑ,k))
         end
     end
 

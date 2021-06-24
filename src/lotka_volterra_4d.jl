@@ -182,7 +182,7 @@ module LotkaVolterra4d
         elseif k == 4
             ϑ₄(t, q)
         else
-            nothing
+            throw(BoundsError(ϑ,k))
         end
     end
 

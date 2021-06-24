@@ -20,7 +20,7 @@ function ϑ(t::Number, q::AbstractVector, k::Int)
     elseif k == 2
         ϑ₂(t, q)
     else
-        nothing
+        throw(BoundsError(ϑ,k))
     end
 end
     
