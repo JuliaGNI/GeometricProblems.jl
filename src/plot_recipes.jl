@@ -221,7 +221,7 @@ module PlotRecipes
                         title := "   "
                     end
                 end
-                if i == λ.nd || k ≠ 0
+                if i == nd || k ≠ 0
                     if latex
                         xguide := L"t"
                     else
