@@ -4,6 +4,7 @@ GeometricProblems.jl is a collection of ODEs and DAEs with interesting geometric
 module GeometricProblems
 
     include("diagnostics.jl")
+    include("plot_recipes.jl")
 
     include("double_pendulum.jl")
     include("duffing_oscillator.jl")
@@ -16,15 +17,18 @@ module GeometricProblems
     include("lotka_volterra_2d_gauge.jl")
     include("lotka_volterra_2d_singular.jl")
     include("lotka_volterra_2d_symmetric.jl")
+    include("lotka_volterra_2d_plots.jl")
     include("lotka_volterra_3d.jl")
+    include("lotka_volterra_3d_plots.jl")
     include("lotka_volterra_4d.jl")
     include("lotka_volterra_4d_lagrangian.jl")
+    include("lotka_volterra_4d_plots.jl")
     include("massless_charged_particle.jl")
+    include("massless_charged_particle_plots.jl")
     include("mathews_lakshmanan_oscillator.jl")
     include("morse_oscillator.jl")
     include("pendulum.jl")
     include("point_vortices.jl")
     include("point_vortices_linear.jl")
-
 
 end
