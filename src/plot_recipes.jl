@@ -109,7 +109,7 @@ module PlotRecipes
         elseif length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
             t  = p.args[1]
             Δp = p.args[2]
-            @assert t.n == Δp.nt
+            @assert ntime(t) == ntime(Δp)
         else
             error("Constraint error plots should be given a solution or a timeseries and a dataseries. Got: $(typeof(p.args))")
         end
@@ -122,8 +122,10 @@ module PlotRecipes
             nt = ntime(t)
         end
 
-        ntrace = (k == 0 ?    Δp.nd  :    1 )
-        trange = (k == 0 ? (1:Δp.nd) : (k:k))
+        nd = length(Δp[begin])
+
+        ntrace = (k == 0 ?    nd  :    1 )
+        trange = (k == 0 ? (1:nd) : (k:k))
 
         size   := (800,200*ntrace)
         legend := :none
@@ -141,7 +143,7 @@ module PlotRecipes
                         title := "   "
                     end
                 end
-                if i == Δp.nd || k ≠ 0
+                if i == nd || k ≠ 0
                     if latex
                         xguide := L"t"
                     else
@@ -176,7 +178,7 @@ module PlotRecipes
         elseif length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
             t = p.args[1]
             λ = p.args[2]
-            @assert t.n == λ.nt
+            @assert ntime(t) == ntime(λ)
         else
             error("Lagrange multiplier plots should be given a solution or a timeseries and a data series. Got: $(typeof(p.args))")
         end
@@ -189,8 +191,10 @@ module PlotRecipes
             nt = ntime(t)
         end
 
-        ntrace = (k == 0 ?    λ.nd  :    1 )
-        trange = (k == 0 ? (1:λ.nd) : (k:k))
+        nd = length(λ[begin])
+
+        ntrace = (k == 0 ?    nd  :    1 )
+        trange = (k == 0 ? (1:nd) : (k:k))
 
         size   := (800,200*ntrace)
         legend := :none

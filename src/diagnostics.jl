@@ -140,14 +140,26 @@ module Diagnostics
 
     Returns a DataSeries similar to `p` holding the time series of the difference between the momentum and the one-form.
     """
-    function compute_momentum_error(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, one_form::Function) where {T}
+    function compute_momentum_error(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T,2}, one_form::Function) where {T}
         e = similar(p)
 
-        for i in axes(p,3)
-            for n in axes(p,2)
-                for k in axes(p,1)
-                    e[k,n,i] = p[k,n,i] - one_form(t[n], q[:,n,i], k)
+        for i in axes(p,2)
+            for n in axes(p,1)
+                for k in eachindex(p[n,i])
+                    e[n,i][k] = p[n,i][k] - one_form(t[n], q[n,i], k)
                 end
+            end
+        end
+
+        return e
+    end
+
+    function compute_momentum_error(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T,1}, one_form::Function) where {T}
+        e = similar(p)
+
+        for n in axes(p,1)
+            for k in eachindex(p[n])
+                e[n][k] = p[n][k] - one_form(t[n], q[n], k)
             end
         end
 
