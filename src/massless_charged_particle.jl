@@ -180,7 +180,7 @@ module MasslessChargedParticle
 
     "Creates an ODE object for the massless charged particle in 2D."
     function massless_charged_particle_ode(q₀=q₀; params=parameters)
-        ODE(massless_charged_particle_v, q₀; h=hamiltonian, parameters=params)
+        ODE(massless_charged_particle_v, q₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
@@ -188,7 +188,7 @@ module MasslessChargedParticle
         IODE(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g, q₀, ϑ(0., q₀, params);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-                parameters=params, h=hamiltonian)
+                invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
@@ -197,7 +197,7 @@ module MasslessChargedParticle
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-                h=hamiltonian, parameters=params)
+                invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
@@ -206,7 +206,7 @@ module MasslessChargedParticle
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-                h=hamiltonian, parameters=params)
+                invariants=(h=hamiltonian,), parameters=params)
     end
 
 
