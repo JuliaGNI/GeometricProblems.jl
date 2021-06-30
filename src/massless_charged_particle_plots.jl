@@ -1,5 +1,10 @@
 module MasslessChargedParticlePlots
 
+    using GeometricIntegrators.Common
+    using GeometricIntegrators.Equations
+    using GeometricIntegrators.Solutions
+    using GeometricProblems.Diagnostics
+
     using LaTeXStrings
     using Measures: mm
     using RecipesBase
@@ -17,7 +22,7 @@ module MasslessChargedParticlePlots
     * `ylims=:auto`: ylims for solution plot
     """
     @userplot Plot_Massless_Charged_Particle
-    @recipe function f(p::Plot_Massless_Charged_Particle; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto)
+    @recipe function f(p::Plot_Massless_Charged_Particle; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
@@ -33,7 +38,7 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_energy_error(sol.t, sol.q, params);
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
 
         size   := (800,300)
         layout := (1,2)
@@ -61,12 +66,13 @@ module MasslessChargedParticlePlots
                 seriestype := :scatter
             end
 
-            if backend() == Plots.PlotlyJSBackend()
-                xguide := "x₁"
-                yguide := "x₂"
-            else
+            if latex
                 xguide := L"x_1"
                 yguide := L"x_2"
+            else
+            # if backend() == Plots.PlotlyJSBackend()
+                xguide := "x₁"
+                yguide := "x₂"
             end
             xlims  := xlims
             ylims  := ylims
@@ -76,12 +82,12 @@ module MasslessChargedParticlePlots
 
         @series begin
             subplot := 2
-            if backend() == Plots.PlotlyJSBackend()
-                xguide := "t"
-                yguide := "[H(t) - H(0)] / H(0)"
-            else
+            if latex
                 xguide := L"t"
                 yguide := L"[H(t) - H(0)] / H(0)"
+            else
+                xguide := "t"
+                yguide := "[H(t) - H(0)] / H(0)"
             end
             xlims  := (sol.t[0], Inf)
             ylims  := elims
@@ -104,7 +110,7 @@ module MasslessChargedParticlePlots
     * `ylims=:auto`: ylims for solution plot
     """
     @userplot Plot_Massless_Charged_Particle_Solution
-    @recipe function f(p::Plot_Massless_Charged_Particle_Solution; nplot=1, nt=:auto, xlims=:auto, ylims=:auto)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Solution; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
@@ -136,22 +142,23 @@ module MasslessChargedParticlePlots
         legend := :none
         size := (400,400)
 
-        if backend() == Plots.PlotlyJSBackend() || backend() == Plots.GRBackend()
+        # if backend() == Plots.PlotlyJSBackend() || backend() == Plots.GRBackend()
             guidefontsize := 18
             tickfontsize  := 12
-        else
-            guidefontsize := 14
-            tickfontsize  := 10
-        end
+        # else
+        #     guidefontsize := 14
+        #     tickfontsize  := 10
+        # end
 
         # solution
         @series begin
-            if backend() == Plots.PlotlyJSBackend()
-                xguide := "x₁"
-                yguide := "x₂"
-            else
+            if latex
                 xguide := L"x_1"
                 yguide := L"x_2"
+            else
+            # if backend() == Plots.PlotlyJSBackend()
+                xguide := "x₁"
+                yguide := "x₂"
             end
 
             xlims  := xlims
@@ -173,7 +180,7 @@ module MasslessChargedParticlePlots
     * `nplot=1`: plot every `nplot`th time step
     """
     @userplot Plot_Massless_Charged_Particle_Energy_Error
-    @recipe function f(p::Plot_Massless_Charged_Particle_Energy_Error; nplot=1, nt=:auto)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Energy_Error; nplot=1, nt=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
@@ -189,27 +196,28 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_energy_error(sol.t, sol.q, params);
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
 
         size   := (800,200)
         legend := :none
         right_margin := 10mm
 
-        if backend() == Plots.GRBackend()
+        # if backend() == Plots.GRBackend()
             left_margin := 10mm
             bottom_margin := 10mm
-        end
+        # end
 
         guidefontsize := 12
         tickfontsize  := 10
 
         @series begin
-            if backend() == Plots.PlotlyJSBackend()
-                xguide := "t"
-                yguide := "[H(t) - H(0)] / H(0)"
-            else
+            if latex
                 xguide := L"t"
                 yguide := L"[H(t) - H(0)] / H(0)"
+            # if backend() == Plots.PlotlyJSBackend()
+            else
+                xguide := "t"
+                yguide := "[H(t) - H(0)] / H(0)"
             end
 
             xlims  := (sol.t[0], Inf)
@@ -231,7 +239,7 @@ module MasslessChargedParticlePlots
     * `k=0`: index of momentum component (0 plots all components)
     """
     @userplot Plot_Massless_Charged_Particle_Momentum_Error
-    @recipe function f(p::Plot_Massless_Charged_Particle_Momentum_Error; k=0, nplot=1, nt=:auto)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Momentum_Error; k=0, nplot=1, nt=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
@@ -258,7 +266,7 @@ module MasslessChargedParticlePlots
 
         right_margin := 10mm
 
-        if ntrace == 1 && backend() == Plots.GRBackend()
+        if ntrace == 1 #&& backend() == Plots.GRBackend()
             left_margin := 10mm
         end
 
@@ -271,10 +279,11 @@ module MasslessChargedParticlePlots
                     subplot := i
                 end
                 if i == Δp.nd || k ≠ 0
-                    if backend() == Plots.PlotlyJSBackend()
-                        xguide := "t"
-                    else
+                    if latex
                         xguide := L"t"
+                    # if backend() == Plots.PlotlyJSBackend()
+                    else
+                        xguide := "t"
                     end
                 else
                     xaxis := false
@@ -294,10 +303,11 @@ module MasslessChargedParticlePlots
                 #         top_margin := -3mm
                 #     end
                 # end
-                if backend() == Plots.PlotlyJSBackend()
-                    yguide := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
-                else
+                if latex
                     yguide := latexstring("p_$i (t) - \\vartheta_$i (t)")
+                # if backend() == Plots.PlotlyJSBackend()
+                else
+                    yguide := "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)"
                 end
                 xlims  := (sol.t[0], Inf)
                 yformatter := :scientific
@@ -318,7 +328,7 @@ module MasslessChargedParticlePlots
     * `nplot=1`: plot every `nplot`th time step
     """
     @userplot Plot_Massless_Charged_Particle_Traces
-    @recipe function f(p::Plot_Massless_Charged_Particle_Traces; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto)
+    @recipe function f(p::Plot_Massless_Charged_Particle_Traces; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto, latex=true)
         if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
@@ -334,7 +344,7 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_energy_error(sol.t, sol.q, params);
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
 
         size   := (800,600)
         legend := :none
@@ -343,18 +353,19 @@ module MasslessChargedParticlePlots
         # traces
         layout := (3,1)
 
-        if backend() == Plots.PlotlyJSBackend() || backend() == Plots.GRBackend()
+        # if backend() == Plots.PlotlyJSBackend() || backend() == Plots.GRBackend()
             guidefontsize := 14
             tickfontsize  := 10
-        else
-            guidefontsize := 12
-            tickfontsize  := 10
-        end
+        # else
+        #     guidefontsize := 12
+        #     tickfontsize  := 10
+        # end
 
-        if backend() == Plots.PlotlyJSBackend()
-            ylabels = ("x₁", "x₂")
-        else
+        if latex
             ylabels = (L"x_1", L"x_2")
+        # if backend() == Plots.PlotlyJSBackend()
+        else
+            ylabels = ("x₁", "x₂")
         end
 
         lims = (xlims, ylims, elims)
@@ -391,12 +402,13 @@ module MasslessChargedParticlePlots
             # elseif backend() == Plots.GRBackend()
             #     top_margin := -2mm
             # end
-            if backend() == Plots.PlotlyJSBackend()
-                xguide := "t"
-                yguide := "[H(t) - H(0)] / H(0)"
-            else
+            if latex
                 xguide := L"t"
                 yguide := L"[H(t) - H(0)] / H(0)"
+            # if backend() == Plots.PlotlyJSBackend()
+            else
+                xguide := "t"
+                yguide := "[H(t) - H(0)] / H(0)"
             end
             xlims := (sol.t[0], Inf)
             ylims := elims
