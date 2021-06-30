@@ -18,7 +18,7 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 Documenter = "0.23, 0.24, 0.25, 0.26, 0.27"
-GeometricIntegrators = "0.8"
+GeometricIntegrators = "0.8, 0.9"
 LaTeXStrings = "1.0, 1.1, 1.2"
 Measures = "0.3"
 ModelingToolkit = "5"
