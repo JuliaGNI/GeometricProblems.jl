@@ -4,9 +4,9 @@
 """
 module HarmonicOscillator
 
+    using GeometricBase
+    using GeometricEquations
     using Parameters
-    using GeometricIntegrators.Equations
-    using GeometricIntegrators.Solutions
 
     export harmonic_oscillator_ode, harmonic_oscillator_iode, harmonic_oscillator_pode, harmonic_oscillator_hode, harmonic_oscillator_sode,
            harmonic_oscillator_dae, harmonic_oscillator_idae, harmonic_oscillator_pdae, harmonic_oscillator_hdae
@@ -273,9 +273,9 @@ module HarmonicOscillator
     end
 
 
-    function compute_energy_error(t, q::DataSeries{T}, parameters) where {T}
-        h = SDataSeries(T, q.nt)
-        e = SDataSeries(T, q.nt)
+    function compute_energy_error(t, q::AbstractDataSeries{T}, parameters) where {T}
+        h = DataSeries(T, q.nt)
+        e = DataSeries(T, q.nt)
 
         for i in axes(q,2)
             h[i] = hamiltonian(t[i], q[:,i], parameters)

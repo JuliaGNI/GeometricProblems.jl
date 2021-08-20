@@ -3,10 +3,8 @@
 """
 module LotkaVolterra4d
 
+    using GeometricEquations
     using Parameters
-
-    using GeometricIntegrators.Equations
-    using GeometricIntegrators.Solutions
 
     export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 

@@ -1,7 +1,7 @@
 module KuboOscillator
 
+    using GeometricEquations
     using Parameters
-    using GeometricIntegrators.Equations
 
     export kubo_oscillator_sde_1, kubo_oscillator_psde_1, kubo_oscillator_spsde_1
     export kubo_oscillator_sde_2, kubo_oscillator_psde_2, kubo_oscillator_spsde_2

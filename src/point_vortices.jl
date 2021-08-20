@@ -4,8 +4,8 @@
 """
 module PointVortices
 
-    using GeometricIntegrators.Equations
-    using GeometricIntegrators.Solutions
+    using GeometricBase
+    using GeometricEquations
 
     export point_vortices_ode, point_vortices_iode, point_vortices_idae,
            point_vortices_dg, point_vortices_formal_lagrangian,
@@ -334,9 +334,9 @@ module PointVortices
     end
 
 
-    function compute_energy_error(t, q::DataSeries{T}) where {T}
-        h = SDataSeries(T, q.nt)
-        e = SDataSeries(T, q.nt)
+    function compute_energy_error(t, q::AbstractDataSeries{T}) where {T}
+        h = DataSeries(T, q.nt)
+        e = DataSeries(T, q.nt)
 
         for i in axes(q,2)
             h[i] = hamiltonian(t[i], q[:,i])
@@ -346,9 +346,9 @@ module PointVortices
         (h, e)
     end
 
-    function compute_angular_momentum_error(t, q::DataSeries{T}) where {T}
-        m = SDataSeries(T, q.nt)
-        e = SDataSeries(T, q.nt)
+    function compute_angular_momentum_error(t, q::AbstractDataSeries{T}) where {T}
+        m = DataSeries(T, q.nt)
+        e = DataSeries(T, q.nt)
 
         for i in axes(q,2)
             m[i] = angular_momentum(t[i], q[:,i])

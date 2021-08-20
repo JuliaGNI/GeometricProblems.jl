@@ -17,9 +17,9 @@ const ref = [-4.902687541134471, -3.743872921802973, 24.690858102790042]
     ode  = lorenz_attractor_ode()
 
     sol = integrate(ode, TableauGauss(1), Δt, nt)
-    @test rel_err(sol.q, ref) < 4E-2
+    @test relative_maximum_error(sol.q, ref) < 4E-2
 
     sol = integrate(ode, TableauGauss(2), Δt, nt)
-    @test rel_err(sol.q, ref) < 2E-5
+    @test relative_maximum_error(sol.q, ref) < 2E-5
 
 end

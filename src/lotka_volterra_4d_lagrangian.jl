@@ -12,13 +12,12 @@ H(q) = a_1 q^1 + a_2 q^2 + a_3 q^3 + a_4 q^4 + b_1 \log q^1 + b_2 \log q^2 + b_3
 """
 module LotkaVolterra4dLagrangian
 
+    using GeometricBase
+    using GeometricEquations
     using ModelingToolkit
     using Parameters
     using RuntimeGeneratedFunctions
     using Symbolics
-
-    using GeometricIntegrators.Equations
-    using GeometricIntegrators.Solutions
 
     RuntimeGeneratedFunctions.init(@__MODULE__)
 

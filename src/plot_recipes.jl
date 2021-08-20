@@ -4,8 +4,7 @@ module PlotRecipes
     using Measures: mm
     using RecipesBase
 
-    using GeometricIntegrators.Common
-    using GeometricIntegrators.Solutions
+    using GeometricBase
     using GeometricProblems.Diagnostics
 
 

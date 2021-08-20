@@ -42,11 +42,11 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
 
     int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
-    @test rel_err(sol.q, reference_solution) < 8E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
     ref_int = Integrator(ref_ode, TableauGauss(2), Δt)
     ref_sol = integrate(ref_ode, ref_int, nt)
-    @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
+    @test relative_maximum_error(sol.q, ref_sol.q[end]) < 2E-14
 
 
     ref_equs = get_functions(ref_iode)
@@ -90,19 +90,19 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
 
     int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, reference_solution) < 2E-3
+    @test relative_maximum_error(sol.q, reference_solution) < 2E-3
 
     ref_int = IntegratorVPRKpMidpoint(ref_iode, TableauVPGLRK(2), Δt)
     ref_sol = integrate(ref_iode, ref_int, nt)
-    @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
+    @test relative_maximum_error(sol.q, ref_sol.q[end]) < 8E-14
 
     int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, reference_solution) < 8E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
     ref_int = IntegratorVPRKpSymmetric(ref_iode, TableauVPGLRK(2), Δt)
     ref_sol = integrate(ref_iode, ref_int, nt)
-    @test rel_err(sol.q, ref_sol.q[end]) < 1E-14
+    @test relative_maximum_error(sol.q, ref_sol.q[end]) < 4E-14
 
 
     ref_equs = get_functions(ref_idae)
@@ -128,18 +128,18 @@ SimpleSolvers.set_config(:nls_stol_break, 1E3)
 
     int = Integrator(idae, TableauVSPARKGLRKpMidpoint(2), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, reference_solution) < 2E-3
+    @test relative_maximum_error(sol.q, reference_solution) < 2E-3
 
     ref_int = Integrator(ref_idae, TableauVSPARKGLRKpMidpoint(2), Δt)
     ref_sol = integrate(ref_idae, ref_int, nt)
-    @test rel_err(sol.q, ref_sol.q[end]) < 2E-14
+    @test relative_maximum_error(sol.q, ref_sol.q[end]) < 4E-14
 
     int = Integrator(idae, TableauVSPARKGLRKpSymmetric(2), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, reference_solution) < 8E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
     ref_int = Integrator(ref_idae, TableauVSPARKGLRKpSymmetric(2), Δt)
     ref_sol = integrate(ref_idae, ref_int, nt)
-    @test rel_err(sol.q, ref_sol.q[end]) < 6E-14
+    @test relative_maximum_error(sol.q, ref_sol.q[end]) < 8E-14
 
 end

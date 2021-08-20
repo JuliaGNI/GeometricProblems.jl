@@ -63,14 +63,14 @@ const ref = [-0.012420428712136283, -0.35344429048339926]
     
     int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
-    @test rel_err(sol.q, ref) < 1E-4
+    @test relative_maximum_error(sol.q, ref) < 1E-4
 
     int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, ref) < 1E-4
+    @test relative_maximum_error(sol.q, ref) < 1E-4
 
     int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, ref) < 1E-4
+    @test relative_maximum_error(sol.q, ref) < 1E-4
 
 end

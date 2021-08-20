@@ -1,5 +1,5 @@
 
-using GeometricIntegrators.Equations
+using GeometricEquations
 using Requires
 
 import ..Diagnostics: compute_invariant_error

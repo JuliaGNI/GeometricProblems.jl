@@ -1,8 +1,7 @@
 module MasslessChargedParticlePlots
 
-    using GeometricIntegrators.Common
-    using GeometricIntegrators.Equations
-    using GeometricIntegrators.Solutions
+    using GeometricBase
+    using GeometricEquations
     using GeometricProblems.Diagnostics
 
     using LaTeXStrings

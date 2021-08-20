@@ -35,9 +35,9 @@ The Hamiltonian form of the equations of motion reads
 """
 module MasslessChargedParticle
 
+    using GeometricEquations
+    
     using ..Diagnostics
-    using GeometricIntegrators.Equations
-    using GeometricIntegrators.Solutions
     
     import ..Diagnostics: compute_invariant_error, compute_momentum_error
 

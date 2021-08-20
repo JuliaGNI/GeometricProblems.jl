@@ -4,7 +4,7 @@
 """
 module PointVorticesLinear
 
-    using GeometricIntegrators.Equations
+    using GeometricEquations
 
     export point_vortices_ode, point_vortices_iode, point_vortices_dg,
            point_vortices_formal_lagrangian,

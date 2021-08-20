@@ -4,7 +4,7 @@
 """
 module LorenzAttractor
 
-    using GeometricIntegrators.Equations
+    using GeometricEquations
 
     export lorenz_attractor_ode, plot_lorenz_attractor
 

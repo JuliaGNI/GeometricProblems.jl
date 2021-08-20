@@ -18,13 +18,13 @@ const ref = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.42
 
     int = Integrator(ode, TableauGauss(1), Δt)
     sol = integrate(ode, int, nt)
-    @test rel_err(sol.q, ref) < 3E-2
+    @test relative_maximum_error(sol.q, ref) < 3E-2
 
     int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(1), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, ref) < 3E-2
+    @test relative_maximum_error(sol.q, ref) < 3E-2
 
     int = Integrator(idae, TableauVSPARKGLRKpSymmetric(1), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, ref) < 3E-2
+    @test relative_maximum_error(sol.q, ref) < 3E-2
 end

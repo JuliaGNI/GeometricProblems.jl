@@ -4,7 +4,7 @@
 """
 module ExponentialGrowth
 
-    using GeometricIntegrators.Equations
+    using GeometricEquations
 
     export exponential_growth_ode
 

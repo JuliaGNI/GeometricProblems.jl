@@ -110,21 +110,21 @@ SimpleSolvers.set_config(:nls_rtol, 2eps())
 
     int = Integrator(ode, TableauGauss(2), Δt)
     sol = integrate(ode, int, nt)
-    @test rel_err(sol.q, reference_solution) < 5E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 5E-4
 
     int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, reference_solution) < 5E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 5E-4
 
     int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2), Δt)
     sol = integrate(iode, int, nt)
-    @test rel_err(sol.q, reference_solution) < 5E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 5E-4
 
     int = Integrator(idae, TableauVSPARKGLRKpMidpoint(2), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, reference_solution) < 5E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 5E-4
 
     int = Integrator(idae, TableauVSPARKGLRKpSymmetric(2), Δt)
     sol = integrate(idae, int, nt)
-    @test rel_err(sol.q, reference_solution) < 5E-4
+    @test relative_maximum_error(sol.q, reference_solution) < 5E-4
 end

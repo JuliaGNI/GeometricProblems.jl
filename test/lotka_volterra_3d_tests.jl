@@ -21,7 +21,7 @@ const ref = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
     sol = integrate(ode, int, nt)
     H, ΔH = compute_energy_error(sol.t, sol.q)
     C, ΔC = compute_casimir_error(sol.t, sol.q)
-    @test rel_err(sol.q, ref) < 5E-4
+    @test relative_maximum_error(sol.q, ref) < 5E-4
     @test ΔH[end] < 4E-6
     @test ΔC[end] < 8E-6
 
@@ -29,7 +29,7 @@ const ref = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
     sol = integrate(ode, int, nt)
     H, ΔH = compute_energy_error(sol.t, sol.q)
     C, ΔC = compute_casimir_error(sol.t, sol.q)
-    @test rel_err(sol.q, ref) < 2E-9
+    @test relative_maximum_error(sol.q, ref) < 2E-9
     @test ΔH[end] < 5E-11
     @test ΔC[end] < 2E-11
 

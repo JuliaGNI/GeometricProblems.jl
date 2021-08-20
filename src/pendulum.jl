@@ -4,7 +4,7 @@
 """
 module Pendulum
 
-    using GeometricIntegrators.Equations
+    using GeometricEquations
 
     export pendulum_ode, pendulum_pode, pendulum_iode, pendulum_idae
 
