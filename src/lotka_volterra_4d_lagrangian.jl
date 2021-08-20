@@ -139,8 +139,8 @@ module LotkaVolterra4dLagrangian
 
             H = substitute(H, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
             L = substitute(L, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
-            ϕ = P .- ϑ
-            ψ = F .- g
+            ϕ = [P[i] - ϑ[i] for i in eachindex(P,ϑ)]
+            ψ = [F[i] - g[i] for i in eachindex(F,g)]
 
             # component wise code generation
             # code_EL = [build_function(eq, t, X, V)[2] for eq in EL]
