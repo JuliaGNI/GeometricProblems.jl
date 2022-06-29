@@ -14,15 +14,15 @@ module HarmonicOscillator
     export hamiltonian, compute_energy_error
 
 
+    const t₀ = 0.0
     const Δt = 0.1
     const nt = 1000
-    const tspan = (0.0, Δt*nt)
+    const tspan = (t₀, Δt*nt)
 
     const k = 0.5
     const ω = √k
 
     const default_parameters = (k=k, ω=ω)
-    const reference_solution = [-0.012420428712136283, -0.35344429048339926]
     
     ϑ₁(t,q) = q[2]
     ϑ₂(t,q) = zero(eltype(q))
@@ -49,18 +49,18 @@ module HarmonicOscillator
     end
 
 
-    t₀=0.0
-    q₀=[0.5, 0.0]
-    z₀=[0.5, 0.0, 0.5]
-    p₀=ϑ(q₀)
+    const q₀ = [0.5, 0.0]
+    const z₀ = [0.5, 0.0, 0.5]
+    const p₀ = ϑ(q₀)
 
-    A = sqrt(q₀[2]^2 / k + q₀[1]^2)
-    ϕ = asin(q₀[1] / A)
+    const A = sqrt(q₀[2]^2 / k + q₀[1]^2)
+    const ϕ = asin(q₀[1] / A)
 
-    refq = A * sin(ω * Δt * nt + ϕ)
-    refp = ω * Δt * nt * A * cos(ω * Δt * nt + ϕ)
-    refx = [refq, refp]
+    const reference_solution_q = A * sin(ω * Δt * nt + ϕ)
+    const reference_solution_p = ω * A * cos(ω * Δt * nt + ϕ)
 
+    const reference_solution = [reference_solution_q, reference_solution_p]
+    
 
     function oscillator_ode_v(t, x, v, params)
         @unpack k = params
