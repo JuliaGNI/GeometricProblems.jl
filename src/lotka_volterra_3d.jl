@@ -41,6 +41,7 @@ module LotkaVolterra3d
 
     using GeometricBase
     using GeometricEquations
+    using Parameters
 
     export lotka_volterra_3d_ode
 
@@ -48,81 +49,80 @@ module LotkaVolterra3d
     export compute_energy_error, compute_casimir_error
 
 
-    Δt = 0.01
-    nt = 1000
+    const Δt = 0.01
+    const nt = 1000
+    const tspan = (0.0, Δt*nt)
 
-    const A1=+1.0
-    const A2=+1.0
-    const A3=+1.0
-
-    const B1= 0.0
-    const B2=+1.0
-    const B3=+1.0
-
-    const X0=1.0
-    const Y0=1.0
-    const Z0=2.0
+    const default_parameters = (A1 = 1.0, A2 = 1.0, A3 = 1.0, B1 = 0.0, B2 = 1.0, B3 = 1.0)
+    const reference_solution = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
 
 
-    function v₁(t, q)
+    function v₁(t, q, params)
+        @unpack A1, A2, A3, B1, B2, B3 = params
         q[1] * ( - A2 * q[2] + A3 * q[3] + B2 - B3)
     end
 
-    function v₂(t, q)
+    function v₂(t, q, params)
+        @unpack A1, A2, A3, B1, B2, B3 = params
         q[2] * ( + A1 * q[1] - A3 * q[3] - B1 + B3)
     end
 
-    function v₃(t, q)
+    function v₃(t, q, params)
+        @unpack A1, A2, A3, B1, B2, B3 = params
         q[3] * ( - A1 * q[1] + A2 * q[2] + B1 - B2)
     end
 
 
-    const q₀=[X0, Y0, Z0]
-    const v₀=[v₁(0, q₀), v₂(0, q₀), v₃(0, q₀)]
+    const X₀ = 1.0
+    const Y₀ = 1.0
+    const Z₀ = 2.0
+    const q₀ = [X₀, Y₀, Z₀]
+    const v₀ = [v₁(0, q₀, default_parameters), v₂(0, q₀, default_parameters), v₃(0, q₀, default_parameters)]
 
 
-    function hamiltonian(t, q)
+    function hamiltonian(t, q, params)
+        @unpack A1, A2, A3, B1, B2, B3 = params
         A1*q[1] + A2*q[2] + A3*q[3] - B1*log(q[1]) - B2*log(q[2]) - B3*log(q[3])
     end
 
-    hamiltonian_iode(t, q, v) = hamiltonian(t, q)
+    hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
 
-    function casimir(t, q)
+    function casimir(t, q, params)
         log(q[1]) + log(q[2]) + log(q[3])
     end
 
 
-    function lotka_volterra_3d_v(t, q, v)
-        v[1] = v₁(t, q)
-        v[2] = v₂(t, q)
-        v[3] = v₃(t, q)
+    function lotka_volterra_3d_v(t, q, v, params)
+        v[1] = v₁(t, q, params)
+        v[2] = v₂(t, q, params)
+        v[3] = v₃(t, q, params)
         nothing
     end
 
 
-    function lotka_volterra_3d_ode(q₀=q₀)
-        ODE(lotka_volterra_3d_v, q₀; invariants=(h=hamiltonian,))
+    function lotka_volterra_3d_ode(q₀=q₀; tspan=tspan, tstep=Δt, parameters=default_parameters)
+        ODEProblem(lotka_volterra_3d_v, tspan, tstep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
     end
 
 
-    function compute_energy_error(t, q::AbstractDataSeries{<:AbstractVector{T}}) where {T}
+    function compute_energy_error(t, q::AbstractDataSeries{<:AbstractVector{T}}, params) where {T}
         h = DataSeries(T, ntime(q))
         e = DataSeries(T, ntime(q))
 
         for i in axes(q,1)
-            h[i] = hamiltonian(t[i], q[i])
+            h[i] = hamiltonian(t[i], q[i], params)
             e[i] = (h[i] - h[0]) / h[0]
         end
 
         (h, e)
     end
 
-    function compute_casimir_error(t, q::AbstractDataSeries{<:AbstractVector{T}}) where {T}
+    function compute_casimir_error(t, q::AbstractDataSeries{<:AbstractVector{T}}, params) where {T}
         c = DataSeries(T, ntime(q))
         e = DataSeries(T, ntime(q))
 
         for i in axes(q,1)
-            c[i] = casimir(t[i], q[i])
+            c[i] = casimir(t[i], q[i], params)
             e[i] = (c[i] - c[0]) / c[0]
         end
 

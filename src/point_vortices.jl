@@ -13,6 +13,12 @@ module PointVortices
     
     export compute_energy_error, compute_angular_momentum_error
 
+    const Δt = 0.01
+    const nt = 1000
+    const tspan = (0.0, Δt*nt)
+    
+    const reference_solution = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.4258020604293123]
+
     const γ₁ = +0.5
     const γ₂ = +0.5
     const X0 = +0.5
@@ -38,11 +44,11 @@ module PointVortices
     end
 
 
-    function hamiltonian(t,q)
+    function hamiltonian(t, q, params)
         γ₁ * γ₂ * S(q[1],q[2]) * S(q[3],q[4]) * log( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (2π)
     end
 
-    function angular_momentum(t,q)
+    function angular_momentum(t, q, params)
         q[1] * ϑ2(t, q) - q[2] * ϑ1(t, q) +
         q[3] * ϑ4(t, q) - q[4] * ϑ3(t, q)
     end
@@ -134,14 +140,14 @@ module PointVortices
     end
 
 
-    function ϑ(t, q, p)
+    function ϑ(t, q, p, params)
         p[1] = ϑ1(t, q)
         p[2] = ϑ2(t, q)
         p[3] = ϑ3(t, q)
         p[4] = ϑ4(t, q)
     end
 
-    function ω(t, q, Ω)
+    function ω(t, q, Ω, params)
         Ω[1,1] = 0
         Ω[1,2] = dϑ1d2(t,q) - dϑ2d1(t,q)
         Ω[1,3] = dϑ1d3(t,q) - dϑ3d1(t,q)
@@ -203,7 +209,7 @@ module PointVortices
           γ₁ * γ₂ * S(q[1],q[2]) * S(q[3],q[4]) * (q[2] - q[4]) / ( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / π
     end
 
-    function dH(t, q, dH)
+    function dH(t, q, dH, params)
         dH[1] = dHd1(t, q)
         dH[2] = dHd2(t, q)
         dH[3] = dHd3(t, q)
@@ -212,17 +218,17 @@ module PointVortices
     end
 
 
-    function point_vortices_p₀(q₀, t₀=0)
+    function point_vortices_p₀(q₀, t₀, params)
         p₀ = zero(q₀)
         tq = zeros(eltype(q₀), size(q₀,1))
         tp = zeros(eltype(p₀), size(p₀,1))
 
         if ndims(q₀) == 1
-            ϑ(t₀, q₀, p₀)
+            ϑ(t₀, q₀, p₀, params)
         else
             for i in 1:size(q₀,2)
                 simd_copy_xy_first!(tq, q₀, i)
-                ϑ(t₀, tq, tp)
+                ϑ(t₀, tq, tp, params)
                 simd_copy_yx_first!(tp, p₀, i)
             end
         end
@@ -230,7 +236,7 @@ module PointVortices
     end
 
 
-    function point_vortices_v(t, q, v)
+    function point_vortices_v(t, q, v, params)
         denominator1 = 1 / (γ₁ * S2(q[1], q[2]))
         denominator2 = 1 / (γ₂ * S2(q[3], q[4]))
 
@@ -242,12 +248,12 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_v(t, q, p, v)
-        point_vortices_v(t, q, v)
+    function point_vortices_v(t, q, p, v, params)
+        point_vortices_v(t, q, v, params)
     end
 
 
-    function point_vortices_ϑ(t, q, p)
+    function point_vortices_ϑ(t, q, p, params)
         p[1] = ϑ1(t,q)
         p[2] = ϑ2(t,q)
         p[3] = ϑ3(t,q)
@@ -255,11 +261,11 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_ϑ(t, q, v, p)
-        point_vortices_ϑ(t, q, p)
+    function point_vortices_ϑ(t, q, v, p, params)
+        point_vortices_ϑ(t, q, p, params)
     end
 
-    function point_vortices_f(t, q, v, f)
+    function point_vortices_f(t, q, v, f, params)
         f[1] = f1(t,q,v) - dHd1(t,q)
         f[2] = f2(t,q,v) - dHd2(t,q)
         f[3] = f3(t,q,v) - dHd3(t,q)
@@ -267,11 +273,11 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_f(t, q, v, p, f)
-        point_vortices_f(t, q, v, f)
+    function point_vortices_f(t, q, v, p, f, params)
+        point_vortices_f(t, q, v, f, params)
     end
 
-    function point_vortices_g(t, q, λ, g)
+    function point_vortices_g(t, q, λ, g, params)
         g[1] = f1(t,q,λ)
         g[2] = f2(t,q,λ)
         g[3] = f3(t,q,λ)
@@ -279,11 +285,11 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_g(t, q, p, λ, g)
-        point_vortices_g(t, q, λ, g)
+    function point_vortices_g(t, q, p, λ, g, params)
+        point_vortices_g(t, q, λ, g, params)
     end
 
-    function point_vortices_u(t, q, v, u)
+    function point_vortices_u(t, q, v, u, params)
         u[1] = v[1]
         u[2] = v[2]
         u[3] = v[3]
@@ -291,11 +297,11 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_u(t, q, p, v, u)
-        point_vortices_u(t, q, v, u)
+    function point_vortices_u(t, q, p, v, u, params)
+        point_vortices_u(t, q, v, u, params)
     end
 
-    function point_vortices_ϕ(t, q, p, ϕ)
+    function point_vortices_ϕ(t, q, p, ϕ, params)
         ϕ[1] = p[1] - ϑ1(t,q)
         ϕ[2] = p[2] - ϑ2(t,q)
         ϕ[3] = p[3] - ϑ3(t,q)
@@ -304,54 +310,54 @@ module PointVortices
     end
 
 
-    function point_vortices_ode(q₀=q₀)
-        ODE(point_vortices_v, q₀)
+    function point_vortices_ode(q₀=q₀; tspan = tspan, tstep = Δt)
+        ODEProblem(point_vortices_v, tspan, tstep, q₀)
     end
 
-    function point_vortices_iode(q₀=q₀, p₀=point_vortices_p₀(q₀))
-        IODE(point_vortices_ϑ, point_vortices_f,
-             point_vortices_g, q₀, p₀;
-             v̄=point_vortices_v)
+    function point_vortices_iode(q₀=q₀, p₀=point_vortices_p₀(q₀, 0.0, NullParameters()); tspan = tspan, tstep = Δt)
+        IODEProblem(point_vortices_ϑ, point_vortices_f,
+                    point_vortices_g, tspan, tstep, q₀, p₀;
+                    v̄=point_vortices_v)
     end
 
-    function point_vortices_idae(q₀=q₀, p₀=point_vortices_p₀(q₀), λ₀=zero(q₀))
-        IDAE(point_vortices_ϑ, point_vortices_f,
-             point_vortices_u, point_vortices_g,
-             point_vortices_ϕ, q₀, p₀, λ₀;
-             v̄=point_vortices_v)
+    function point_vortices_idae(q₀=q₀, p₀=point_vortices_p₀(q₀, 0.0, NullParameters()), λ₀=zero(q₀); tspan = tspan, tstep = Δt)
+        IDAEProblem(point_vortices_ϑ, point_vortices_f,
+                    point_vortices_u, point_vortices_g,
+                    point_vortices_ϕ, tspan, tstep, q₀, p₀, λ₀;
+                    v̄=point_vortices_v)
     end
 
-    function point_vortices_dg(q₀=q₀)
-        IODE(point_vortices_ϑ, point_vortices_f,
-             point_vortices_g, q₀, q₀;
-             v=point_vortices_v)
+    function point_vortices_dg(q₀=q₀; tspan = tspan, tstep = Δt)
+        IODEProblem(point_vortices_ϑ, point_vortices_f,
+                    point_vortices_g, tspan, tstep, q₀, q₀;
+                    v=point_vortices_v)
     end
 
-    function point_vortices_formal_lagrangian(q₀=q₀)
-        p₀ = point_vortices_p₀(q₀)
-        LODE(ϑ, point_vortices_f, point_vortices_g, q₀, p₀;
-             v̄=point_vortices_v, Ω=ω, ∇H=dH)
+    function point_vortices_formal_lagrangian(q₀=q₀; tspan = tspan, tstep = Δt)
+        p₀ = point_vortices_p₀(q₀, 0.0, NullParameters())
+        LODEProblem(ϑ, point_vortices_f, point_vortices_g, tspan, tstep, q₀, p₀;
+                    v̄=point_vortices_v, Ω=ω, ∇H=dH)
     end
 
 
-    function compute_energy_error(t, q::AbstractDataSeries{T}) where {T}
+    function compute_energy_error(t, q::AbstractDataSeries{T}, params) where {T}
         h = DataSeries(T, q.nt)
         e = DataSeries(T, q.nt)
 
         for i in axes(q,2)
-            h[i] = hamiltonian(t[i], q[:,i])
+            h[i] = hamiltonian(t[i], q[:,i], params)
             e[i] = (h[i] - h[0]) / h[0]
         end
 
         (h, e)
     end
 
-    function compute_angular_momentum_error(t, q::AbstractDataSeries{T}) where {T}
+    function compute_angular_momentum_error(t, q::AbstractDataSeries{T}, params) where {T}
         m = DataSeries(T, q.nt)
         e = DataSeries(T, q.nt)
 
         for i in axes(q,2)
-            m[i] = angular_momentum(t[i], q[:,i])
+            m[i] = angular_momentum(t[i], q[:,i], params)
             e[i] = (m[i] - m[0]) / m[0]
         end
 

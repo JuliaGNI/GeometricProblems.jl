@@ -14,10 +14,12 @@ module KuboOscillator
               [-0.5, 0.0]]
 
     const noise_intensity = 0.1
-    const p = (ν = noise_intensity,)
 
     const Δt = 0.01
     const nt = 10
+    const tspan = (0.0, Δt*nt)
+
+    const default_parameters = (ν = noise_intensity,)
 
 
     function kubo_oscillator_sde_v(t, q, v_out, params)
@@ -44,31 +46,31 @@ module KuboOscillator
     end
 
 
-    function kubo_oscillator_sde_1(q₀=q_init_A, params=p)
+    function kubo_oscillator_sde_1(q₀=q_init_A; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_A - interpreted as one random initial conditions with one sample path
         # 1-dimensional noise
-        SDE(1, 1, kubo_oscillator_sde_v, kubo_oscillator_sde_B, q₀; parameters=params)
+        SDEProblem(1, 1, kubo_oscillator_sde_v, kubo_oscillator_sde_B, tspan, tstep, q₀; parameters = parameters)
     end
 
-    function kubo_oscillator_sde_2(q₀=q_init_A, params=p)
+    function kubo_oscillator_sde_2(q₀=q_init_A; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_A - single deterministic initial condition
         # Generating 3 sample paths
         # 1-dimensional noise
-        SDE(1, 3, kubo_oscillator_sde_v, kubo_oscillator_sde_B, q₀; parameters=params)
+        SDEProblem(1, 3, kubo_oscillator_sde_v, kubo_oscillator_sde_B, tspan, tstep, q₀; parameters = parameters)
     end
 
-    function kubo_oscillator_sde_3(q₀=q_init_B, params=p)
+    function kubo_oscillator_sde_3(q₀=q_init_B; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_B - interpreted as three random initial conditions
         # The 3 columns correspond to 3 sample paths
         # 1-dimensional noise
-        SDE(1, 1, kubo_oscillator_sde_v, kubo_oscillator_sde_B, q₀; parameters=params)
+        SDEProblem(1, 1, kubo_oscillator_sde_v, kubo_oscillator_sde_B, tspan, tstep, q₀; parameters = parameters)
     end
 
 
     # ODE
 
-    function kubo_oscillator_ode(q₀=q_init_A, params=p)
-        ODE(kubo_oscillator_sde_v, q₀; parameters=params)
+    function kubo_oscillator_ode(q₀=q_init_A; tspan = tspan, tstep = Δt, parameters = default_parameters)
+        ODEProblem(kubo_oscillator_sde_v, tspan, tstep, q₀; parameters = parameters)
     end
 
 
@@ -100,30 +102,30 @@ module KuboOscillator
     end
 
 
-    function kubo_oscillator_psde_1(q₀=q_init_C, p₀=p_init_C, params=p)
+    function kubo_oscillator_psde_1(q₀=q_init_C, p₀=p_init_C; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_C - interpreted as a single random initial condition with one sample path
         # 1-dimensional noise
-        PSDE(1, 1, kubo_oscillator_psde_v, kubo_oscillator_psde_f,
-                   kubo_oscillator_psde_B, kubo_oscillator_psde_G,
-                   q₀, p₀; parameters=params)
+        PSDEProblem(1, 1, kubo_oscillator_psde_v, kubo_oscillator_psde_f,
+                    kubo_oscillator_psde_B, kubo_oscillator_psde_G,
+                    tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function kubo_oscillator_psde_2(q₀=q_init_C, p₀=p_init_C, params=p)
+    function kubo_oscillator_psde_2(q₀=q_init_C, p₀=p_init_C; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_C - single deterministic initial condition
         # Generating 3 sample paths
         # 1-dimensional noise
-        PSDE(1, 3, kubo_oscillator_psde_v, kubo_oscillator_psde_f,
-                   kubo_oscillator_psde_B, kubo_oscillator_psde_G,
-                   q₀, p₀; parameters=params)
+        PSDEProblem(1, 3, kubo_oscillator_psde_v, kubo_oscillator_psde_f,
+                    kubo_oscillator_psde_B, kubo_oscillator_psde_G,
+                    tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function kubo_oscillator_psde_3(q₀=q_init_D, p₀=p_init_D, params=p)
+    function kubo_oscillator_psde_3(q₀=q_init_D, p₀=p_init_D; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_D - interpreted as a single random initial condition
         # The 3 columns correspond to 3 sample paths
         # 1-dimensional noise
-        PSDE(1, 1, kubo_oscillator_psde_v, kubo_oscillator_psde_f,
-                   kubo_oscillator_psde_B, kubo_oscillator_psde_G,
-                   q₀, p₀; parameters=params)
+        PSDEProblem(1, 1, kubo_oscillator_psde_v, kubo_oscillator_psde_f,
+                    kubo_oscillator_psde_B, kubo_oscillator_psde_G,
+                    tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
 
@@ -156,30 +158,30 @@ module KuboOscillator
     end
 
 
-    function kubo_oscillator_spsde_1(q₀=q_init_C, p₀=p_init_C, params=p)
+    function kubo_oscillator_spsde_1(q₀ = q_init_C, p₀ = p_init_C; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_C - interpreted as a single random initial condition with one sample path
         # 1-dimensional noise
-        SPSDE(1, 1, kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
-                    kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2,
-                    q₀, p₀; parameters=params)
+        SPSDEProblem(1, 1, kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
+                     kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2,
+                     tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function kubo_oscillator_spsde_2(q₀=q_init_C, p₀=p_init_C, params=p)
+    function kubo_oscillator_spsde_2(q₀ = q_init_C, p₀ = p_init_C; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_C - single deterministic initial condition
         # Generating 3 sample paths
         # 1-dimensional noise
-        SPSDE(1, 3, kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
-                    kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2,
-                    q₀, p₀; parameters=params)
+        SPSDEProblem(1, 3, kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
+                     kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2,
+                     tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function kubo_oscillator_spsde_3(q₀=q_init_D, p₀=p_init_D, params=p)
+    function kubo_oscillator_spsde_3(q₀ = q_init_D, p₀ = p_init_D; tspan = tspan, tstep = Δt, parameters = default_parameters)
         # q_init_D - interpreted as a single random initial condition
         # The 3 columns correspond to 3 sample paths
         # 1-dimensional noise
-        SPSDE(1, 1, kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
-                    kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2,
-                    q₀, p₀; parameters=params)
+        SPSDEProblem(1, 1, kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
+                     kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2,
+                     tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
 end

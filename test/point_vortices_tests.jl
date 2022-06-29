@@ -3,12 +3,7 @@ using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
 using GeometricProblems.PointVortices
-
-
-const Δt = 0.01
-const nt = 1000
-
-const ref = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.4258020604293123]
+using GeometricProblems.PointVortices: reference_solution, nt
 
 
 @testset "$(rpad("Point Vortices",80))" begin
@@ -16,15 +11,15 @@ const ref = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.42
     iode = point_vortices_iode()
     idae = point_vortices_idae()
 
-    int = Integrator(ode, TableauGauss(1), Δt)
+    int = Integrator(ode, TableauGauss(1))
     sol = integrate(ode, int, nt)
-    @test relative_maximum_error(sol.q, ref) < 3E-2
+    @test relative_maximum_error(sol.q, reference_solution) < 3E-2
 
-    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(1), Δt)
+    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(1))
     sol = integrate(iode, int, nt)
-    @test relative_maximum_error(sol.q, ref) < 3E-2
+    @test relative_maximum_error(sol.q, reference_solution) < 3E-2
 
-    int = Integrator(idae, TableauVSPARKGLRKpSymmetric(1), Δt)
+    int = Integrator(idae, TableauVSPARKGLRKpSymmetric(1))
     sol = integrate(idae, int, nt)
-    @test relative_maximum_error(sol.q, ref) < 3E-2
+    @test relative_maximum_error(sol.q, reference_solution) < 3E-2
 end

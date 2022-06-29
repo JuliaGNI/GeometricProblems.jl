@@ -48,12 +48,14 @@ module MasslessChargedParticle
 
 
     # default simulation parameters
-    Δt = 0.2
-    nt = 5000
+    const Δt = 0.2
+    const nt = 5000
+    const tspan = (0.0, Δt*nt)
 
     # default initial conditions and parameters
     q₀ = [1.0, 1.0]
-    parameters = (A₀ = 1.0, E₀ = 1.0)
+    
+    default_parameters = (A₀ = 1.0, E₀ = 1.0)
 
     # components of the vector potential
     A₁(q, params) = - params[:A₀] * q[2] * (1 + q[1]^2 + q[2]^2) / 2
@@ -179,12 +181,12 @@ module MasslessChargedParticle
 
 
     "Creates an ODE object for the massless charged particle in 2D."
-    function massless_charged_particle_ode(q₀=q₀; params=parameters)
+    function massless_charged_particle_ode(q₀=q₀; params=default_parameters)
         ODE(massless_charged_particle_v, q₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
-    function massless_charged_particle_iode(q₀=q₀; params=parameters)
+    function massless_charged_particle_iode(q₀=q₀; params=default_parameters)
         IODE(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g, q₀, ϑ(0., q₀, params);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
@@ -192,7 +194,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function massless_charged_particle_idae(q₀=q₀; params=parameters)
+    function massless_charged_particle_idae(q₀=q₀; params=default_parameters)
         IDAE(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
@@ -201,7 +203,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function massless_charged_particle_idae_spark(q₀=q₀; params=parameters)
+    function massless_charged_particle_idae_spark(q₀=q₀; params=default_parameters)
         IDAE(massless_charged_particle_ϑ, massless_charged_particle_f̄,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);

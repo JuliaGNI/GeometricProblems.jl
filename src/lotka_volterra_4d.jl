@@ -15,13 +15,14 @@ module LotkaVolterra4d
            lotka_volterra_4d_dg
 
 
-    Δt = 0.1
-    nt = 1000
+    const Δt = 0.01
+    const nt = 1000
+    const tspan = (0.0, Δt*nt)
 
     const q₀ = [2.0, 1.0, 1.0, 1.0]
-    const p  = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-2.0, b₃=-1.0, b₄=-1.0)
 
-    const reference_solution = [1.6390462434739954, 1.3764800055785835, 0.37903204434372284, 1.4399236281802124]
+    const default_parameters = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-2.0, b₃=-1.0, b₄=-1.0)
+    const reference_solution = [0.5988695239096916, 2.068567531039674, 0.2804351458645534, 1.258449091830993]
 
     # const q₀ = [2.0, 1.0, 2.0, 1.0]
     # const p  = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-2.0, b₃=-1.0, b₄=-2.0)
@@ -353,56 +354,56 @@ module LotkaVolterra4d
     end
 
 
-    function lotka_volterra_4d_ode(q₀=q₀, params=p)
-        ODE(lotka_volterra_4d_v, q₀; parameters=params, invariants=(h=hamiltonian,))
+    function lotka_volterra_4d_ode(q₀=q₀; tspan=tspan, tstep=Δt, parameters=default_parameters)
+        ODEProblem(lotka_volterra_4d_v, tspan, tstep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
     end
 
 
-    function lotka_volterra_4d_pode(q₀=q₀, p₀=ϑ(0, q₀), params=p)
-        PODE(lotka_volterra_4d_v, lotka_volterra_4d_f,
-             q₀, p₀; parameters=params, invariants=(h=hamiltonian_pode,))
+    function lotka_volterra_4d_pode(q₀=q₀, p₀=ϑ(0, q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        PODEProblem(lotka_volterra_4d_v, lotka_volterra_4d_f,
+                    tspan, tstep, q₀, p₀; parameters=parameters, invariants=(h=hamiltonian_pode,))
     end
 
-    function lotka_volterra_4d_iode(q₀=q₀, p₀=ϑ(0, q₀), params=p)
-        IODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
-             lotka_volterra_4d_g, q₀, p₀;
-             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
+    function lotka_volterra_4d_iode(q₀=q₀, p₀=ϑ(0, q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        IODEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
+                    lotka_volterra_4d_g, tspan, tstep, q₀, p₀;
+                    parameters=parameters, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
     end
 
-    function lotka_volterra_4d_lode(q₀=q₀, p₀=ϑ(0, q₀), params=p)
-        LODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
-             lotka_volterra_4d_g, q₀, p₀;
-             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v,
-             Ω=lotka_volterra_4d_ω, ∇H=lotka_volterra_4d_dH)
+    function lotka_volterra_4d_lode(q₀=q₀, p₀=ϑ(0, q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        LODEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
+                    lotka_volterra_4d_g, tspan, tstep, q₀, p₀;
+                    parameters=parameters, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v,
+                    Ω=lotka_volterra_4d_ω, ∇H=lotka_volterra_4d_dH)
     end
 
-    function lotka_volterra_4d_idae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
-        IDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
-             lotka_volterra_4d_u, lotka_volterra_4d_g,
-             lotka_volterra_4d_ϕ, q₀, p₀, λ₀;
-             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
+    function lotka_volterra_4d_idae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        IDAEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
+                    lotka_volterra_4d_u, lotka_volterra_4d_g,
+                    lotka_volterra_4d_ϕ, tspan, tstep, q₀, p₀, λ₀;
+                    parameters=parameters, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
     end
 
-    function lotka_volterra_4d_pdae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
-        PDAE(lotka_volterra_4d_v_ham, lotka_volterra_4d_f_ham,
-             lotka_volterra_4d_u, lotka_volterra_4d_g,
-             lotka_volterra_4d_ϕ, q₀, p₀, λ₀;
-             v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,
-             parameters=params, invariants=(h=hamiltonian_pode,))
+    function lotka_volterra_4d_pdae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        PDAEProblem(lotka_volterra_4d_v_ham, lotka_volterra_4d_f_ham,
+                    lotka_volterra_4d_u, lotka_volterra_4d_g,
+                    lotka_volterra_4d_ϕ, tspan, tstep, q₀, p₀, λ₀;
+                    v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,
+                    parameters=parameters, invariants=(h=hamiltonian_pode,))
     end
 
-    function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
-        LDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
-             lotka_volterra_4d_g, lotka_volterra_4d_g̅,
-             lotka_volterra_4d_ϕ, lotka_volterra_4d_ψ,
-             q₀, p₀, λ₀; parameters=params, invariants=(h=hamiltonian_iode,),
-             v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,)
+    function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        LDAEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
+                    lotka_volterra_4d_g, lotka_volterra_4d_g̅,
+                    lotka_volterra_4d_ϕ, lotka_volterra_4d_ψ,
+                    tspan, tstep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian_iode,),
+                    v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,)
     end
 
-    function lotka_volterra_4d_dg(q₀=q₀, p₀=ϑ(0, q₀), params=p)
-        IODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
-             lotka_volterra_4d_g, q₀, p₀;
-             parameters=params, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
+    function lotka_volterra_4d_dg(q₀=q₀, p₀=ϑ(0, q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
+        IODEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
+                    lotka_volterra_4d_g, tspan, tstep, q₀, p₀;
+                    parameters=parameters, invariants=(h=hamiltonian_iode,), v̄=lotka_volterra_4d_v)
     end
 
 end
