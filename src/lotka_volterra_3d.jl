@@ -39,8 +39,8 @@ References:
 """
 module LotkaVolterra3d
 
-    using GeometricBase
     using GeometricEquations
+    using GeometricSolutions
     using Parameters
 
     export lotka_volterra_3d_ode

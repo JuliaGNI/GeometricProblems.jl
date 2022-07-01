@@ -1,6 +1,6 @@
 module Diagnostics
 
-    using GeometricBase
+    using GeometricSolutions
 
     export compute_one_form, compute_invariant, compute_invariant_error, compute_momentum_error, compute_error_drift
 

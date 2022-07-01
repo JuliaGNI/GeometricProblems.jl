@@ -4,8 +4,8 @@
 """
 module HarmonicOscillator
 
-    using GeometricBase
     using GeometricEquations
+    using GeometricSolutions
     using Parameters
 
     export harmonic_oscillator_ode, harmonic_oscillator_iode, harmonic_oscillator_pode, harmonic_oscillator_hode, harmonic_oscillator_sode,
@@ -16,7 +16,7 @@ module HarmonicOscillator
 
     const t₀ = 0.0
     const Δt = 0.1
-    const nt = 1000
+    const nt = 10
     const tspan = (t₀, Δt*nt)
 
     const k = 0.5

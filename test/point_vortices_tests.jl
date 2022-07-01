@@ -3,7 +3,7 @@ using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
 using GeometricProblems.PointVortices
-using GeometricProblems.PointVortices: reference_solution, nt
+using GeometricProblems.PointVortices: reference_solution
 
 
 @testset "$(rpad("Point Vortices",80))" begin
@@ -12,14 +12,14 @@ using GeometricProblems.PointVortices: reference_solution, nt
     idae = point_vortices_idae()
 
     int = Integrator(ode, TableauGauss(1))
-    sol = integrate(ode, int, nt)
+    sol = integrate(ode, int)
     @test relative_maximum_error(sol.q, reference_solution) < 3E-2
 
     int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(1))
-    sol = integrate(iode, int, nt)
+    sol = integrate(iode, int)
     @test relative_maximum_error(sol.q, reference_solution) < 3E-2
 
     int = Integrator(idae, TableauVSPARKGLRKpSymmetric(1))
-    sol = integrate(idae, int, nt)
+    sol = integrate(idae, int)
     @test relative_maximum_error(sol.q, reference_solution) < 3E-2
 end

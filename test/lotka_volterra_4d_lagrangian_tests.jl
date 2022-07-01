@@ -8,7 +8,7 @@ using Test
 
 import GeometricProblems.LotkaVolterra4d
 import GeometricProblems.LotkaVolterra4dLagrangian
-import GeometricProblems.LotkaVolterra4dLagrangian: nt, reference_solution
+import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
 
 SimpleSolvers.set_config(:nls_atol, 8eps())
@@ -42,11 +42,11 @@ SimpleSolvers.set_config(:nls_stol_break, Inf)
     @test h1 ≈ h2  atol=1E-14
 
     int = Integrator(ode, TableauGauss(2))
-    sol = integrate(ode, int, nt)
+    sol = integrate(ode, int)
     @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
     ref_int = Integrator(ref_ode, TableauGauss(2))
-    ref_sol = integrate(ref_ode, ref_int, nt)
+    ref_sol = integrate(ref_ode, ref_int)
     @test relative_maximum_error(sol.q, ref_sol.q[end]) < 2E-14
 
 
@@ -90,19 +90,19 @@ SimpleSolvers.set_config(:nls_stol_break, Inf)
     @test h1 ≈ h2  atol=1E-14
 
     int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2))
-    sol = integrate(iode, int, nt)
+    sol = integrate(iode, int)
     @test relative_maximum_error(sol.q, reference_solution) < 2E-3
 
     ref_int = IntegratorVPRKpMidpoint(ref_iode, TableauVPGLRK(2))
-    ref_sol = integrate(ref_iode, ref_int, nt)
+    ref_sol = integrate(ref_iode, ref_int)
     @test relative_maximum_error(sol.q, ref_sol.q[end]) < 8E-14
 
     int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2))
-    sol = integrate(iode, int, nt)
+    sol = integrate(iode, int)
     @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
     ref_int = IntegratorVPRKpSymmetric(ref_iode, TableauVPGLRK(2))
-    ref_sol = integrate(ref_iode, ref_int, nt)
+    ref_sol = integrate(ref_iode, ref_int)
     @test relative_maximum_error(sol.q, ref_sol.q[end]) < 4E-14
 
 
@@ -128,19 +128,19 @@ SimpleSolvers.set_config(:nls_stol_break, Inf)
     @test h1 ≈ h2  atol=1E-14
 
     int = Integrator(idae, TableauVSPARKGLRKpMidpoint(2))
-    sol = integrate(idae, int, nt)
+    sol = integrate(idae, int)
     @test relative_maximum_error(sol.q, reference_solution) < 2E-3
 
     ref_int = Integrator(ref_idae, TableauVSPARKGLRKpMidpoint(2))
-    ref_sol = integrate(ref_idae, ref_int, nt)
+    ref_sol = integrate(ref_idae, ref_int)
     @test relative_maximum_error(sol.q, ref_sol.q[end]) < 4E-14
 
     int = Integrator(idae, TableauVSPARKGLRKpSymmetric(2))
-    sol = integrate(idae, int, nt)
+    sol = integrate(idae, int)
     @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
     ref_int = Integrator(ref_idae, TableauVSPARKGLRKpSymmetric(2))
-    ref_sol = integrate(ref_idae, ref_int, nt)
+    ref_sol = integrate(ref_idae, ref_int)
     @test relative_maximum_error(sol.q, ref_sol.q[end]) < 8E-14
 
 end

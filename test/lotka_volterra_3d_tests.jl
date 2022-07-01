@@ -4,7 +4,7 @@ using Test
 using GeometricIntegrators
 using GeometricIntegrators.Utils
 using GeometricProblems.LotkaVolterra3d
-using GeometricProblems.LotkaVolterra3d: reference_solution, nt
+using GeometricProblems.LotkaVolterra3d: reference_solution
 
 SimpleSolvers.set_config(:nls_atol, 8eps())
 SimpleSolvers.set_config(:nls_rtol, 2eps())
@@ -14,7 +14,7 @@ SimpleSolvers.set_config(:nls_rtol, 2eps())
     ode  = lotka_volterra_3d_ode()
 
     int = Integrator(ode, TableauGauss(1))
-    sol = integrate(ode, int, nt)
+    sol = integrate(ode, int)
     H, ΔH = compute_energy_error(sol.t, sol.q, parameters(ode))
     C, ΔC = compute_casimir_error(sol.t, sol.q, parameters(ode))
     @test relative_maximum_error(sol.q, reference_solution) < 5E-4
@@ -22,7 +22,7 @@ SimpleSolvers.set_config(:nls_rtol, 2eps())
     @test ΔC[end] < 8E-6
 
     int = Integrator(ode, TableauGauss(2))
-    sol = integrate(ode, int, nt)
+    sol = integrate(ode, int)
     H, ΔH = compute_energy_error(sol.t, sol.q, parameters(ode))
     C, ΔC = compute_casimir_error(sol.t, sol.q, parameters(ode))
     @test relative_maximum_error(sol.q, reference_solution) < 2E-9

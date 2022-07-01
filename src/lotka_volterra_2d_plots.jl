@@ -1,7 +1,7 @@
 module LotkaVolterra2dPlots
 
-    using GeometricBase
     using GeometricEquations
+    using GeometricSolutions
     using GeometricProblems.Diagnostics
 
     using LaTeXStrings
