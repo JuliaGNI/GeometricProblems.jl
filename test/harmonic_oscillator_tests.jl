@@ -1,6 +1,5 @@
 using SimpleSolvers
 using Test
-using GeometricEquations
 using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils

@@ -278,7 +278,7 @@ module HarmonicOscillator
     end
 
 
-    function compute_energy_error(t, q::AbstractDataSeries{T}, params) where {T}
+    function compute_energy_error(t, q::DataSeries{T}, params) where {T}
         h = DataSeries(T, q.nt)
         e = DataSeries(T, q.nt)
 

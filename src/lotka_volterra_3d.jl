@@ -39,6 +39,7 @@ References:
 """
 module LotkaVolterra3d
 
+    using GeometricBase
     using GeometricEquations
     using GeometricSolutions
     using Parameters
@@ -105,7 +106,7 @@ module LotkaVolterra3d
     end
 
 
-    function compute_energy_error(t, q::AbstractDataSeries{<:AbstractVector{T}}, params) where {T}
+    function compute_energy_error(t::TimeSeries, q::DataSeries{T}, params) where {T}
         h = DataSeries(T, ntime(q))
         e = DataSeries(T, ntime(q))
 
@@ -117,7 +118,7 @@ module LotkaVolterra3d
         (h, e)
     end
 
-    function compute_casimir_error(t, q::AbstractDataSeries{<:AbstractVector{T}}, params) where {T}
+    function compute_casimir_error(t::TimeSeries, q::DataSeries{T}, params) where {T}
         c = DataSeries(T, ntime(q))
         e = DataSeries(T, ntime(q))
 

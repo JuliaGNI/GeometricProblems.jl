@@ -340,7 +340,7 @@ module PointVortices
     end
 
 
-    function compute_energy_error(t, q::AbstractDataSeries{T}, params) where {T}
+    function compute_energy_error(t, q::DataSeries{T}, params) where {T}
         h = DataSeries(T, q.nt)
         e = DataSeries(T, q.nt)
 
@@ -352,7 +352,7 @@ module PointVortices
         (h, e)
     end
 
-    function compute_angular_momentum_error(t, q::AbstractDataSeries{T}, params) where {T}
+    function compute_angular_momentum_error(t, q::DataSeries{T}, params) where {T}
         m = DataSeries(T, q.nt)
         e = DataSeries(T, q.nt)
 

@@ -1,4 +1,3 @@
-using GeometricEquations
 using GeometricIntegrators
 using GeometricProblems.KuboOscillator
 using Test

@@ -5,6 +5,7 @@ version = "0.3.0"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+GeometricBase = "9a0b12b7-583b-4f04-aa1f-d8551b6addc9"
 GeometricEquations = "c85262ba-a08a-430a-b926-d29770767bf2"
 GeometricSolutions = "7843afe4-64f4-4df4-9231-049495c56661"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
@@ -19,8 +20,9 @@ Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
 
 [compat]
 Documenter = "0.25, 0.26, 0.27"
-GeometricEquations = "0.4"
-GeometricSolutions = "0.1"
+GeometricBase = "0.4"
+GeometricEquations = "0.5, 0.6"
+GeometricSolutions = "0.3"
 LaTeXStrings = "1"
 Measures = "0.3"
 ModelingToolkit = "6, 7"
