@@ -224,7 +224,9 @@ module LotkaVolterra4d
 
     function hamiltonian(t, q, params)
         @unpack a₁, a₂, a₃, a₄, b₁, b₂, b₃, b₄ = params
-        a₁*q[1] + a₂*q[2] + a₃*q[3] + a₄*q[4] + b₁*log(q[1]) + b₂*log(q[2]) + b₃*log(q[3]) + b₄*log(q[4])
+        a = [a₁, a₂, a₃, a₄]
+        b = [b₁, b₂, b₃, b₄]
+        sum(a .* q) + sum(b .* log.(q))
     end
 
     hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
