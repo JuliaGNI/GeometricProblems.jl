@@ -12,8 +12,8 @@ H(q) = a_1 q^1 + a_2 q^2 + a_3 q^3 + a_4 q^4 + b_1 \log q^1 + b_2 \log q^2 + b_3
 """
 module LotkaVolterra4dLagrangian
 
-    using GeometricBase
     using GeometricEquations
+    using GeometricSolutions
     using ModelingToolkit
     using Parameters
     using RuntimeGeneratedFunctions
@@ -33,14 +33,16 @@ module LotkaVolterra4dLagrangian
     # include("lotka_volterra_4d_plots.jl")
        
 
-    Δt = 0.1
-    nt = 1000
+    const Δt = 0.01
+    const nt = 1000
+    const tspan = (0.0, Δt*nt)
 
     const q₀ = [ 2.0,  1.0,  1.0,  1.0]
     const a₀ = [ 1.0,  1.0,  1.0,  1.0]
     const b₀ = [-1.0, -2.0, -1.0, -1.0]
 
-    const reference_solution = [1.6390462434739954, 1.3764800055785835, 0.37903204434372284, 1.4399236281802124]
+    const default_parameters = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-2.0, b₃=-1.0, b₄=-1.0)
+    const reference_solution = [0.5988695239096916, 2.068567531039674, 0.2804351458645534, 1.258449091830993]
 
     const A_antisym = 1//2 .* [
                 0 -1 +1 -1
@@ -192,44 +194,44 @@ module LotkaVolterra4dLagrangian
     end
 
 
-    function lotka_volterra_4d_ode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
+    function lotka_volterra_4d_ode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀; tspan=tspan, tstep=Δt)
         funcs = get_functions(A,B,a,b)
-        ODE((t,x,ẋ) -> funcs[:ẋ](ẋ,t,x), q₀;
-            invariants = (h = funcs[:H],))
+        GeometricEquations.ODEProblem((t,x,ẋ,params) -> funcs[:ẋ](ẋ,t,x), tspan, tstep, q₀;
+                    invariants = (h = funcs[:H],))
     end
 
-    function lotka_volterra_4d_iode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
+    function lotka_volterra_4d_iode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀; tspan=tspan, tstep=Δt)
         funcs = get_functions(A,B,a,b)
-        IODE((t,x,v,ϑ) -> funcs[:ϑ](ϑ,t,x),
-             (t,x,v,f) -> funcs[:f](f,t,x,v),
-             (t,x,v,f̄) -> funcs[:f̄](f̄,t,x,v),
-             q₀, funcs[:p](0, q₀);
-             v̄ = (t,x,v) -> funcs[:ẋ](v,t,x),
-             invariants = (h = (t,x,v) -> funcs[:H](t,x),))
+        IODEProblem((t,x,v,ϑ,params) -> funcs[:ϑ](ϑ,t,x),
+                    (t,x,v,f,params) -> funcs[:f](f,t,x,v),
+                    (t,x,v,f̄,params) -> funcs[:f̄](f̄,t,x,v),
+                    tspan, tstep, q₀, funcs[:p](0, q₀);
+                    v̄ = (t,x,v,params) -> funcs[:ẋ](v,t,x),
+                    invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 
-    function lotka_volterra_4d_lode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
+    function lotka_volterra_4d_lode(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀; tspan=tspan, tstep=Δt)
         funcs = get_functions(A,B,a,b)
-        LODE((t,x,v,ϑ) -> funcs[:ϑ](ϑ,t,x),
-             (t,x,v,f) -> funcs[:f](f,t,x,v),
-             (t,x,v,f̄) -> funcs[:f̄](f̄,t,x,v),
-             (t,x,v)   -> funcs[:L](t,x,v),
-             (t,x,v,ω) -> funcs[:ω](ω,t,x),
-             q₀, funcs[:p](0, q₀);
-             v̄ = (t,x,v) -> funcs[:ẋ](v,t,x),
-             invariants = (h = (t,x,v) -> funcs[:H](t,x),))
+        LODEProblem((t,x,v,ϑ,params) -> funcs[:ϑ](ϑ,t,x),
+                    (t,x,v,f,params) -> funcs[:f](f,t,x,v),
+                    (t,x,v,f̄,params) -> funcs[:f̄](f̄,t,x,v),
+                    (t,x,v,params)   -> funcs[:L](t,x,v),
+                    (t,x,v,ω,params) -> funcs[:ω](ω,t,x),
+                    tspan, tstep, q₀, funcs[:p](0, q₀);
+                    v̄ = (t,x,v,params) -> funcs[:ẋ](v,t,x),
+                    invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 
-    function lotka_volterra_4d_idae(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀)
+    function lotka_volterra_4d_idae(q₀=q₀, A=A_antisym, B=zeros(Int, 4, 4), a=a₀, b=b₀; tspan=tspan, tstep=Δt)
         funcs = get_functions(A,B,a,b)
-        IDAE((t,x,v,ϑ) -> funcs[:ϑ](ϑ,t,x,v),
-             (t,x,v,f) -> funcs[:f](f,t,x,v),
-             (t,x,p,v,u) -> u .= v,
-             (t,x,p,v,f̄) -> funcs[:f̄](f̄,t,x,v),
-             (t,x,p,ϕ) -> funcs[:ϕ](ϕ,t,x,p),
-             q₀, funcs[:p](0, q₀), zero(q₀);
-             v̄ = (t,x,v) -> funcs[:ẋ](v,t,x),
-             invariants = (h = (t,x,v) -> funcs[:H](t,x),))
+        IDAEProblem((t,x,v,ϑ,params) -> funcs[:ϑ](ϑ,t,x,v),
+                    (t,x,v,f,params) -> funcs[:f](f,t,x,v),
+                    (t,x,p,v,u,params) -> u .= v,
+                    (t,x,p,v,f̄,params) -> funcs[:f̄](f̄,t,x,v),
+                    (t,x,p,ϕ,params) -> funcs[:ϕ](ϕ,t,x,p),
+                    tspan, tstep, q₀, funcs[:p](0, q₀), zero(q₀);
+                    v̄ = (t,x,v,params) -> funcs[:ẋ](v,t,x),
+                    invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 
     # function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)

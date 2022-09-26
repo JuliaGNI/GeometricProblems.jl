@@ -4,15 +4,12 @@ using GeometricIntegrators
 using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
 using GeometricProblems.HarmonicOscillator
+using GeometricProblems.HarmonicOscillator: reference_solution
 
 SimpleSolvers.set_config(:nls_atol, 8eps())
 SimpleSolvers.set_config(:nls_rtol, 2eps())
-SimpleSolvers.set_config(:nls_stol_break, 1E3)
+SimpleSolvers.set_config(:nls_stol_break, Inf)
 
-const Δt = 0.1
-const nt = 1000
-
-const ref = [-0.012420428712136283, -0.35344429048339926]
 
 @testset "$(rpad("Harmonic Oscillator",80))" begin
 
@@ -23,54 +20,54 @@ const ref = [-0.012420428712136283, -0.35344429048339926]
     idae = harmonic_oscillator_idae()
     pdae = harmonic_oscillator_pdae()
 
-    ode_equs = get_functions(ode)
-    @test_nowarn ode_equs[:v](ode.t₀, ode.q₀[begin], zero(ode.q₀[begin]))
+    ode_equs = functions(ode)
+    @test_nowarn ode_equs[:v](tbegin(ode), ode.ics.q, zero(ode.ics.q))
 
-    iode_equs = get_functions(iode)
-    @test_nowarn iode_equs[:ϑ](iode.t₀, iode.q₀[begin], iode.p₀[begin], zero(iode.q₀[begin]))
-    @test_nowarn iode_equs[:f](iode.t₀, iode.q₀[begin], iode.p₀[begin], zero(iode.p₀[begin]))
-    @test_nowarn iode_equs[:v̄](iode.t₀, iode.q₀[begin], zero(iode.q₀[begin]))
-    @test_nowarn iode_equs[:f̄](iode.t₀, iode.q₀[begin], iode.p₀[begin], zero(iode.q₀[begin]))
+    iode_equs = functions(iode)
+    @test_nowarn iode_equs[:ϑ](tbegin(iode), iode.ics.q, iode.ics.p, zero(iode.ics.q))
+    @test_nowarn iode_equs[:f](tbegin(iode), iode.ics.q, iode.ics.p, zero(iode.ics.p))
+    @test_nowarn iode_equs[:v̄](tbegin(iode), iode.ics.q, zero(iode.ics.q))
+    @test_nowarn iode_equs[:f̄](tbegin(iode), iode.ics.q, iode.ics.p, zero(iode.ics.q))
 
-    pode_equs = get_functions(pode)
-    @test_nowarn pode_equs[:v](pode.t₀, pode.q₀[begin], pode.p₀[begin], zero(pode.q₀[begin]))
-    @test_nowarn pode_equs[:f](pode.t₀, pode.q₀[begin], pode.p₀[begin], zero(pode.p₀[begin]))
+    pode_equs = functions(pode)
+    @test_nowarn pode_equs[:v](tbegin(pode), pode.ics.q, pode.ics.p, zero(pode.ics.q))
+    @test_nowarn pode_equs[:f](tbegin(pode), pode.ics.q, pode.ics.p, zero(pode.ics.p))
 
-    dae_equs = get_functions(dae)
-    @test_nowarn dae_equs[:v](dae.t₀, dae.q₀[begin], zero(dae.q₀[begin]))
-    @test_nowarn dae_equs[:u](dae.t₀, dae.q₀[begin], dae.λ₀[begin], zero(dae.q₀[begin]))
-    @test_nowarn dae_equs[:ϕ](dae.t₀, dae.q₀[begin], zero(dae.λ₀[begin]))
-    @test_nowarn dae_equs[:v̄](dae.t₀, dae.q₀[begin], zero(dae.q₀[begin]))
+    dae_equs = functions(dae)
+    @test_nowarn dae_equs[:v](tbegin(dae), dae.ics.q, zero(dae.ics.q))
+    @test_nowarn dae_equs[:u](tbegin(dae), dae.ics.q, dae.ics.λ, zero(dae.ics.q))
+    @test_nowarn dae_equs[:ϕ](tbegin(dae), dae.ics.q, zero(dae.ics.λ))
+    @test_nowarn dae_equs[:v̄](tbegin(dae), dae.ics.q, zero(dae.ics.q))
 
-    idae_equs = get_functions(idae)
-    @test_nowarn idae_equs[:ϑ](idae.t₀, idae.q₀[begin], idae.λ₀[begin], zero(idae.q₀[begin]))
-    @test_nowarn idae_equs[:f](idae.t₀, idae.q₀[begin], idae.λ₀[begin], zero(idae.p₀[begin]))
-    @test_nowarn idae_equs[:u](idae.t₀, idae.q₀[begin], pdae.p₀[begin], idae.λ₀[begin], zero(idae.q₀[begin]))
-    @test_nowarn idae_equs[:g](idae.t₀, idae.q₀[begin], pdae.p₀[begin], idae.λ₀[begin], zero(idae.p₀[begin]))
-    @test_nowarn idae_equs[:ϕ](idae.t₀, idae.q₀[begin], idae.p₀[begin], zero(idae.λ₀[begin]))
-    @test_nowarn idae_equs[:v̄](idae.t₀, idae.q₀[begin], zero(idae.q₀[begin]))
-    @test_nowarn idae_equs[:f̄](idae.t₀, idae.q₀[begin], idae.p₀[begin], zero(idae.q₀[begin]))
+    idae_equs = functions(idae)
+    @test_nowarn idae_equs[:ϑ](tbegin(idae), idae.ics.q, idae.ics.λ, zero(idae.ics.q))
+    @test_nowarn idae_equs[:f](tbegin(idae), idae.ics.q, idae.ics.λ, zero(idae.ics.p))
+    @test_nowarn idae_equs[:u](tbegin(idae), idae.ics.q, pdae.ics.p, idae.ics.λ, zero(idae.ics.q))
+    @test_nowarn idae_equs[:g](tbegin(idae), idae.ics.q, pdae.ics.p, idae.ics.λ, zero(idae.ics.p))
+    @test_nowarn idae_equs[:ϕ](tbegin(idae), idae.ics.q, idae.ics.p, zero(idae.ics.λ))
+    @test_nowarn idae_equs[:v̄](tbegin(idae), idae.ics.q, zero(idae.ics.q))
+    @test_nowarn idae_equs[:f̄](tbegin(idae), idae.ics.q, idae.ics.p, zero(idae.ics.q))
 
-    pdae_equs = get_functions(pdae)
-    @test_nowarn pdae_equs[:v](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], zero(pdae.q₀[begin]))
-    @test_nowarn pdae_equs[:f](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], zero(pdae.p₀[begin]))
-    @test_nowarn pdae_equs[:u](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], pdae.λ₀[begin], zero(pdae.q₀[begin]))
-    @test_nowarn pdae_equs[:g](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], pdae.λ₀[begin], zero(pdae.p₀[begin]))
-    @test_nowarn pdae_equs[:ϕ](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], zero(pdae.λ₀[begin]))
-    @test_nowarn pdae_equs[:v̄](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], zero(pdae.q₀[begin]))
-    @test_nowarn pdae_equs[:f̄](pdae.t₀, pdae.q₀[begin], pdae.p₀[begin], zero(pdae.p₀[begin]))
+    pdae_equs = functions(pdae)
+    @test_nowarn pdae_equs[:v](tbegin(pdae), pdae.ics.q, pdae.ics.p, zero(pdae.ics.q))
+    @test_nowarn pdae_equs[:f](tbegin(pdae), pdae.ics.q, pdae.ics.p, zero(pdae.ics.p))
+    @test_nowarn pdae_equs[:u](tbegin(pdae), pdae.ics.q, pdae.ics.p, pdae.ics.λ, zero(pdae.ics.q))
+    @test_nowarn pdae_equs[:g](tbegin(pdae), pdae.ics.q, pdae.ics.p, pdae.ics.λ, zero(pdae.ics.p))
+    @test_nowarn pdae_equs[:ϕ](tbegin(pdae), pdae.ics.q, pdae.ics.p, zero(pdae.ics.λ))
+    @test_nowarn pdae_equs[:v̄](tbegin(pdae), pdae.ics.q, pdae.ics.p, zero(pdae.ics.q))
+    @test_nowarn pdae_equs[:f̄](tbegin(pdae), pdae.ics.q, pdae.ics.p, zero(pdae.ics.p))
 
     
-    int = Integrator(ode, TableauGauss(2), Δt)
-    sol = integrate(ode, int, nt)
-    @test relative_maximum_error(sol.q, ref) < 1E-4
+    int = Integrator(ode, TableauGauss(2))
+    sol = integrate(ode, int)
+    @test relative_maximum_error(sol.q, reference_solution) < 1E-4
 
-    int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2), Δt)
-    sol = integrate(iode, int, nt)
-    @test relative_maximum_error(sol.q, ref) < 1E-4
+    int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2))
+    sol = integrate(iode, int)
+    @test relative_maximum_error(sol.q, reference_solution) < 1E-4
 
-    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2), Δt)
-    sol = integrate(iode, int, nt)
-    @test relative_maximum_error(sol.q, ref) < 1E-4
+    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2))
+    sol = integrate(iode, int)
+    @test relative_maximum_error(sol.q, reference_solution) < 1E-4
 
 end
