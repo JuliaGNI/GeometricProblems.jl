@@ -105,11 +105,11 @@ module MasslessChargedParticle
     dϑ₂dx₂(t, q, params) = + params[:A₀] * q[1] * q[2]
 
     # components of the force
-    f₁(t, q, v, params) = dϑ₁dx₁(t, q, params) * v[1] + dϑ₂dx₁(t, q, params) * v[2]
-    f₂(t, q, v, params) = dϑ₁dx₂(t, q, params) * v[1] + dϑ₂dx₂(t, q, params) * v[2]
+    f₁(v, t, q, params) = dϑ₁dx₁(t, q, params) * v[1] + dϑ₂dx₁(t, q, params) * v[2]
+    f₂(v, t, q, params) = dϑ₁dx₂(t, q, params) * v[1] + dϑ₂dx₂(t, q, params) * v[2]
 
-    g₁(t, q, v, params) = dϑ₁dx₁(t, q, params) * v[1] + dϑ₁dx₂(t, q, params) * v[2]
-    g₂(t, q, v, params) = dϑ₂dx₁(t, q, params) * v[1] + dϑ₂dx₂(t, q, params) * v[2]
+    g₁(v, t, q, params) = dϑ₁dx₁(t, q, params) * v[1] + dϑ₁dx₂(t, q, params) * v[2]
+    g₂(v, t, q, params) = dϑ₂dx₁(t, q, params) * v[1] + dϑ₂dx₂(t, q, params) * v[2]
 
     # Hamiltonian (total energy)
     hamiltonian(t, q, params) = ϕ(q, params)
@@ -119,60 +119,60 @@ module MasslessChargedParticle
     dHd₂(t, q, params) = - E₂(q, params)
 
 
-    function massless_charged_particle_dH(t, q, dH, params)
+    function massless_charged_particle_dH(dH, t, q, params)
         dH[1] = dHd₁(t, q, params)
         dH[2] = dHd₂(t, q, params)
         nothing
     end 
 
-    function massless_charged_particle_v(t, q, v, params)
+    function massless_charged_particle_v(v, t, q, params)
         v[1] = v₁(t, q, params)
         v[2] = v₂(t, q, params)
         nothing
     end
 
-    function massless_charged_particle_ϑ(t, q, Θ, params)
+    function massless_charged_particle_ϑ(Θ, t, q, params)
         Θ[1] = ϑ₁(t, q, params)
         Θ[2] = ϑ₂(t, q, params)
         nothing 
     end
 
-    massless_charged_particle_ϑ(t, q, v, Θ, params) = massless_charged_particle_ϑ(t, q, Θ, params)
+    massless_charged_particle_ϑ(Θ, t, q, v, params) = massless_charged_particle_ϑ(Θ, t, q, params)
 
-    function massless_charged_particle_f(t, q, v, f, params)
-        f[1] = f₁(t, q, v, params) - dHd₁(t, q, params)
-        f[2] = f₂(t, q, v, params) - dHd₂(t, q, params)
+    function massless_charged_particle_f(f, t, q, v, params)
+        f[1] = f₁(v, t, q, params) - dHd₁(t, q, params)
+        f[2] = f₂(v, t, q, params) - dHd₂(t, q, params)
         nothing
     end
 
-    function massless_charged_particle_f̄(t, q, v, f, params)
+    function massless_charged_particle_f̄(f, t, q, v, params)
         f[1] = - dHd₁(t, q, params)
         f[2] = - dHd₂(t, q, params)
         nothing
     end
 
-    function massless_charged_particle_g(t, q, v, g, params)
-        g[1] = f₁(t, q, v, params)
-        g[2] = f₂(t, q, v, params)
+    function massless_charged_particle_g(g, t, q, v, params)
+        g[1] = f₁(v, t, q, params)
+        g[2] = f₂(v, t, q, params)
         nothing
     end
 
-    massless_charged_particle_g(t, q, p, v, g, params) = massless_charged_particle_g(t, q, v, g, params)
+    massless_charged_particle_g(g, t, q, p, v, params) = massless_charged_particle_g(g, t, q, v, params)
 
-    function massless_charged_particle_u(t, q, v, u, params)
+    function massless_charged_particle_u(u, t, q, v, params)
         u .= v
         nothing
     end
 
-    massless_charged_particle_u(t, q, p, v, u, params) = massless_charged_particle_u(t, q, v, u, params)
+    massless_charged_particle_u(u, t, q, p, v, params) = massless_charged_particle_u(u, t, q, v, params)
 
-    function massless_charged_particle_ϕ(t, q, p, ϕ, params)
+    function massless_charged_particle_ϕ(ϕ, t, q, p, params)
         ϕ[1] = p[1] - ϑ₁(t,q,params)
         ϕ[2] = p[2] - ϑ₂(t,q,params)
         nothing
     end
 
-    function massless_charged_particle_ψ(t, q, p, v, f, ψ, params)
+    function massless_charged_particle_ψ(ψ, t, q, p, v, f, params)
         ψ[1] = f[1] - g₁(t,q,v,params)
         ψ[2] = f[2] - g₂(t,q,v,params)
         nothing

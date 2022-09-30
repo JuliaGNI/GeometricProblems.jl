@@ -8,23 +8,23 @@ module Pendulum
 
     export pendulum_ode, pendulum_pode, pendulum_iode, pendulum_idae
 
-    function pendulum_ode_f(t, x, f)
-        f[1] = x[2]
-        f[2] = sin(x[1])
+    function pendulum_ode_v(v, t, q, params)
+        v[1] = q[2]
+        v[2] = sin(q[1])
         nothing
     end
 
-    function pendulum_ode(x₀=[acos(0.4), 0.0])
-        ODE(pendulum_ode_f, x₀)
+    function pendulum_ode(q₀=[acos(0.4), 0.0])
+        ODE(pendulum_ode_v, q₀)
     end
 
 
-    function pendulum_pode_v(t, q, p, v)
+    function pendulum_pode_v(v, t, q, p, params)
         v[1] = p[1]
         nothing
     end
 
-    function pendulum_pode_f(t, q, p, f)
+    function pendulum_pode_f(f, t, q, p, params)
         f[1] = sin(q[1])
         nothing
     end
@@ -34,25 +34,25 @@ module Pendulum
     end
 
 
-    function pendulum_iode_α(t, q, v, p)
+    function pendulum_iode_α(p, t, q, v, params)
         p[1] = q[2]
         p[2] = 0
         nothing
     end
 
-    function pendulum_iode_f(t, q, v, f)
+    function pendulum_iode_f(f, t, q, v, params)
         f[1] = sin(q[1])
         f[2] = v[1] - q[2]
         nothing
     end
 
-    function pendulum_iode_g(t, q, λ, g)
+    function pendulum_iode_g(g, t, q, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function pendulum_iode_v(t, q, p, v)
+    function pendulum_iode_v(v, t, q, p, params)
         v[1] = q[2]
         v[2] = sin(q[1])
         nothing
@@ -96,19 +96,19 @@ module Pendulum
     # end
 
 
-    function pendulum_idae_u(t, q, p, λ, u)
+    function pendulum_idae_u(u, t, q, p, λ, params)
         u[1] = λ[1]
         u[2] = λ[2]
         nothing
     end
 
-    function pendulum_idae_g(t, q, p, λ, g)
+    function pendulum_idae_g(g, t, q, p, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function pendulum_idae_ϕ(t, q, p, ϕ)
+    function pendulum_idae_ϕ(ϕ, t, q, p, params)
         ϕ[1] = p[1] - q[2]
         ϕ[2] = p[2]
         nothing

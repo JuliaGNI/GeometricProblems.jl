@@ -22,26 +22,23 @@ module KuboOscillator
     const default_parameters = (ν = noise_intensity,)
 
 
-    function kubo_oscillator_sde_v(t, q, v_out, params)
-        v_out[1]=  q[2]
-        v_out[2]= -q[1]
+    function kubo_oscillator_sde_v(v, t, q, params)
+        v[1]=  q[2]
+        v[2]= -q[1]
     end
 
 
-    function kubo_oscillator_sde_B(t, q, B_out::AbstractVector, params)
+    function kubo_oscillator_sde_B(B::AbstractVector, t, q, params)
         @unpack ν = params
-        B_out[1] = +ν*q[2]
-        B_out[2] = -ν*q[1]
+        B[1] = +ν * q[2]
+        B[2] = -ν * q[1]
     end
 
-    function kubo_oscillator_sde_B(t, q, B_out::AbstractMatrix, params, col=0)
+    function kubo_oscillator_sde_B(B::AbstractMatrix, t, q, params)
         @unpack ν = params
-        if col == 0
-            B_out[1,1] = +ν*q[2]
-            B_out[2,1] = -ν*q[1]
-        else
-            B_out[1,col] = +ν*q[2]
-            B_out[2,col] = -ν*q[1]
+        for j in axes(B, 2)
+            B[1,j] = +ν * q[2]
+            B[2,j] = -ν * q[1]
         end
     end
 
@@ -83,22 +80,22 @@ module KuboOscillator
     p_init_D=[[0.0], [0.5], [ 0.0]]
 
 
-    function kubo_oscillator_psde_v(t, q, p, v_out, params)
-        v_out[1] =  p[1]
+    function kubo_oscillator_psde_v(v, t, q, p, params)
+        v[1] =  p[1]
     end
 
-    function kubo_oscillator_psde_f(t, q, p, f_out, params)
-        f_out[1] = -q[1]
+    function kubo_oscillator_psde_f(f, t, q, p, params)
+        f[1] = -q[1]
     end
 
-    function kubo_oscillator_psde_B(t, q, p, B_out, params)
+    function kubo_oscillator_psde_B(B, t, q, p, params)
         @unpack ν = params
-        B_out[1,1] = +ν*p[1]
+        B[1,1] = +ν * p[1]
     end
 
-    function kubo_oscillator_psde_G(t, q, p, G_out, params)
+    function kubo_oscillator_psde_G(G, t, q, p, params)
         @unpack ν = params
-        G_out[1,1] = -ν*q[1]
+        G[1,1] = -ν * q[1]
     end
 
 
@@ -131,30 +128,30 @@ module KuboOscillator
 
     # SPSDE
 
-    function kubo_oscillator_spsde_v(t, q, p, v_out, params)
-        v_out[1] =  p[1]
+    function kubo_oscillator_spsde_v(v, t, q, p, params)
+        v[1] =  p[1]
     end
 
-    function kubo_oscillator_spsde_f1(t, q, p, f_out, params)
-        f_out[1] = -q[1]
+    function kubo_oscillator_spsde_f1(f, t, q, p, params)
+        f[1] = -q[1]
     end
 
-    function kubo_oscillator_spsde_f2(t, q, p, f_out, params)
-        f_out[1] = 0
+    function kubo_oscillator_spsde_f2(f, t, q, p, params)
+        f[1] = 0
     end
 
-    function kubo_oscillator_spsde_B(t, q, p, B_out, params)
+    function kubo_oscillator_spsde_B(B, t, q, p, params)
         @unpack ν = params
-        B_out[1,1] = +ν*p[1]
+        B[1,1] = +ν * p[1]
     end
 
-    function kubo_oscillator_spsde_G1(t, q, p, G_out, params)
+    function kubo_oscillator_spsde_G1(G, t, q, p, params)
         @unpack ν = params
-        G_out[1,1] = -ν*q[1]
+        G[1,1] = -ν * q[1]
     end
 
-    function kubo_oscillator_spsde_G2(t, q, p, G_out, params)
-        G_out[1,1] = 0
+    function kubo_oscillator_spsde_G2(G, t, q, p, params)
+        G[1,1] = 0
     end
 
 

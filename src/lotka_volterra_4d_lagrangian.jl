@@ -206,46 +206,46 @@ module LotkaVolterra4dLagrangian
     function lotka_volterra_4d_ode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        GeometricEquations.ODEProblem((t,x,ẋ,params) -> funcs[:ẋ](ẋ,t,x), tspan, tstep, q₀;
+        GeometricEquations.ODEProblem((ẋ,t,x,params) -> funcs[:ẋ](ẋ,t,x), tspan, tstep, q₀;
                     parameters=parameters, invariants = (h = funcs[:H],))
     end
 
     function lotka_volterra_4d_iode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        IODEProblem((t,x,v,ϑ,params) -> funcs[:ϑ](ϑ,t,x),
-                    (t,x,v,f,params) -> funcs[:f](f,t,x,v),
-                    (t,x,v,f̄,params) -> funcs[:f̄](f̄,t,x,v),
+        IODEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x),
+                    (f,t,x,v,params) -> funcs[:f](f,t,x,v),
+                    (f̄,t,x,v,params) -> funcs[:f̄](f̄,t,x,v),
                     tspan, tstep, q₀, funcs[:p](0, q₀);
-                    v̄ = (t,x,v,params) -> funcs[:ẋ](v,t,x),
-                    f̄ = (t,x,v,f,params) -> funcs[:f](f,t,x,v),
+                    v̄ = (v,t,x,params) -> funcs[:ẋ](v,t,x),
+                    f̄ = (f,t,x,v,params) -> funcs[:f](f,t,x,v),
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 
     function lotka_volterra_4d_lode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        LODEProblem((t,x,v,ϑ,params) -> funcs[:ϑ](ϑ,t,x),
-                    (t,x,v,f,params) -> funcs[:f](f,t,x,v),
-                    (t,x,v,f̄,params) -> funcs[:f̄](f̄,t,x,v),
+        LODEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x),
+                    (f,t,x,v,params) -> funcs[:f](f,t,x,v),
+                    (f̄,t,x,v,params) -> funcs[:f̄](f̄,t,x,v),
                     (t,x,v,params)   -> funcs[:L](t,x,v),
-                    (t,x,v,ω,params) -> funcs[:ω](ω,t,x),
+                    (ω,t,x,v,params) -> funcs[:ω](ω,t,x),
                     tspan, tstep, q₀, funcs[:p](0, q₀);
-                    v̄ = (t,x,v,params) -> funcs[:ẋ](v,t,x),
-                    f̄ = (t,x,v,f,params) -> funcs[:f](f,t,x,v),
+                    v̄ = (v,t,x,params) -> funcs[:ẋ](v,t,x),
+                    f̄ = (f,t,x,v,params) -> funcs[:f](f,t,x,v),
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 
     function lotka_volterra_4d_idae(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        IDAEProblem((t,x,v,ϑ,params) -> funcs[:ϑ](ϑ,t,x,v),
-                    (t,x,v,f,params) -> funcs[:f](f,t,x,v),
-                    (t,x,p,v,u,params) -> u .= v,
-                    (t,x,p,v,f̄,params) -> funcs[:f̄](f̄,t,x,v),
-                    (t,x,p,ϕ,params) -> funcs[:ϕ](ϕ,t,x,p),
+        IDAEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x,v),
+                    (f,t,x,v,params) -> funcs[:f](f,t,x,v),
+                    (u,t,x,p,v,params) -> u .= v,
+                    (f̄,t,x,p,v,params) -> funcs[:f̄](f̄,t,x,v),
+                    (ϕ,t,x,p,params) -> funcs[:ϕ](ϕ,t,x,p),
                     tspan, tstep, q₀, funcs[:p](0, q₀), zero(q₀);
-                    v̄ = (t,x,v,params) -> funcs[:ẋ](v,t,x),
+                    v̄ = (v,t,x,params) -> funcs[:ẋ](v,t,x),
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 

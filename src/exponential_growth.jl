@@ -8,7 +8,7 @@ module ExponentialGrowth
 
     export exponential_growth_ode
 
-    function exponential_growth_ode_f(t, x, f)
+    function exponential_growth_ode_f(f, t, x)
         f[1] = x[1]
         nothing
     end

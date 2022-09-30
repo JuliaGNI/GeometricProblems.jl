@@ -101,7 +101,7 @@ end
 function lotka_volterra_2d_hdae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
     HDAEProblem(lotka_volterra_2d_v, lotka_volterra_2d_f, 
                 lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                lotka_volterra_2d_u̅, lotka_volterra_2d_g̅, lotka_volterra_2d_ψ,
+                lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
                 hamiltonian_pode, tspan, tstep, q₀, p₀, λ₀; parameters=parameters)
 end
 
@@ -133,7 +133,7 @@ end
 function lotka_volterra_2d_ldae(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
     LDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
                 lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                lotka_volterra_2d_u̅, lotka_volterra_2d_g̅, lotka_volterra_2d_ψ_lode,
+                lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ_lode,
                 lagrangian, lotka_volterra_2d_ω,
                 tspan, tstep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian_iode,),
                 v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
@@ -143,7 +143,7 @@ end
 function lotka_volterra_2d_slrk(q₀=q₀, p₀=lotka_volterra_2d_pᵢ(q₀), λ₀=zero(q₀); tspan=tspan, tstep=Δt, parameters=default_parameters)
     LDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
                 lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                lotka_volterra_2d_u̅, lotka_volterra_2d_g̅, lotka_volterra_2d_ψ,
+                lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
                 lagrangian, lotka_volterra_2d_ω,
                 tspan, tstep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian_iode,),
                 v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)

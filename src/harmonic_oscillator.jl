@@ -39,12 +39,12 @@ module HarmonicOscillator
         q[2]^2 / 2 + k * q[1]^2 / 2
     end
 
-    function hamiltonian(t, q, p, params)
+    function hamiltonian(p, t, q, params)
         @unpack k = params
         p[1]^2 / 2 + k * q[1]^2 / 2
     end
 
-    function lagrangian(t, q, v, params)
+    function lagrangian(v, t, q, params)
         ϑ₁(t,q) * v[1] + ϑ₂(t,q) * v[2] - hamiltonian(t, q, params)
     end
 
@@ -62,26 +62,26 @@ module HarmonicOscillator
     const reference_solution = [reference_solution_q, reference_solution_p]
     
 
-    function oscillator_ode_v(t, x, v, params)
+    function oscillator_ode_v(v, t, q, params)
         @unpack k = params
-        v[1] = x[2]
-        v[2] = -k*x[1]
+        v[1] = q[2]
+        v[2] = -k * q[1]
         nothing
     end
 
-    function harmonic_oscillator_ode(x₀=q₀; parameters = default_parameters, tspan = tspan, tstep = Δt)
+    function harmonic_oscillator_ode(q₀=q₀; parameters = default_parameters, tspan = tspan, tstep = Δt)
         # @assert size(x₀,1) == 2
-        # ODE(oscillator_ode_v, x₀; invariants=(h=hamiltonian,), parameters=params)
-        ODEProblem(oscillator_ode_v, tspan, tstep, x₀; invariants = (h=hamiltonian,), parameters = parameters)
+        # ODE(oscillator_ode_v, q₀; invariants=(h=hamiltonian,), parameters=params)
+        ODEProblem(oscillator_ode_v, tspan, tstep, q₀; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
 
-    function oscillator_pode_v(t, q, p, v, params)
+    function oscillator_pode_v(v, t, q, p, params)
         v[1] = p[1]
         nothing
     end
 
-    function oscillator_pode_f(t, q, p, f, params)
+    function oscillator_pode_f(f, t, q, p, params)
         @unpack k = params
         f[1] = -k*q[1]
         nothing
@@ -103,29 +103,29 @@ module HarmonicOscillator
     end
 
 
-    function oscillator_sode_v_1(t, q, v, params)
+    function oscillator_sode_v_1(v, t, q, params)
         v[1] = q[2]
         v[2] = 0
         nothing
     end
 
-    function oscillator_sode_v_2(t, q, v, params)
+    function oscillator_sode_v_2(v, t, q, params)
         @unpack k = params
         v[1] = 0
-        v[2] = -k*q[1]
+        v[2] = -k * q[1]
         nothing
     end
 
-    function oscillator_sode_q_1(t, q̄, q, h, params)
-        q[1] = q̄[1] + h * q̄[2]
-        q[2] = q̄[2]
+    function oscillator_sode_q_1(q₁, t₁, q₀, t₀, params)
+        q₁[1] = q₀[1] + (t₁ - t₀) * q₀[2]
+        q₁[2] = q₀[2]
         nothing
     end
 
-    function oscillator_sode_q_2(t, q̄, q, h, params)
+    function oscillator_sode_q_2(q₁, t₁, q₀, t₀, params)
         @unpack k = params
-        q[1] = q̄[1]
-        q[2] = q̄[2] - h * k*q̄[1]
+        q₁[1] = q₀[1]
+        q₁[2] = q₀[2] - (t₁ - t₀) * k * q₀[1]
         nothing
     end
 
@@ -136,30 +136,30 @@ module HarmonicOscillator
     end
 
 
-    function oscillator_iode_ϑ(t, q, p, params)
+    function oscillator_iode_ϑ(p, t, q, params)
         p[1] = q[2]
         p[2] = 0
         nothing
     end
 
-    function oscillator_iode_ϑ(t, q, v, p, params)
-        oscillator_iode_ϑ(t, q, p, params)
+    function oscillator_iode_ϑ(p, t, q, v, params)
+        oscillator_iode_ϑ(p, t, q, params)
     end
 
-    function oscillator_iode_f(t, q, v, f, params)
+    function oscillator_iode_f(f, t, q, v, params)
         @unpack k = params
         f[1] = -k*q[1]
         f[2] = v[1] - q[2]
         nothing
     end
 
-    function oscillator_iode_g(t, q, λ, g, params)
+    function oscillator_iode_g(g, t, q, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function oscillator_iode_v(t, q, v, params)
+    function oscillator_iode_v(v, t, q, params)
         @unpack k = params
         v[1] = q[2]
         v[2] = -k*q[1]
@@ -175,67 +175,67 @@ module HarmonicOscillator
     end
 
 
-    function oscillator_dae_v(t, z, v, params)
+    function oscillator_dae_v(v, t, q, params)
         @unpack k = params
-        v[1] = z[2]
-        v[2] = -k*z[1]
-        v[3] = z[2] - k*z[1]
+        v[1] = q[2]
+        v[2] = -k * q[1]
+        v[3] = q[2] - k * q[1]
         nothing
     end
 
-    function oscillator_dae_u(t, z, λ, u, params)
+    function oscillator_dae_u(u, t, q, λ, params)
         u[1] = -λ[1]
         u[2] = -λ[1]
         u[3] = +λ[1]
     end
 
-    function oscillator_dae_ϕ(t, z, ϕ, params)
-        ϕ[1] = z[3] - z[1] - z[2]
+    function oscillator_dae_ϕ(ϕ, t, q, params)
+        ϕ[1] = q[3] - q[1] - q[2]
     end
 
-    function harmonic_oscillator_dae(z₀=z₀, λ₀=[zero(eltype(z₀))]; parameters = default_parameters, tspan = tspan, tstep = Δt)
+    function harmonic_oscillator_dae(q₀=z₀, λ₀=[zero(eltype(q₀))]; parameters = default_parameters, tspan = tspan, tstep = Δt)
         # @assert size(z₀,1) == 3
         # @assert size(λ₀,1) == 1
         # @assert all([length(z) == 3 for z in z₀])
         # @assert all([length(λ) == 1 for λ in λ₀])
         # DAE(oscillator_dae_v, oscillator_dae_u, oscillator_dae_ϕ,
         #     z₀, λ₀; invariants=(h=hamiltonian,), parameters=params, v̄=oscillator_ode_v)
-        DAEProblem(oscillator_ode_v, oscillator_dae_u, oscillator_dae_ϕ, tspan, tstep, z₀, λ₀;
+        DAEProblem(oscillator_ode_v, oscillator_dae_u, oscillator_dae_ϕ, tspan, tstep, q₀, λ₀;
                     v̄ = oscillator_ode_v, invariants = (h=hamiltonian,), parameters = parameters)
     end
 
 
-    function oscillator_idae_u(t, q, p, λ, u, params)
+    function oscillator_idae_u(u, t, q, p, λ, params)
         u[1] = λ[1]
         u[2] = λ[2]
         nothing
     end
 
-    function oscillator_idae_g(t, q, p, λ, g, params)
+    function oscillator_idae_g(g, t, q, p, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function oscillator_hdae_ū(t, q, p, λ, u, params)
+    function oscillator_hdae_ū(u, t, q, p, λ, params)
         u[1] = λ[1]
         u[2] = λ[2]
         nothing
     end
 
-    function oscillator_hdae_ḡ(t, q, p, λ, g, params)
+    function oscillator_hdae_ḡ(g, t, q, p, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function oscillator_idae_ϕ(t, q, p, ϕ, params)
+    function oscillator_idae_ϕ(ϕ, t, q, p, params)
         ϕ[1] = p[1] - q[2]
         ϕ[2] = p[2]
         nothing
     end
 
-    function oscillator_hdae_ψ(t, q, p, v, f, ψ, params)
+    function oscillator_hdae_ψ(ψ, t, q, p, v, f, params)
         ψ[1] = f[1] - v[2]
         ψ[2] = f[2]
         nothing
@@ -248,14 +248,14 @@ module HarmonicOscillator
                     tspan, tstep, q₀, p₀, λ₀; v̄ = oscillator_iode_v, invariants = (h=hamiltonian,), parameters = parameters)
     end
 
-    function oscillator_pdae_v(t, q, p, v, params)
+    function oscillator_pdae_v(v, t, q, p, params)
         @unpack k = params
         v[1] = q[2]
         v[2] = -k*q[1]
         nothing
     end
 
-    function oscillator_pdae_f(t, q, p, f, params)
+    function oscillator_pdae_f(f, t, q, p, params)
         @unpack k = params
         f[1] = -k*q[1]
         f[2] = p[1] - q[2]
