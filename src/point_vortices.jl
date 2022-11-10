@@ -205,9 +205,7 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_f(f, t, q, v, p, params)
-        point_vortices_f(f, t, q, v, params)
-    end
+    point_vortices_f(f, t, q, v, p, params) = point_vortices_f(f, t, q, v, params)
 
     function point_vortices_g(g, t, q, λ, params)
         g[1] = f1(t,q,λ)
@@ -217,9 +215,8 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_g(g, t, q, p, λ, params)
-        point_vortices_g(g, t, q, λ, params)
-    end
+    point_vortices_g(g, t, q, p, λ, params) = point_vortices_g(g, t, q, λ, params)
+    point_vortices_g(g, t, q, v, p, λ, params) = point_vortices_g(g, t, q, p, λ, params)
 
     function point_vortices_u(u, t, q, v, params)
         u[1] = v[1]
@@ -229,9 +226,8 @@ module PointVortices
         nothing
     end
 
-    function point_vortices_u(u, t, q, p, v, params)
-        point_vortices_u(u, t, q, v, params)
-    end
+    point_vortices_u(u, t, q, p, λ, params) = point_vortices_u(u, t, q, λ, params)
+    point_vortices_u(u, t, q, v, p, λ, params) = point_vortices_u(u, t, q, p, λ, params)
 
     function point_vortices_ϕ(ϕ, t, q, p, params)
         ϕ[1] = p[1] - ϑ1(t,q)
@@ -240,6 +236,8 @@ module PointVortices
         ϕ[4] = p[4] - ϑ4(t,q)
         nothing
     end
+
+    point_vortices_ϕ(ϕ, t, q, v, p, params) = point_vortices_ϕ(ϕ, t, q, p, params)
 
 
     function point_vortices_ode(q₀=q₀; tspan = tspan, tstep = Δt)

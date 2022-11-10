@@ -201,41 +201,47 @@ module HarmonicOscillator
     end
 
 
-    function oscillator_idae_u(u, t, q, p, λ, params)
+    function oscillator_pdae_u(u, t, q, p, λ, params)
         u[1] = λ[1]
         u[2] = λ[2]
         nothing
     end
 
-    function oscillator_idae_g(g, t, q, p, λ, params)
+    function oscillator_pdae_g(g, t, q, p, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function oscillator_hdae_ū(u, t, q, p, λ, params)
+    function oscillator_pdae_ū(u, t, q, p, λ, params)
         u[1] = λ[1]
         u[2] = λ[2]
         nothing
     end
 
-    function oscillator_hdae_ḡ(g, t, q, p, λ, params)
+    function oscillator_pdae_ḡ(g, t, q, p, λ, params)
         g[1] = 0
         g[2] = λ[1]
         nothing
     end
 
-    function oscillator_idae_ϕ(ϕ, t, q, p, params)
+    function oscillator_pdae_ϕ(ϕ, t, q, p, params)
         ϕ[1] = p[1] - q[2]
         ϕ[2] = p[2]
         nothing
     end
 
-    function oscillator_hdae_ψ(ψ, t, q, p, v, f, params)
-        ψ[1] = f[1] - v[2]
+    function oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
+        ψ[1] = f[1] - q̇[2]
         ψ[2] = f[2]
         nothing
     end
+    
+    oscillator_idae_u(u, t, q, v, p, λ, params) = oscillator_pdae_u(u, t, q, p, λ, params)
+    oscillator_idae_g(g, t, q, v, p, λ, params) = oscillator_pdae_g(g, t, q, p, λ, params)
+    oscillator_idae_ϕ(ϕ, t, q, v, p, params) = oscillator_pdae_ϕ(ϕ, t, q, p, params)
+    oscillator_idae_ψ(ψ, t, q, v, p, q̇, ṗ, params) = oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
+
 
     function harmonic_oscillator_idae(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀); parameters = default_parameters, tspan = tspan, tstep = Δt)
         # @assert size(q₀,1) == size(p₀,1) == size(λ₀,1) == 2
@@ -261,15 +267,15 @@ module HarmonicOscillator
     function harmonic_oscillator_pdae(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀); parameters = default_parameters, tspan = tspan, tstep = Δt)
         # @assert size(q₀,1) == size(p₀,1) == 2
         PDAEProblem(oscillator_pdae_v, oscillator_pdae_f,
-                    oscillator_idae_u,  oscillator_idae_g, oscillator_idae_ϕ,
+                    oscillator_pdae_u,  oscillator_pdae_g, oscillator_pdae_ϕ,
                     tspan, tstep, q₀, p₀, λ₀; invariants=(h=hamiltonian,), parameters = parameters)
     end
 
     function harmonic_oscillator_hdae(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀); parameters = default_parameters, tspan = tspan, tstep = Δt)
         # @assert size(q₀,1) == size(p₀,1) == 2
         HDAEProblem(oscillator_pdae_v, oscillator_pdae_f, 
-                    oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ,
-                    oscillator_hdae_ū, oscillator_hdae_ḡ, oscillator_hdae_ψ,
+                    oscillator_pdae_u, oscillator_pdae_g, oscillator_pdae_ϕ,
+                    oscillator_pdae_ū, oscillator_pdae_ḡ, oscillator_pdae_ψ,
                     hamiltonian, tspan, tstep, q₀, p₀, λ₀; parameters = parameters)
     end
 

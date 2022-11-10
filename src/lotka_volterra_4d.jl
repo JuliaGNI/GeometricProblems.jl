@@ -313,9 +313,8 @@ module LotkaVolterra4d
         nothing
     end
 
-    function lotka_volterra_4d_g(g::AbstractVector, t::Real, q::AbstractVector, p::AbstractVector, v::AbstractVector, params)
-        lotka_volterra_4d_g(g, t, q, v, params)
-    end
+    lotka_volterra_4d_g(g, t, q, p, λ, params) = lotka_volterra_4d_g(g, t, q, λ, params)
+    lotka_volterra_4d_g(g, t, q, v, p, λ, params) = lotka_volterra_4d_g(g, t, q, p, λ, params)
 
     function lotka_volterra_4d_g̅(g::AbstractVector, t::Real, q::AbstractVector, v::AbstractVector, params)
         g[1] = g₁(t,q,v)
@@ -329,14 +328,13 @@ module LotkaVolterra4d
         lotka_volterra_4d_g̅(t, q, v, g, params)
     end
 
-    function lotka_volterra_4d_u(u, t, q, v, params)
-        u .= v
+    function lotka_volterra_4d_u(u, t, q, λ, params)
+        u .= λ
         nothing
     end
 
-    function lotka_volterra_4d_u(u, t, q, p, v, params)
-        lotka_volterra_4d_u(u, t, q, v, params)
-    end
+    lotka_volterra_4d_u(u, t, q, p, λ, params) = lotka_volterra_4d_u(u, t, q, λ, params)
+    lotka_volterra_4d_u(u, t, q, v, p, λ, params) = lotka_volterra_4d_u(u, t, q, p, λ, params)
 
 
     function lotka_volterra_4d_ϕ(ϕ, t, q, p, params)
@@ -347,13 +345,17 @@ module LotkaVolterra4d
         nothing
     end
 
-    function lotka_volterra_4d_ψ(ψ, t, q, p, v, f, params)
-        ψ[1] = f[1] - g₁(t,q,v)
-        ψ[2] = f[2] - g₂(t,q,v)
-        ψ[3] = f[3] - g₃(t,q,v)
-        ψ[4] = f[4] - g₄(t,q,v)
+    lotka_volterra_4d_ϕ(ϕ, t, q, v, p, params) = lotka_volterra_4d_ϕ(ϕ, t, q, p, params)
+
+    function lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
+        ψ[1] = f[1] - g₁(t,q,q̇)
+        ψ[2] = f[2] - g₂(t,q,q̇)
+        ψ[3] = f[3] - g₃(t,q,q̇)
+        ψ[4] = f[4] - g₄(t,q,q̇)
         nothing
     end
+
+    lotka_volterra_4d_ψ(ψ, t, q, v, p, q̇, ṗ, params) = lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
 
 
     function lotka_volterra_4d_ode(q₀=q₀; tspan=tspan, tstep=Δt, parameters=default_parameters)
