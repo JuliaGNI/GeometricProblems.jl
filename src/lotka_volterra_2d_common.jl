@@ -180,8 +180,7 @@ lotka_volterra_2d_u(u, t, q, p, λ, params) = lotka_volterra_2d_u(u, t, q, λ, p
 lotka_volterra_2d_u(u, t, q, v, p, λ, params) = lotka_volterra_2d_u(u, t, q, p, λ, params)
 
 function lotka_volterra_2d_ū(u, t, q, λ, params)
-    u[1] = v[1]
-    u[2] = v[2]
+    u .= λ
     nothing
 end
 
