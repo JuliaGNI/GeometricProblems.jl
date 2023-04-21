@@ -1,7 +1,7 @@
 name = "GeometricProblems"
 uuid = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
 authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
-version = "0.4.3"
+version = "0.4.4"
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
