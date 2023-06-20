@@ -1,15 +1,8 @@
-using SimpleSolvers
 using Test
-using GeometricBase
 using GeometricIntegrators
-using GeometricIntegrators.Integrators.VPRK
 using GeometricIntegrators.Utils
 using GeometricProblems.HarmonicOscillator
 using GeometricProblems.HarmonicOscillator: reference_solution
-
-SimpleSolvers.set_config(:nls_atol, 8eps())
-SimpleSolvers.set_config(:nls_rtol, 2eps())
-SimpleSolvers.set_config(:nls_stol_break, Inf)
 
 
 @testset "$(rpad("Harmonic Oscillator",80))" begin
@@ -64,16 +57,13 @@ SimpleSolvers.set_config(:nls_stol_break, Inf)
     # @test_nowarn pdae_equs[:f̄](zero(pdae.ics.p), tbegin(pdae), pdae.ics.q, pdae.ics.p)
 
     
-    int = Integrator(ode, TableauGauss(2))
-    sol = integrate(ode, int)
+    sol = integrate(ode, Gauss(2))
     @test relative_maximum_error(sol.q, reference_solution) < 1E-4
 
-    int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2))
-    sol = integrate(iode, int)
+    sol = integrate(iode, MidpointProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, reference_solution) < 1E-4
 
-    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2))
-    sol = integrate(iode, int)
+    sol = integrate(iode, SymmetricProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, reference_solution) < 1E-4
 
 end

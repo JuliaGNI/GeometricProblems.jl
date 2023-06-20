@@ -1,13 +1,9 @@
-using SimpleSolvers
 using Test
 using GeometricIntegrators
-using GeometricIntegrators.Integrators.VPRK
+using GeometricIntegrators.SPARK
 using GeometricIntegrators.Utils
 using GeometricProblems.LotkaVolterra4d
 using GeometricProblems.LotkaVolterra4d: reference_solution
-
-SimpleSolvers.set_config(:nls_atol, 8eps())
-SimpleSolvers.set_config(:nls_rtol, 2eps())
 
 
 @testset "$(rpad("Lotka-Volterra 4D",80))" begin
@@ -15,23 +11,18 @@ SimpleSolvers.set_config(:nls_rtol, 2eps())
     iode = lotka_volterra_4d_iode()
     idae = lotka_volterra_4d_idae()
 
-    int = Integrator(ode, TableauGauss(2))
-    sol = integrate(ode, int)
+    sol = integrate(ode, Gauss(2))
     @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
-    int = IntegratorVPRKpMidpoint(iode, TableauVPGLRK(2))
-    sol = integrate(iode, int)
+    sol = integrate(iode, MidpointProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, reference_solution) < 2E-3
 
-    int = IntegratorVPRKpSymmetric(iode, TableauVPGLRK(2))
-    sol = integrate(iode, int)
+    sol = integrate(iode, SymmetricProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 
-    int = Integrator(idae, TableauVSPARKGLRKpMidpoint(2))
-    sol = integrate(idae, int)
+    sol = integrate(idae, TableauVSPARKGLRKpMidpoint(2))
     @test relative_maximum_error(sol.q, reference_solution) < 2E-3
 
-    int = Integrator(idae, TableauVSPARKGLRKpSymmetric(2))
-    sol = integrate(idae, int)
+    sol = integrate(idae, TableauVSPARKGLRKpSymmetric(2))
     @test relative_maximum_error(sol.q, reference_solution) < 8E-4
 end

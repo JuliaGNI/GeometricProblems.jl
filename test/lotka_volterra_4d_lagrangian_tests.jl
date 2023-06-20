@@ -1,22 +1,12 @@
-
+using Test
 using GeometricEquations
 using GeometricIntegrators
-using GeometricIntegrators.Integrators.VPRK
+using GeometricIntegrators.SPARK
 using GeometricIntegrators.Utils
-using SimpleSolvers
-using Test
 
 import GeometricProblems.LotkaVolterra4d
 import GeometricProblems.LotkaVolterra4dLagrangian
 import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
-
-
-SimpleSolvers.set_config(:nls_atol, 8eps())
-SimpleSolvers.set_config(:nls_rtol, 2eps())
-
-SimpleSolvers.set_config(:nls_atol_break, Inf)
-SimpleSolvers.set_config(:nls_rtol_break, Inf)
-SimpleSolvers.set_config(:nls_stol_break, Inf)
 
 
 @testset "$(rpad("Lotka-Volterra 4D (Lagrangian)",80))" begin
