@@ -131,6 +131,10 @@ module MasslessChargedParticle
         nothing
     end
 
+    function massless_charged_particle_v(v, t, q, p, params)
+        massless_charged_particle_v(v, t, q, params)
+    end
+
     function massless_charged_particle_ϑ(Θ, t, q, params)
         Θ[1] = ϑ₁(t, q, params)
         Θ[2] = ϑ₂(t, q, params)

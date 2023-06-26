@@ -155,7 +155,7 @@ module HarmonicOscillator
         nothing
     end
 
-    function oscillator_iode_v(v, t, q, params)
+    function oscillator_iode_v(v, t, q, p, params)
         @unpack k = params
         v[1] = q[2]
         v[2] = -k*q[1]
