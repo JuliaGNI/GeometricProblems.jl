@@ -160,7 +160,7 @@ module PointVorticesLinear
         nothing
     end
 
-    function point_vortices_iode_v(v, t, q, p, )
+    function point_vortices_iode_v(v, t, q, p, params)
         point_vortices_ode_v(v, t, q, params)
     end
 
