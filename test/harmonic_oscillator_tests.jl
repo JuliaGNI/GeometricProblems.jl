@@ -2,7 +2,7 @@ using Test
 using GeometricIntegrators
 using GeometricIntegrators.Utils
 using GeometricProblems.HarmonicOscillator
-using GeometricProblems.HarmonicOscillator: reference_solution
+using GeometricProblems.HarmonicOscillator: reference_solution, reference_solution_q, reference_solution_p
 
 
 @testset "$(rpad("Harmonic Oscillator",80))" begin
@@ -65,5 +65,17 @@ using GeometricProblems.HarmonicOscillator: reference_solution
 
     sol = integrate(iode, SymmetricProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, reference_solution) < 1E-4
+
+
+    sol = exact_solution(ode)
+    @test sol.q[end] == reference_solution
+
+    sol = exact_solution(pode)
+    @test sol.q[end] == [reference_solution_q]
+    @test sol.p[end] == [reference_solution_p]
+
+    sol = exact_solution(hode)
+    @test sol.q[end] == [reference_solution_q]
+    @test sol.p[end] == [reference_solution_p]
 
 end

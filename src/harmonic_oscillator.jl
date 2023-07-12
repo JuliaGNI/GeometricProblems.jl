@@ -11,7 +11,7 @@ module HarmonicOscillator
     export harmonic_oscillator_ode, harmonic_oscillator_iode, harmonic_oscillator_pode, harmonic_oscillator_hode, harmonic_oscillator_sode,
            harmonic_oscillator_dae, harmonic_oscillator_idae, harmonic_oscillator_pdae, harmonic_oscillator_hdae
 
-    export hamiltonian, compute_energy_error
+    export hamiltonian, compute_energy_error, exact_solution
 
 
     const t₀ = 0.0
@@ -49,15 +49,29 @@ module HarmonicOscillator
     end
 
 
+    A(t, q, p, params) = sqrt(p^2 / params.k + q^2)
+    ϕ(t, q, p, params) = asin(q / A(t, q, p, params))
+
+    exact_solution_q(t, q, p, params) = A(t, q, p, params) * sin(params.ω * t + ϕ(t, q, p, params))
+    exact_solution_p(t, q, p, params) = A(t, q, p, params) * cos(params.ω * t + ϕ(t, q, p, params)) * params.ω
+
+    exact_solution_q(t, q::AbstractVector, p::AbstractVector, params) = exact_solution_q(t, q[1], p[1], params)
+    exact_solution_p(t, q::AbstractVector, p::AbstractVector, params) = exact_solution_p(t, q[1], p[1], params)
+    
+    exact_solution_q(t, x::AbstractVector, params) = exact_solution_q(t, x[1], x[2], params)
+    exact_solution_p(t, x::AbstractVector, params) = exact_solution_p(t, x[1], x[2], params)
+    exact_solution(t, x::AbstractVector, params) = [exact_solution_q(t, x, params), exact_solution_p(t, x, params)]
+
+    
     const q₀ = [0.5, 0.0]
     const z₀ = [0.5, 0.0, 0.5]
     const p₀ = ϑ(q₀)
 
-    const A = sqrt(q₀[2]^2 / k + q₀[1]^2)
-    const ϕ = asin(q₀[1] / A)
+    # const A = sqrt(q₀[2]^2 / k + q₀[1]^2)
+    # const ϕ = asin(q₀[1] / A)
 
-    const reference_solution_q = A * sin(ω * Δt * nt + ϕ)
-    const reference_solution_p = ω * A * cos(ω * Δt * nt + ϕ)
+    const reference_solution_q = exact_solution_q(Δt * nt, q₀[1], p₀[1], default_parameters)
+    const reference_solution_p = exact_solution_p(Δt * nt, q₀[1], p₀[1], default_parameters)
 
     const reference_solution = [reference_solution_q, reference_solution_p]
     
@@ -73,6 +87,14 @@ module HarmonicOscillator
         # @assert size(x₀,1) == 2
         # ODE(oscillator_ode_v, q₀; invariants=(h=hamiltonian,), parameters=params)
         ODEProblem(oscillator_ode_v, tspan, tstep, q₀; invariants = (h=hamiltonian,), parameters = parameters)
+    end
+
+    function exact_solution(prob::ODEProblem)
+        sol = GeometricSolution(prob)
+        for n in eachtimestep(sol)
+            sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
+        end
+        return sol
     end
 
 
@@ -94,12 +116,20 @@ module HarmonicOscillator
         PODEProblem(oscillator_pode_v, oscillator_pode_f, tspan, tstep, q₀, p₀; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
-
     function harmonic_oscillator_hode(q₀=[q₀[1]], p₀=[p₀[1]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
         # @assert length(q₀) == length(p₀)
         # @assert all([length(q) == length(p) == 1 for (q,p) in zip(q₀,p₀)])
         # @assert size(q₀,1) == size(p₀,1) == 1
         HODEProblem(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function exact_solution(prob::Union{PODEProblem,HODEProblem})
+        sol = GeometricSolution(prob)
+        for n in eachtimestep(sol)
+            sol.q[n] = [exact_solution_q(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
+            sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
+        end
+        return sol
     end
 
 
