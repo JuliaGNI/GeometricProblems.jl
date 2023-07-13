@@ -9,7 +9,8 @@ module HarmonicOscillator
     using Parameters
 
     export harmonic_oscillator_ode, harmonic_oscillator_iode, harmonic_oscillator_pode, harmonic_oscillator_hode, harmonic_oscillator_sode,
-           harmonic_oscillator_dae, harmonic_oscillator_idae, harmonic_oscillator_pdae, harmonic_oscillator_hdae
+           harmonic_oscillator_dae, harmonic_oscillator_idae, harmonic_oscillator_pdae, harmonic_oscillator_hdae,
+           harmonic_oscillator_ode_ensemble, harmonic_oscillator_pode_ensemble, harmonic_oscillator_hode_ensemble
 
     export hamiltonian, compute_energy_error, exact_solution
 
@@ -67,6 +68,10 @@ module HarmonicOscillator
     const z₀ = [0.5, 0.0, 0.5]
     const p₀ = ϑ(q₀)
 
+    const xmin = [-2., -2.]
+    const xmax = [+2., +2.]
+    const nsamples = [10, 10]
+
     # const A = sqrt(q₀[2]^2 / k + q₀[1]^2)
     # const ϕ = asin(q₀[1] / A)
 
@@ -75,6 +80,26 @@ module HarmonicOscillator
 
     const reference_solution = [reference_solution_q, reference_solution_p]
     
+
+    function _ode_samples(qmin, qmax, nsamples)
+        qs = [range(qmin[i], qmax[i]; length = nsamples[i]) for i in eachindex(qmin, qmax, nsamples)]
+
+        samples = vec(collect.(collect(Base.Iterators.product(qs...))))
+
+        [(q = q,) for q in samples]
+    end
+
+    function _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)
+        qs = [range(qmin[i], qmax[i]; length = qsamples[i]) for i in eachindex(qmin, qmax, qsamples)]
+        ps = [range(pmin[i], pmax[i]; length = psamples[i]) for i in eachindex(pmin, pmax, psamples)]
+
+        qsamples = vec(collect.(collect(Base.Iterators.product(qs...))))
+        psamples = vec(collect.(collect(Base.Iterators.product(ps...))))
+        samples = vec(collect(Base.Iterators.product(qsamples, psamples)))
+
+        [(q = z[1], p = z[2]) for z in samples]
+    end
+
 
     function oscillator_ode_v(v, t, q, params)
         @unpack k = params
@@ -89,7 +114,20 @@ module HarmonicOscillator
         ODEProblem(oscillator_ode_v, tspan, tstep, q₀; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
+    function harmonic_oscillator_ode_ensemble(qmin = xmin, qmax = xmax, nsamples = nsamples; parameters = default_parameters, tspan = tspan, tstep = Δt)
+        samples = _ode_samples(qmin, qmax, nsamples)
+        ODEEnsemble(oscillator_ode_v, tspan, tstep, samples; invariants = (h=hamiltonian,), parameters = parameters)
+    end
+
     function exact_solution(prob::ODEProblem)
+        sol = GeometricSolution(prob)
+        for n in eachtimestep(sol)
+            sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
+        end
+        return sol
+    end
+
+    function exact_solution(prob::ODEEnsemble)
         sol = GeometricSolution(prob)
         for n in eachtimestep(sol)
             sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
@@ -121,6 +159,16 @@ module HarmonicOscillator
         # @assert all([length(q) == length(p) == 1 for (q,p) in zip(q₀,p₀)])
         # @assert size(q₀,1) == size(p₀,1) == 1
         HODEProblem(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function harmonic_oscillator_pode_ensemble(qmin = [xmin[1]], qmax = [xmax[1]], pmin = [xmin[2]], pmax = [xmax[2]], qsamples = [nsamples[1]], psamples = [nsamples[2]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
+        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)     
+        PODEEnsemble(oscillator_pode_v, oscillator_pode_f, tspan, tstep, samples; invariants = (h=hamiltonian,), parameters = parameters)
+    end
+
+    function harmonic_oscillator_hode_ensemble(qmin = [xmin[1]], qmax = [xmax[1]], pmin = [xmin[2]], pmax = [xmax[2]], qsamples = [nsamples[1]], psamples = [nsamples[2]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
+        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)     
+        HODEEnsemble(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, samples; parameters = parameters)
     end
 
     function exact_solution(prob::Union{PODEProblem,HODEProblem})
