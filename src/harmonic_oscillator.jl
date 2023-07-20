@@ -127,12 +127,14 @@ module HarmonicOscillator
         return sol
     end
 
-    function exact_solution(prob::ODEEnsemble)
-        sol = GeometricSolution(prob)
-        for n in eachtimestep(sol)
-            sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
+    function exact_solution(probs::ODEEnsemble)
+        sols = EnsembleSolution(probs)
+        for (sol,prob) in zip(sols.s, probs)
+            for n in eachtimestep(sol)
+                sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
+            end
         end
-        return sol
+        return sols
     end
 
 
@@ -178,6 +180,17 @@ module HarmonicOscillator
             sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
         end
         return sol
+    end
+
+    function exact_solution(probs::Union{PODEEnsemble,HODEEnsemble})
+        sols = EnsembleSolution(probs)
+        for (sol,prob) in zip(sols.s, probs)
+            for n in eachtimestep(sol)
+                sol.q[n] = [exact_solution_q(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
+                sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
+            end
+        end
+        return sols
     end
 
 
