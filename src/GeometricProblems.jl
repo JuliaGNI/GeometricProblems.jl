@@ -8,7 +8,6 @@ module GeometricProblems
 
     include("double_pendulum.jl")
     include("duffing_oscillator.jl")
-    include("exponential_growth.jl")
     include("harmonic_oscillator.jl")
     include("kubo_oscillator.jl")
     include("lennard_jones_oscillator.jl")

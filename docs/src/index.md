@@ -23,7 +23,6 @@ Typical structures are
 ```@contents
 Pages = [
 "diagnostics.md",
-"exponential_growth.md",
 "henon_heiles.md",
 "kepler_problem.md",
 "lorenz_attractor.md",
