@@ -67,18 +67,18 @@ module HarmonicOscillator
     end
 
 
-    A(t, q, p, params) = sqrt(q^2 + p^2 / params.k)
-    ϕ(t, q, p, params) = atan(p / q / params.ω)
+    A(q, p, params) = q * sqrt(1 + p^2 / q^2 / params.k)
+    ϕ(q, p, params) = atan(p / q / params.ω)
 
-    exact_solution_q(t, q, p, params) = A(t, q, p, params) * cos(params.ω * t + ϕ(t, q, p, params))
-    exact_solution_p(t, q, p, params) = - params.ω * A(t, q, p, params) * sin(params.ω * t + ϕ(t, q, p, params))
+    exact_solution_q(t, q₀, p₀, t₀, params) = A(q₀, p₀, params) * cos(params.ω * (t-t₀) - ϕ(q₀, p₀, params))
+    exact_solution_p(t, q₀, p₀, t₀, params) = - params.ω * A(q₀, p₀, params) * sin(params.ω * (t-t₀) - ϕ(q₀, p₀, params))
 
-    exact_solution_q(t, q::AbstractVector, p::AbstractVector, params) = exact_solution_q(t, q[1], p[1], params)
-    exact_solution_p(t, q::AbstractVector, p::AbstractVector, params) = exact_solution_p(t, q[1], p[1], params)
+    exact_solution_q(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params) = exact_solution_q(t, q₀[1], p₀[1], t₀, params)
+    exact_solution_p(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params) = exact_solution_p(t, q₀[1], p₀[1], t₀, params)
     
-    exact_solution_q(t, x::AbstractVector, params) = exact_solution_q(t, x[1], x[2], params)
-    exact_solution_p(t, x::AbstractVector, params) = exact_solution_p(t, x[1], x[2], params)
-    exact_solution(t, x::AbstractVector, params) = [exact_solution_q(t, x, params), exact_solution_p(t, x, params)]
+    exact_solution_q(t, x₀::AbstractVector, t₀, params) = exact_solution_q(t, x₀[1], x₀[2], t₀, params)
+    exact_solution_p(t, x₀::AbstractVector, t₀, params) = exact_solution_p(t, x₀[1], x₀[2], t₀, params)
+    exact_solution(t, x₀::AbstractVector, t₀, params) = [exact_solution_q(t, x₀, t₀, params), exact_solution_p(t, x₀, t₀, params)]
 
     
     const q₀ = [0.5]
@@ -89,8 +89,8 @@ module HarmonicOscillator
     const xmax = [+2., +2.]
     const nsamples = [10, 10]
 
-    const reference_solution_q = exact_solution_q(Δt * nt, q₀[1], p₀[1], default_parameters)
-    const reference_solution_p = exact_solution_p(Δt * nt, q₀[1], p₀[1], default_parameters)
+    const reference_solution_q = exact_solution_q(Δt * nt, q₀[1], p₀[1], t₀, default_parameters)
+    const reference_solution_p = exact_solution_p(Δt * nt, q₀[1], p₀[1], t₀, default_parameters)
 
     const reference_solution = [reference_solution_q, reference_solution_p]
     
@@ -132,22 +132,15 @@ module HarmonicOscillator
         ODEEnsemble(oscillator_ode_v, tspan, tstep, samples; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
-    function exact_solution(prob::ODEProblem)
-        sol = GeometricSolution(prob)
+    function exact_solution!(sol::GeometricSolution, prob::ODEProblem)
         for n in eachtimestep(sol)
-            sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
+            sol.q[n] .= exact_solution(sol.t[n], sol.q[0], sol.t[0], parameters(prob))
         end
         return sol
     end
 
-    function exact_solution(probs::ODEEnsemble)
-        sols = EnsembleSolution(probs)
-        for (sol,prob) in zip(sols.s, probs)
-            for n in eachtimestep(sol)
-                sol.q[n] = exact_solution(sol.t[n], sol.q[0], parameters(prob))
-            end
-        end
-        return sols
+    function exact_solution(prob::ODEProblem)
+        exact_solution!(GeometricSolution(prob), prob)
     end
 
 
@@ -182,24 +175,16 @@ module HarmonicOscillator
         HODEEnsemble(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, samples; parameters = parameters)
     end
 
-    function exact_solution(prob::Union{PODEProblem,HODEProblem})
-        sol = GeometricSolution(prob)
+    function exact_solution!(sol::GeometricSolution, prob::Union{PODEProblem,HODEProblem})
         for n in eachtimestep(sol)
-            sol.q[n] = [exact_solution_q(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
-            sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
+            sol.q[n] = [exact_solution_q(sol.t[n], sol.q[0], sol.p[0], sol.t[0], parameters(prob))]
+            sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], sol.t[0], parameters(prob))]
         end
         return sol
     end
 
-    function exact_solution(probs::Union{PODEEnsemble,HODEEnsemble})
-        sols = EnsembleSolution(probs)
-        for (sol,prob) in zip(sols.s, probs)
-            for n in eachtimestep(sol)
-                sol.q[n] = [exact_solution_q(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
-                sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], parameters(prob))]
-            end
-        end
-        return sols
+    function exact_solution(prob::Union{PODEProblem,HODEProblem})
+        exact_solution!(GeometricSolution(prob), prob)
     end
 
 
@@ -415,6 +400,15 @@ module HarmonicOscillator
         LDAEProblem(oscillator_iode_ϑ, oscillator_iode_f,
                     oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ, ω!, lagrangian,
                     tspan, tstep, q₀, p₀, λ₀; v̄ = oscillator_iode_v, invariants = (h=hamiltonian,), parameters = parameters)
+    end
+
+
+    function exact_solution(probs::Union{ODEEnsemble,PODEEnsemble,HODEEnsemble})
+        sols = EnsembleSolution(probs)
+        for (sol, prob) in zip(sols, probs)
+            exact_solution!(sol, prob)
+        end
+        return sols
     end
 
 
