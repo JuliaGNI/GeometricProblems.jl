@@ -1,8 +1,8 @@
 using Test
 using GeometricIntegrators
-using GeometricIntegrators.Utils
 using GeometricProblems.HarmonicOscillator
 using GeometricProblems.HarmonicOscillator: reference_solution, reference_solution_q, reference_solution_p
+using GeometricSolutions
 
 
 @testset "$(rpad("Harmonic Oscillator",80))" begin
@@ -28,16 +28,17 @@ using GeometricProblems.HarmonicOscillator: reference_solution, reference_soluti
     iode = degenerate_iodeproblem()
     pode = podeproblem()
     hode = hodeproblem()
+    ref  = exact_solution(ode)
     
     
     sol = integrate(ode, Gauss(2))
-    @test relative_maximum_error(sol.q, reference_solution) < 1E-4
+    @test relative_maximum_error(sol.q, ref.q) < 1E-4
 
     sol = integrate(iode, MidpointProjection(VPRKGauss(2)))
-    @test relative_maximum_error(sol.q, reference_solution) < 1E-4
+    @test relative_maximum_error(sol.q, ref.q) < 1E-4
 
     sol = integrate(iode, SymmetricProjection(VPRKGauss(2)))
-    @test relative_maximum_error(sol.q, reference_solution) < 1E-4
+    @test relative_maximum_error(sol.q, ref.q) < 1E-4
 
 
     sol = exact_solution(ode)
