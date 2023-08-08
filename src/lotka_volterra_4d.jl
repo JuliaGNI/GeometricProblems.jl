@@ -229,9 +229,9 @@ module LotkaVolterra4d
         sum(a .* q) + sum(b .* log.(q))
     end
 
-    hamiltonian_iode(v, t, q, params) = hamiltonian(t, q, params)
+    hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
 
-    hamiltonian_pode(p, t, q, params) = hamiltonian(t, q, params)
+    hamiltonian_pode(t, q, p, params) = hamiltonian(t, q, params)
 
 
     function dHd₁(t, q, params)
