@@ -14,10 +14,10 @@ module LotkaVolterra4dLagrangian
 
     using GeometricEquations
     using GeometricSolutions
-    using ModelingToolkit
     using Parameters
     using RuntimeGeneratedFunctions
     using Symbolics
+    using Symbolics: Sym
 
     RuntimeGeneratedFunctions.init(@__MODULE__)
 
@@ -37,7 +37,7 @@ module LotkaVolterra4dLagrangian
     const nt = 1000
     const tspan = (0.0, Δt*nt)
 
-    const q₀ = [ 2.0,  1.0,  1.0,  1.0]
+    const q₀ = [2.0, 1.0, 1.0, 1.0]
 
     const default_parameters = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-2.0, b₃=-1.0, b₄=-1.0)
     const reference_solution = [0.5988695239096916, 2.068567531039674, 0.2804351458645534, 1.258449091830993]
@@ -88,13 +88,15 @@ module LotkaVolterra4dLagrangian
     const B_default = zero(B)
 
 
+    _parameter(name::Symbol) = Num(Sym{Real}(name))
+
     function get_parameters(p)
         return (a = [p.a₁, p.a₂, p.a₃, p.a₄],
                 b = [p.b₁, p.b₂, p.b₃, p.b₄])
     end
 
-    H(x, a, b) = sum(a .* x) + sum(b .* log.(x))
-    K(x, v, A, B) = sum(log.(x) .* (A * (v ./ x))) + sum(x .* (B * v))
+    H(x, a, b) = a' * x + b' * log.(x)
+    K(x, v, A, B) = log.(x)' * A * (v ./ x) + x' * B * v
     L(x, v, A, B, a, b) = K(x, v, A, B) - H(x, a, b)
 
 
@@ -114,10 +116,11 @@ module LotkaVolterra4dLagrangian
 
 
     function get_functions(A,B,a,b)
-        @parameters t
+        t = _parameter(:t)
 
         @variables x₁(t), x₂(t), x₃(t), x₄(t)
         @variables v₁(t), v₂(t), v₃(t), v₄(t)
+
         @variables X[1:4]
         @variables V[1:4]
         @variables P[1:4]
@@ -133,6 +136,7 @@ module LotkaVolterra4dLagrangian
         # DV = Differential.(V)
 
         let L = simplify(L(x, v, A, B, a, b)), K = simplify(K(x, v, A, B)), H = simplify(H(x, a, b))
+        # let L = (L(x, v, A, B, a, b)), K = (K(x, v, A, B)), H = (H(x, a, b))
             EL = [expand_derivatives(Dx[i](L) - Dt(Dv[i](L))) for i in eachindex(Dx,Dv)]
             ∇H = [expand_derivatives(dx(H)) for dx in Dx]
             f  = [expand_derivatives(dx(L)) for dx in Dx]
@@ -140,7 +144,7 @@ module LotkaVolterra4dLagrangian
             g  = [expand_derivatives(Dt(dv(L))) for dv in Dv]
             ϑ  = [expand_derivatives(dv(L)) for dv in Dv]
             ω  = [expand_derivatives(simplify(Dx[i](ϑ[j]) - Dx[j](ϑ[i]))) for i in eachindex(Dx,ϑ), j in eachindex(Dx,ϑ)]
-            Σ  = inv(ω)
+            Σ  = simplify.(inv(ω))
             ẋ  = simplify.(Σ * ∇H)
 
             for eq in (EL, ∇H, f, f̄, g, ϑ, ω, Σ, ẋ)
@@ -153,21 +157,6 @@ module LotkaVolterra4dLagrangian
             ϕ = [P[i] - ϑ[i] for i in eachindex(P,ϑ)]
             ψ = [F[i] - g[i] for i in eachindex(F,g)]
 
-            # component wise code generation
-            # code_EL = [build_function(eq, t, X, V)[2] for eq in EL]
-            # code_f  = [build_function(eq, t, X, V)[2] for eq in f ]
-            # code_f̄  = [build_function(eq, t, X, V)[2] for eq in f̄ ]
-            # code_g  = [build_function(eq, t, X, V)[2] for eq in g ]
-            # code_∇H = [build_function(eq, t, X)[2]    for eq in ∇H]
-            # code_p  = [build_function(eq, t, X)[1]    for eq in ϑ ]
-            # code_ϑ  = [build_function(eq, t, X)[2]    for eq in ϑ ]
-            # code_ω  = [build_function(eq, t, X)[2]    for eq in ω ]
-            # code_P  = [build_function(eq, t, X)[2]    for eq in Σ ]
-            # code_ẋ  = [build_function(eq, t, X)[2]    for eq in ẋ ]
-            # code_ϕ  = [build_function(eq, t, X, P)[2]        for eq in ϕ ]
-            # code_ψ  = [build_function(eq, t, X, V, P, F)[2]  for eq in ψ ]
-            # code_H  =  build_function(H,  t, X)
-
             code_EL = build_function(EL, t, X, V)[2]
             code_f  = build_function(f,  t, X, V)[2]
             code_f̄  = build_function(f̄,  t, X, V)[2]
@@ -176,7 +165,7 @@ module LotkaVolterra4dLagrangian
             code_p  = build_function(ϑ,  t, X)[1]
             code_ϑ  = build_function(ϑ,  t, X)[2]
             code_ω  = build_function(ω,  t, X)[2]
-            # code_P  = build_function(Σ,  t, X)[2]
+            code_P  = build_function(Σ,  t, X)[2]
             code_ẋ  = build_function(ẋ,  t, X)[2]
             code_ϕ  = build_function(ϕ,  t, X, P)[2]
             code_ψ  = build_function(ψ,  t, X, V, P, F)[2]
@@ -192,7 +181,7 @@ module LotkaVolterra4dLagrangian
                 p  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_p)),
                 ϑ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ϑ)),
                 ω  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ω)),
-                # P  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_P)),
+                P  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_P)),
                 ẋ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ẋ)),
                 ϕ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ϕ)),
                 ψ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ψ)),
@@ -206,7 +195,7 @@ module LotkaVolterra4dLagrangian
     function lotka_volterra_4d_ode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        GeometricEquations.ODEProblem((ẋ,t,x,params) -> funcs[:ẋ](ẋ,t,x), tspan, tstep, q₀;
+        GeometricEquations.ODEProblem((ẋ, t, x, params) -> funcs[:ẋ](ẋ, t, x), tspan, tstep, q₀;
                     parameters=parameters, invariants = (h = funcs[:H],))
     end
 
@@ -215,9 +204,9 @@ module LotkaVolterra4dLagrangian
         funcs = get_functions(A,B,a,b)
         IODEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x),
                     (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    (f̄,t,x,v,params) -> funcs[:f̄](f̄,t,x,v),
+                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ),
                     tspan, tstep, q₀, funcs[:p](0, q₀);
-                    v̄ = (v,t,x,params) -> funcs[:ẋ](v,t,x),
+                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x),
                     f̄ = (f,t,x,v,params) -> funcs[:f](f,t,x,v),
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
@@ -227,11 +216,11 @@ module LotkaVolterra4dLagrangian
         funcs = get_functions(A,B,a,b)
         LODEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x),
                     (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    (f̄,t,x,v,params) -> funcs[:f̄](f̄,t,x,v),
+                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ),
                     (t,x,v,params)   -> funcs[:L](t,x,v),
                     (ω,t,x,v,params) -> funcs[:ω](ω,t,x),
                     tspan, tstep, q₀, funcs[:p](0, q₀);
-                    v̄ = (v,t,x,params) -> funcs[:ẋ](v,t,x),
+                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x),
                     f̄ = (f,t,x,v,params) -> funcs[:f](f,t,x,v),
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
@@ -241,11 +230,11 @@ module LotkaVolterra4dLagrangian
         funcs = get_functions(A,B,a,b)
         IDAEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x,v),
                     (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    (u,t,x,p,v,params) -> u .= v,
-                    (f̄,t,x,p,v,params) -> funcs[:f̄](f̄,t,x,v),
-                    (ϕ,t,x,p,params) -> funcs[:ϕ](ϕ,t,x,p),
+                    (u,t,x,p,v,λ,params) -> u .= λ,
+                    (f̄,t,x,p,v,λ,params) -> funcs[:f̄](f̄,t,x,λ),
+                    (ϕ,t,x,v,p,params) -> funcs[:ϕ](ϕ,t,x,p),
                     tspan, tstep, q₀, funcs[:p](0, q₀), zero(q₀);
-                    v̄ = (v,t,x,params) -> funcs[:ẋ](v,t,x),
+                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x),
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
     end
 
