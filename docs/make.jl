@@ -26,4 +26,6 @@ makedocs(
 
 deploydocs(
     repo   = "github.com/JuliaGNI/GeometricProblems.jl",
+    devurl = "latest",
+    devbranch = "main",
 )
