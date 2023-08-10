@@ -4,12 +4,11 @@
 *Collection of example problems with interesting geometric structure for
 [GeometricIntegrators.jl](https://github.com/JuliaGNI/GeometricIntegrators.jl).*
 
-[![Documentation](https://img.shields.io/badge/docs-stable-blue.svg)](https://juligni.github.io/GeometricProblems.jl/stable/)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliagni.github.io/GeometricProblems.jl/dev/)
+[![Stable Docs](https://img.shields.io/badge/docs-stable-blue.svg)](https://juliagni.github.io/GeometricProblems.jl/stable)
+[![Latest Docs](https://img.shields.io/badge/docs-latest-blue.svg)](https://juliagni.github.io/GeometricProblems.jl/latest)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE.md)
-[![PkgEval Status](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GeometricProblems.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GeometricProblems.html)
-![CI](https://github.com/JuliaGNI/GeometricProblems.jl/workflows/CI/badge.svg)
-[![codecov](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl)
+[![Build Status](https://github.com/JuliaGNI/GeometricProblems.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/JuliaGNI/GeometricProblems.jl/actions/workflows/CI.yml?query=branch%3Amain)
+[![codecov](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl)
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.3740036.svg)](https://doi.org/10.5281/zenodo.3740036)
 
 

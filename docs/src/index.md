@@ -6,9 +6,9 @@ together with useful diagnostics and plotting tools.*
 
 [![PkgEval Status](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GeometricProblems.svg)](https://juliaci.github.io/NanosoldierReports/pkgeval_badges/G/GeometricProblems.html)
 ![CI](https://github.com/JuliaGNI/GeometricProblems.jl/workflows/CI/badge.svg)
-[![Build Status](https://travis-ci.org/JuliaGNI/GeometricProblems.jl.svg?branch=master)](https://travis-ci.org/JuliaGNI/GeometricProblems.jl)
+[![Build Status](https://travis-ci.org/JuliaGNI/GeometricProblems.jl.svg?branch=main)](https://travis-ci.org/JuliaGNI/GeometricProblems.jl)
 [![Coverage Status](https://coveralls.io/repos/github/JuliaGNI/GeometricProblems.jl/badge.svg)](https://coveralls.io/github/JuliaGNI/GeometricProblems.jl)
-[![codecov](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl)
+[![codecov](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/JuliaGNI/GeometricProblems.jl)
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.3740036.svg)](https://doi.org/10.5281/zenodo.3740036)
 
 Typical structures are
