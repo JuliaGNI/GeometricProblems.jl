@@ -52,7 +52,7 @@ module HarmonicOscillator
         q[2]^2 / 2 + k * q[1]^2 / 2
     end
 
-    function hamiltonian(p, t, q, params)
+    function hamiltonian(t, q, p, params)
         @unpack k = params
         p[1]^2 / 2 + k * q[1]^2 / 2
     end
