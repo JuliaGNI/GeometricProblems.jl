@@ -117,6 +117,7 @@ module LotkaVolterra4dLagrangian
 
     function get_functions(A,B,a,b)
         t = _parameter(:t)
+        params = _parameter(:params)
 
         @variables x₁(t), x₂(t), x₃(t), x₄(t)
         @variables v₁(t), v₂(t), v₃(t), v₄(t)
@@ -157,36 +158,36 @@ module LotkaVolterra4dLagrangian
             ϕ = [P[i] - ϑ[i] for i in eachindex(P,ϑ)]
             ψ = [F[i] - g[i] for i in eachindex(F,g)]
 
-            code_EL = build_function(EL, t, X, V)[2]
-            code_f  = build_function(f,  t, X, V)[2]
-            code_f̄  = build_function(f̄,  t, X, V)[2]
-            code_g  = build_function(g,  t, X, V)[2]
-            code_∇H = build_function(∇H, t, X)[2]
-            code_p  = build_function(ϑ,  t, X)[1]
-            code_ϑ  = build_function(ϑ,  t, X)[2]
-            code_ω  = build_function(ω,  t, X)[2]
-            code_P  = build_function(Σ,  t, X)[2]
-            code_ẋ  = build_function(ẋ,  t, X)[2]
-            code_ϕ  = build_function(ϕ,  t, X, P)[2]
-            code_ψ  = build_function(ψ,  t, X, V, P, F)[2]
-            code_H  = build_function(H,  t, X)
-            code_L  = build_function(L,  t, X, V)
+            code_EL = build_function(EL, t, X, V, params)[2]
+            code_f  = build_function(f,  t, X, V, params)[2]
+            code_f̄  = build_function(f̄,  t, X, V, params)[2]
+            code_g  = build_function(g,  t, X, V, params)[2]
+            code_∇H = build_function(∇H, t, X, params)[2]
+            code_p  = build_function(ϑ,  t, X, V, params)[1]
+            code_ϑ  = build_function(ϑ,  t, X, V, params)[2]
+            code_ω  = build_function(ω,  t, X, V, params)[2]
+            code_P  = build_function(Σ,  t, X, params)[2]
+            code_ẋ  = build_function(ẋ,  t, X, params)[2]
+            code_ϕ  = build_function(ϕ,  t, X, V, P, params)[2]
+            code_ψ  = build_function(ψ,  t, X, V, P, F, params)[2]
+            code_H  = build_function(H,  t, X, params)
+            code_L  = build_function(L,  t, X, V, params)
             
             return (
-                EL = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_EL)),
-                ∇H = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_∇H)),
-                f  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_f)),
-                f̄  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_f̄)),
-                g  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_g)),
-                p  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_p)),
-                ϑ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ϑ)),
-                ω  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ω)),
-                P  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_P)),
-                ẋ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ẋ)),
-                ϕ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ϕ)),
-                ψ  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_ψ)),
-                H  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_H)),
-                L  = @RuntimeGeneratedFunction(Symbolics.inject_registered_module_functions(code_L)),
+                EL = @RuntimeGeneratedFunction(code_EL),
+                ∇H = @RuntimeGeneratedFunction(code_∇H),
+                f  = @RuntimeGeneratedFunction(code_f),
+                f̄  = @RuntimeGeneratedFunction(code_f̄),
+                g  = @RuntimeGeneratedFunction(code_g),
+                p  = @RuntimeGeneratedFunction(code_p),
+                ϑ  = @RuntimeGeneratedFunction(code_ϑ),
+                ω  = @RuntimeGeneratedFunction(code_ω),
+                P  = @RuntimeGeneratedFunction(code_P),
+                ẋ  = @RuntimeGeneratedFunction(code_ẋ),
+                ϕ  = @RuntimeGeneratedFunction(code_ϕ),
+                ψ  = @RuntimeGeneratedFunction(code_ψ),
+                H  = @RuntimeGeneratedFunction(code_H),
+                L  = @RuntimeGeneratedFunction(code_L),
             )
         end
     end
@@ -195,47 +196,46 @@ module LotkaVolterra4dLagrangian
     function lotka_volterra_4d_ode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        GeometricEquations.ODEProblem((ẋ, t, x, params) -> funcs[:ẋ](ẋ, t, x), tspan, tstep, q₀;
+        GeometricEquations.ODEProblem(funcs[:ẋ], tspan, tstep, q₀;
                     parameters=parameters, invariants = (h = funcs[:H],))
     end
 
     function lotka_volterra_4d_iode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        IODEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x),
-                    (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ),
-                    tspan, tstep, q₀, funcs[:p](0, q₀);
-                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x),
-                    f̄ = (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
+        IODEProblem(funcs[:ϑ],
+                    funcs[:f],
+                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ,params),
+                    tspan, tstep, q₀, funcs[:p](0, q₀, zero(q₀), ());
+                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x,params),
+                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
     end
 
     function lotka_volterra_4d_lode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        LODEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x),
-                    (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ),
-                    (t,x,v,params)   -> funcs[:L](t,x,v),
-                    (ω,t,x,v,params) -> funcs[:ω](ω,t,x),
-                    tspan, tstep, q₀, funcs[:p](0, q₀);
-                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x),
-                    f̄ = (f,t,x,v,params) -> funcs[:f](f,t,x,v),
-                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
+        LODEProblem(funcs[:ϑ],
+                    funcs[:f],
+                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ,params),
+                    funcs[:L],
+                    funcs[:ω],
+                    tspan, tstep, q₀, funcs[:p](0, q₀, zero(q₀), ());
+                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x,params),
+                    f̄ = funcs[:f],
+                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
     end
 
     function lotka_volterra_4d_idae(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
-        IDAEProblem((ϑ,t,x,v,params) -> funcs[:ϑ](ϑ,t,x,v),
-                    (f,t,x,v,params) -> funcs[:f](f,t,x,v),
+        IDAEProblem(funcs[:ϑ],
+                    funcs[:f],
                     (u,t,x,p,v,λ,params) -> u .= λ,
-                    (f̄,t,x,p,v,λ,params) -> funcs[:f̄](f̄,t,x,λ),
-                    (ϕ,t,x,v,p,params) -> funcs[:ϕ](ϕ,t,x,p),
-                    tspan, tstep, q₀, funcs[:p](0, q₀), zero(q₀);
-                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x),
-                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x),))
+                    (f̄,t,x,p,v,λ,params) -> funcs[:f̄](f̄,t,x,λ,params),
+                    funcs[:ϕ],
+                    tspan, tstep, q₀, funcs[:p](0, q₀, zero(q₀), ()), zero(q₀);
+                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x,params),
+                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
     end
 
     # function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)

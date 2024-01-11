@@ -293,16 +293,11 @@ module LotkaVolterra4d
         nothing
     end
 
-    function lotka_volterra_4d_f_ham(f::AbstractVector, t::Real, q::AbstractVector, params)
+    function lotka_volterra_4d_f_ham(f::AbstractVector, t::Real, q::AbstractVector, v::AbstractVector, params)
         f[1] = - dHd₁(t, q, params)
         f[2] = - dHd₂(t, q, params)
         f[3] = - dHd₃(t, q, params)
         f[4] = - dHd₄(t, q, params)
-        nothing
-    end
-
-    function lotka_volterra_4d_f_ham(f::AbstractVector, t::Real, q::AbstractVector, v::AbstractVector, params)
-        lotka_volterra_4d_f_ham(t, q, f, params)
     end
 
     function lotka_volterra_4d_g(g::AbstractVector, t::Real, q::AbstractVector, v::AbstractVector, params)
