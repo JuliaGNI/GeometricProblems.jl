@@ -32,7 +32,7 @@ function lotka_volterra_2d_pᵢ(qᵢ, tᵢ=0)
     if ndims(qᵢ) == 1
         ϑ(pᵢ, tᵢ, qᵢ)
     else
-        for i in 1:size(qᵢ,2)
+        for i in axes(qᵢ,2)
             ϑ((@view pᵢ[:,i]), tᵢ, (@view qᵢ[:,i]))
         end
     end
