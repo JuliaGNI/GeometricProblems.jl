@@ -9,12 +9,12 @@ GeometricProblems.MasslessChargedParticle
 using Plots
 using GeometricIntegrators
 using GeometricProblems.MasslessChargedParticle
-using GeometricProblems.MasslessChargedParticle: Δt, nt
+using GeometricProblems.MasslessChargedParticlePlots
 
 ode = massless_charged_particle_ode()
-sol = integrate(ode, getTableauGLRK(1), Δt, nt)
+sol = integrate(ode, Gauss(1))
 
-plot_massless_charged_particle(sol, ode.parameters)
+plot_massless_charged_particle(sol, ode)
 savefig("massless_charged_particle.svg")
 
 nothing

@@ -12,8 +12,8 @@ module MasslessChargedParticlePlots
     Plots the solution of a massless charged particle together with the energy error.
 
     Arguments:
-    * `sol <: Solution`
-    * `params <: NamedTuple`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
@@ -22,7 +22,7 @@ module MasslessChargedParticlePlots
     """
     @userplot Plot_Massless_Charged_Particle
     @recipe function f(p::Plot_Massless_Charged_Particle; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -37,7 +37,7 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
 
         size   := (800,300)
         layout := (1,2)
@@ -52,7 +52,7 @@ module MasslessChargedParticlePlots
         @series begin
             subplot := 1
 
-            if sol.nt ≤ 200
+            if ntime(sol) ≤ 200
                 markersize := 5
             else
                 markersize  := .5
@@ -76,7 +76,7 @@ module MasslessChargedParticlePlots
             xlims  := xlims
             ylims  := ylims
             aspect_ratio := 1
-            sol.q[1,0:nplot:end], sol.q[2,0:nplot:end]
+            sol.q[0:nplot:end, 1], sol.q[0:nplot:end, 2]
         end
 
         @series begin
@@ -100,8 +100,8 @@ module MasslessChargedParticlePlots
     Plots the solution of a massless charged particle.
 
     Arguments:
-    * `sol <: Solution`
-    * `params <: NamedTuple`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
@@ -110,7 +110,7 @@ module MasslessChargedParticlePlots
     """
     @userplot Plot_Massless_Charged_Particle_Solution
     @recipe function f(p::Plot_Massless_Charged_Particle_Solution; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -163,7 +163,7 @@ module MasslessChargedParticlePlots
             xlims  := xlims
             ylims  := ylims
             aspect_ratio := 1
-            sol.q[1,0:nplot:nt], sol.q[2,0:nplot:nt]
+            sol.q[0:nplot:nt, 1], sol.q[0:nplot:nt, 2]
         end
     end
 
@@ -172,15 +172,15 @@ module MasslessChargedParticlePlots
     Plots time traces of the energy error of a massless charged particle.
 
     Arguments:
-    * `sol <: Solution`
-    * `params <: NamedTuple`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
     """
     @userplot Plot_Massless_Charged_Particle_Energy_Error
     @recipe function f(p::Plot_Massless_Charged_Particle_Energy_Error; nplot=1, nt=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -195,7 +195,7 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
 
         size   := (800,200)
         legend := :none
@@ -230,8 +230,8 @@ module MasslessChargedParticlePlots
     Plots time traces of the momentum error of a massless charged particle.
 
     Arguments:
-    * `sol <: Solution`
-    * `params <: NamedTuple`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
@@ -239,7 +239,7 @@ module MasslessChargedParticlePlots
     """
     @userplot Plot_Massless_Charged_Particle_Momentum_Error
     @recipe function f(p::Plot_Massless_Charged_Particle_Momentum_Error; k=0, nplot=1, nt=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -310,7 +310,7 @@ module MasslessChargedParticlePlots
                 end
                 xlims  := (sol.t[0], Inf)
                 yformatter := :scientific
-                sol.t[0:nplot:nt], Δp[i,0:nplot:nt]
+                sol.t[0:nplot:nt], Δp[0:nplot:nt, i]
             end
         end
     end
@@ -320,15 +320,15 @@ module MasslessChargedParticlePlots
     Plots time traces of the solution of a massless charged particle trajectory and its energy error.
 
     Arguments:
-    * `sol <: Solution`
-    * `params <: NamedTuple`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
     """
     @userplot Plot_Massless_Charged_Particle_Traces
     @recipe function f(p::Plot_Massless_Charged_Particle_Traces; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, elims=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Massless charged particle plots should be given two arguments: a solution and a parameter tuple. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -343,7 +343,7 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
 
         size   := (800,600)
         legend := :none
@@ -390,7 +390,7 @@ module MasslessChargedParticlePlots
                 #     bottom_margin := -1mm
                 # end
 
-                sol.t[0:nplot:nt], sol.q[i,0:nplot:nt]
+                sol.t[0:nplot:nt], sol.q[0:nplot:nt, i]
             end
         end
 

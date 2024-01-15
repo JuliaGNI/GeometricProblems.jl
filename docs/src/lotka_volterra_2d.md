@@ -16,11 +16,10 @@ H (q) = a_1 \, q_1 + a_2 \, q_2 + b_1 \, \log q_1 + b_2 \, \log q_2 .
 using Plots
 using GeometricIntegrators
 using GeometricProblems.LotkaVolterra2d
-using GeometricProblems.LotkaVolterra2d: Δt, nt
 using GeometricProblems.LotkaVolterra2dPlots
 
 ode = lotka_volterra_2d_ode()
-sol = integrate(ode, getTableauGLRK(1), Δt, nt)
+sol = integrate(ode, Gauss(1))
 
 plot_lotka_volterra_2d(sol, ode)
 savefig("lotka_volterra_2d.svg")

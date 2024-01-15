@@ -13,8 +13,8 @@ module LotkaVolterra2dPlots
     Plots the solution of a 2D Lotka-Volterra model together with the energy error.
 
     Arguments:
-    * `sol <: Solution`
-    * `equ <: Equation`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
@@ -24,7 +24,7 @@ module LotkaVolterra2dPlots
     """
     @userplot Plot_Lotka_Volterra_2d
     @recipe function f(p::Plot_Lotka_Volterra_2d; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Lotka-Volterra plot should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -39,7 +39,7 @@ module LotkaVolterra2dPlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
 
         size   := (1000,400)
         layout := (1,2)
@@ -76,7 +76,7 @@ module LotkaVolterra2dPlots
             xlims  := xlims
             ylims  := ylims
             aspect_ratio := 1
-            sol.q[1,0:nplot:nt], sol.q[2,0:nplot:nt]
+            sol.q[0:nplot:nt, 1], sol.q[0:nplot:nt, 2]
         end
 
         @series begin
@@ -101,8 +101,8 @@ module LotkaVolterra2dPlots
     Plots the solution of a 2D Lotka-Volterra model.
 
     Arguments:
-    * `sol <: Solution`
-    * `equ <: Equation`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
@@ -112,7 +112,7 @@ module LotkaVolterra2dPlots
     """
     @userplot Plot_Lotka_Volterra_2d_Solution
     @recipe function f(p::Plot_Lotka_Volterra_2d_Solution; nplot=1, nt=:auto, xlims=:auto, ylims=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Lotka-Volterra solution plot should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -155,7 +155,7 @@ module LotkaVolterra2dPlots
             aspect_ratio := 1
             guidefontsize := 18
             tickfontsize  := 12
-            sol.q[1,0:nplot:nt], sol.q[2,0:nplot:nt]
+            sol.q[0:nplot:nt, 1], sol.q[0:nplot:nt, 2]
         end
     end
 
@@ -164,8 +164,8 @@ module LotkaVolterra2dPlots
     Plots time traces of the solution of a 2D Lotka-Volterra model and its energy error.
 
     Arguments:
-    * `sol <: Solution`
-    * `equ <: Equation`
+    * `sol <: GeometricSolution`
+    * `equ <: GeometricProblem`
 
     Keyword aguments:
     * `nplot=1`: plot every `nplot`th time step
@@ -173,7 +173,7 @@ module LotkaVolterra2dPlots
     """
     @userplot Plot_Lotka_Volterra_2d_Traces
     @recipe function f(p::Plot_Lotka_Volterra_2d_Traces; nplot=1, nt=:auto, latex=true)
-        if length(p.args) != 2 || !(typeof(p.args[1]) <: Solution) || !(typeof(p.args[2]) <: Equation)
+        if length(p.args) != 2 || !(typeof(p.args[1]) <: GeometricSolution) || !(typeof(p.args[2]) <: GeometricProblem)
             error("Lotka-Volterra traces plot should be given two arguments: a solution and an equation. Got: $(typeof(p.args))")
         end
         sol = p.args[1]
@@ -188,7 +188,7 @@ module LotkaVolterra2dPlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> equ.invariants[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
 
         size   := (800,600)
         legend := :none
@@ -212,7 +212,7 @@ module LotkaVolterra2dPlots
                 xlims  := (sol.t[0], Inf)
                 xaxis := false
                 right_margin := 10mm
-                sol.t[0:nplot:nt], sol.q[i,0:nplot:nt]
+                sol.t[0:nplot:nt], sol.q[0:nplot:nt, i]
             end
         end
 

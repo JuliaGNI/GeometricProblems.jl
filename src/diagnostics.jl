@@ -20,14 +20,14 @@ module Diagnostics
     """
     Compute the one-form (symplectic potential) for the solution of a Lagrangian system.
 
-    Arguments: `(t::TimeSeries, q::DataSeries, one_form::Function)`
+    Arguments: `(t::TimeSeries, q::DataSeries, one_form::Base.Callable)`
     
     The `one_form` function needs to take three arguments `(t,q,k)` where `k` is the index
     of the one-form component.
 
     Returns a DataSeries similar to `q` holding the time series of the one-form.
     """
-    function compute_one_form(t::TimeSeries, q::DataSeries, one_form::Function)
+    function compute_one_form(t::TimeSeries, q::DataSeries, one_form::Base.Callable)
         ϑ = similar(q)
         try
             for i in axes(p,2)
@@ -48,15 +48,15 @@ module Diagnostics
     """
     Compute an invariant for the solution of an ODE or DAE system.
 
-    Arguments: `(t::TimeSeries, q::DataSeries{T}, invariant::Function)`
+    Arguments: `(t::TimeSeries, q::DataSeries{T}, invariant::Base.Callable)`
 
     The `invariant` functions needs to take two arguments `(t,q)` and return the 
     corresponding value of the invariant.
 
     Returns a ScalarDataSeries holding the time series of the invariant.
     """
-    function compute_invariant(t::TimeSeries, q::DataSeries{<:AbstractArray{T}}, invariant::Function) where {T}
-        invds = ScalarDataSeries(T, ntime(q))
+    function compute_invariant(t::TimeSeries, q::DataSeries{T}, invariant::Base.Callable) where {T}
+        invds = DataSeries(T, ntime(q))
         try
             for i in eachindex(invds)
                 invds[i] = invariant(t[i], q[i])
@@ -74,15 +74,15 @@ module Diagnostics
     """
     Compute an invariant for the solution of a partitioned ODE or DAE system.
 
-    Arguments: `(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Function)`
+    Arguments: `(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Base.Callable)`
 
     The `invariant` functions needs to take three arguments `(t,q,p)` and return the 
     corresponding value of the invariant.
 
     Returns a ScalarDataSeries holding the time series of the invariant.
     """
-    function compute_invariant(t::TimeSeries, q::DataSeries{<:AbstractArray{T}}, p::DataSeries{<:AbstractArray{T}}, invariant::Function) where {T}
-        invds = ScalarDataSeries(T, ntime(q))
+    function compute_invariant(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Base.Callable) where {T}
+        invds = DataSeries(T, ntime(q))
         try
             for i in eachindex(invds)
                 invds[i] = invariant(t[i], q[i], p[i])
@@ -100,14 +100,14 @@ module Diagnostics
     """
     Compute the relative error of an invariant for the solution of an ODE or DAE system.
 
-    Arguments: `(t::TimeSeries, q::DataSeries{T}, invariant::Function)`
+    Arguments: `(t::TimeSeries, q::DataSeries{T}, invariant::Base.Callable)`
 
     The `invariant` functions needs to take two arguments `(t,q)` and return the 
     corresponding value of the invariant.
 
     Returns a tuple of two 1d DataSeries holding the time series of the invariant and the relativ error, respectively.
     """
-    function compute_invariant_error(t::TimeSeries, q::DataSeries{T}, invariant::Function) where {T}
+    function compute_invariant_error(t::TimeSeries, q::DataSeries, invariant::Base.Callable)
         invds = compute_invariant(t, q, invariant)
         errds = compute_relative_error(invds)
         (invds, errds)
@@ -116,14 +116,14 @@ module Diagnostics
     """
     Compute the relative error of an invariant for the solution of a partitioned ODE or DAE system.
 
-    Arguments: `(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Function)`
+    Arguments: `(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Base.Callable)`
 
     The `invariant` functions needs to take three arguments `(t,q,p)` and return the 
     corresponding value of the invariant.
 
     Returns a tuple of two ScalarDataSeries holding the time series of the invariant and the relativ error, respectively.
     """
-    function compute_invariant_error(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Function) where {T}
+    function compute_invariant_error(t::TimeSeries, q::DataSeries{T}, p::DataSeries{T}, invariant::Base.Callable) where {T}
         invds = compute_invariant(t, q, p, invariant)
         errds = compute_relative_error(invds)
         (invds, errds)
@@ -187,7 +187,7 @@ module Diagnostics
 
         nint   = div(ntime(invariant_error), interval_length)
         Tdrift = TimeSeries(nint, (t[end] - t[begin]) / nint)
-        Idrift = ScalarDataSeries(T, nint)
+        Idrift = DataSeries(T, nint)
 
         Tdrift[0] = t[0]
 

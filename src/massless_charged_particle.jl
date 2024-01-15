@@ -185,32 +185,35 @@ module MasslessChargedParticle
 
 
     "Creates an ODE object for the massless charged particle in 2D."
-    function massless_charged_particle_ode(q₀=q₀; params=default_parameters)
-        ODE(massless_charged_particle_v, q₀; invariants=(h=hamiltonian,), parameters=params)
+    function massless_charged_particle_ode(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+        ODEProblem(massless_charged_particle_v, tspan, tstep, q₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
-    function massless_charged_particle_iode(q₀=q₀; params=default_parameters)
-        IODE(massless_charged_particle_ϑ, massless_charged_particle_f,
-                massless_charged_particle_g, q₀, ϑ(0., q₀, params);
+    function massless_charged_particle_iode(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+        IODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
+                massless_charged_particle_g,
+                tspan, tstep, q₀, ϑ(0., q₀, params);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
                 invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function massless_charged_particle_idae(q₀=q₀; params=default_parameters)
-        IDAE(massless_charged_particle_ϑ, massless_charged_particle_f,
+    function massless_charged_particle_idae(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+        IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
-                massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
+                massless_charged_particle_ϕ,
+                tspan, tstep, q₀, ϑ(0., q₀, params), zero(q₀);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
                 invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function massless_charged_particle_idae_spark(q₀=q₀; params=default_parameters)
-        IDAE(massless_charged_particle_ϑ, massless_charged_particle_f̄,
+    function massless_charged_particle_idae_spark(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+        IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f̄,
                 massless_charged_particle_u, massless_charged_particle_g,
-                massless_charged_particle_ϕ, q₀, ϑ(0., q₀, params), zero(q₀);
+                massless_charged_particle_ϕ,
+                tspan, tstep, q₀, ϑ(0., q₀, params), zero(q₀);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
                 invariants=(h=hamiltonian,), parameters=params)
     end
