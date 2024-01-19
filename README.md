@@ -31,7 +31,7 @@
     - [ ] Mathews-Lakshmanan Oscillator,
     - [ ] Morse Oscillator,
 - [x] Mathematical Pendulum,
-- [ ] Double Pendulum,
+- [x] Double Pendulum,
 - [x] Planar Point Vortices,
 - [ ] Rigid Body,
 - [ ] Chaplygin Sleigh,
