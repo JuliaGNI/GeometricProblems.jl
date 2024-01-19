@@ -1,4 +1,3 @@
-
 # Mathematical Pendulum
 
 ```@autodocs

@@ -1,4 +1,3 @@
-
 # Lotka-Volterra 2d
 
 Lotka–Volterra models are used in mathematical biology for modelling population dynamics of animal species, as well as many other fields where predator-prey and similar models appear. The dynamics of the growth of two interacting species can be modelled by the following noncanonical Hamiltonian system

@@ -1,4 +1,3 @@
-
 # Lotka-Volterra 4d
 
 ```@autodocs

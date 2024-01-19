@@ -1,4 +1,3 @@
-
 # Lotka-Volterra 3d
 
 ```@docs

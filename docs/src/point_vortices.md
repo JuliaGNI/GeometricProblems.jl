@@ -1,4 +1,3 @@
-
 # Planar Point Vortices
 
 ```@autodocs

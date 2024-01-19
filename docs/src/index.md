@@ -1,4 +1,3 @@
-
 # GeometricProblems.jl
 
 *GeometricProblems.jl is a collection of ODEs and DAEs with interesting geometric structures

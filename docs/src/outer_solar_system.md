@@ -1,2 +1,1 @@
-
 # Outer Solar System

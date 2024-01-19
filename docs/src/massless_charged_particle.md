@@ -1,4 +1,3 @@
-
 # Massless Charged Particle
 
 ```@docs

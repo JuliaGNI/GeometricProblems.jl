@@ -1,4 +1,3 @@
-
 # Lorenz Attractor in 3d
 
 ```@autodocs
