@@ -1,23 +1,46 @@
 name: Documentation
-
 on:
   push:
     branches:
       - main
     tags: '*'
   pull_request:
-
 jobs:
   build:
+    name: Documentation
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@latest
-        with:
-          version: 1
-      - name: Install dependencies
-        run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
-      - name: Build and deploy Documentation
+      - name: Configure doc environment
+        run: |
+          julia --project=docs/ -e '
+            using Pkg
+            Pkg.develop(PackageSpec(path=pwd()))
+            Pkg.instantiate()
+            Pkg.build()
+            Pkg.precompile()'
+          sudo apt-get install imagemagick
+          sudo apt-get install poppler-utils
+          sudo apt-get install texlive-xetex
+      - name: Generate Images
+        run: |
+          make all   -C src/images
+          make clean -C src/images
+        working-directory: docs
+      - uses: julia-actions/julia-buildpkg@v1
+      - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: julia --project=docs/ docs/make.jl
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+          GKSwstype: 100
+      - name: Doctests
+        run: |
+          julia --project=docs -e '
+            using Documenter: DocMeta, doctest
+            using GeometricProblems
+            DocMeta.setdocmeta!(GeometricProblems, :DocTestSetup, :(using GeometricProblems); recursive=true)
+            doctest(GeometricProblems)'

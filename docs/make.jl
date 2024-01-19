@@ -7,6 +7,7 @@ makedocs(
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
     pages = ["Home" => "index.md",
              "Diagnostics"               => "diagnostics.md",
+             "Double Pendulum"           => "double_pendulum.md",
              "Harmonic Oscillator"       => "harmonic_oscillator.md",
              "Hénon-Heiles System"       => "henon_heiles.md",
              "Kepler Problem"            => "kepler_problem.md",
