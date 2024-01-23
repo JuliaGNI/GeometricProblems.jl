@@ -1,7 +1,8 @@
 using Documenter
 using GeometricProblems
+using DocumenterCitations 
 
-
+bib = CitationBibliography(joinpath(@__DIR__, "src", "GeometricProblems.bib"))
 makedocs(
     sitename = "GeometricProblems.jl",
     format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
