@@ -1,8 +1,11 @@
 pdf:
 	xelatex -shell-escape double-pendulum
+	xelatex -shell-escape double-pendulum_dark
 
 png:
 	pdftocairo  -png -r 150 -transp -singlefile  double-pendulum.pdf               double-pendulum              
+	pdftocairo  -png -r 150 -transp -singlefile  double-pendulum_dark.pdf          double-pendulum_dark       
+
 clean:
 	rm -f *.aux
 	rm -f *.fdb_latexmk
