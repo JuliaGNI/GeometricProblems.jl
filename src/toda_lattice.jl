@@ -16,8 +16,8 @@ module TodaLattice
 
     include("initial_conditions.jl")
 
-    const α̃ = .5 
-    const Ñ = 100
+    const α̃ = .8
+    const Ñ = 200
 
     const default_parameters = (
         α = α̃, 
@@ -25,13 +25,13 @@ module TodaLattice
     )
 
     function hamiltonian(t, q, p, params)
-        @unpack α = params
+        @unpack N, α = params
         
         sum(p[n] ^ 2 / 2 + α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
     end
 
-    const tstep = .01 
-    const tspan = (0.0, 10.0)
+    const tstep = .1 
+    const tspan = (0.0, 120.0)
 
     # parameter for the initial conditions
     const μ = .3
@@ -46,7 +46,7 @@ module TodaLattice
         t, q, p = hamiltonian_variables(Ñ)
         sparams = symbolize(params)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = sparams)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
     end
 
 end
