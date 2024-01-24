@@ -11,8 +11,8 @@ module TodaLattice
     using LinearAlgebra 
     using Parameters 
 
-    export hamiltonian
-    export hodeproblem 
+    export hamiltonian, lagrangian
+    export hodeproblem, lodeproblem  
 
     include("initial_conditions.jl")
 
@@ -28,6 +28,12 @@ module TodaLattice
         @unpack N, α = params
         
         sum(p[n] ^ 2 / 2 + α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
+    end
+
+    function lagrangian(t, q, q̇, params)
+        @unpack N, α = params 
+
+        sum(q̇[n] ^ 2 / 2 - α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
     end
 
     const tstep = .1 
@@ -47,6 +53,16 @@ module TodaLattice
         sparams = symbolize(params)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
         HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+    end
+
+    """
+    Lagrangian problem for the Toda lattice.
+    """
+    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, params = default_parameters)
+        t, x, v = lagrangian_variables(Ñ)
+        sparams = symbolize(params)
+        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = params)
     end
 
 end
