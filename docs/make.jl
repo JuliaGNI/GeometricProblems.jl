@@ -3,9 +3,13 @@ using GeometricProblems
 using DocumenterCitations 
 
 bib = CitationBibliography(joinpath(@__DIR__, "src", "GeometricProblems.bib"))
-makedocs(
+
+makedocs(;
+    plugins = [bib],
     sitename = "GeometricProblems.jl",
-    format = Documenter.HTML(prettyurls = get(ENV, "CI", nothing) == "true"),
+    format = Documenter.HTML(;
+        prettyurls = get(ENV, "CI", nothing) == "true",
+        ),
     pages = ["Home" => "index.md",
              "Diagnostics"               => "diagnostics.md",
              "Double Pendulum"           => "double_pendulum.md",
@@ -22,6 +26,7 @@ makedocs(
              "Point Vortices"            => "point_vortices.md",
              "Inner Solar System"        => "inner_solar_system.md",
              "Outer Solar System"        => "outer_solar_system.md",
+             "Toda Lattice"              => "toda_lattice.md",
             ]
 )
 
