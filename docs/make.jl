@@ -2,14 +2,20 @@ using Documenter
 using GeometricProblems
 using DocumenterCitations 
 
-bib = CitationBibliography(joinpath(@__DIR__, "src", "GeometricProblems.bib"))
+# if the docs are generated with github actions, then this changes the path; see: https://github.com/JuliaDocs/Documenter.jl/issues/921 
+const buildpath = haskey(ENV, "CI") ? ".." : ""
+
+const bib = CitationBibliography(joinpath(@__DIR__, "src", "GeometricProblems.bib"))
 
 makedocs(;
     plugins = [bib],
     sitename = "GeometricProblems.jl",
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", nothing) == "true",
-        ),
+        assets = [
+            "assets/extra_styles.css",
+        ],
+    ),
     pages = ["Home" => "index.md",
              "Diagnostics"               => "diagnostics.md",
              "Double Pendulum"           => "double_pendulum.md",
