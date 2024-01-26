@@ -29,5 +29,6 @@ module GeometricProblems
     include("pendulum.jl")
     include("point_vortices.jl")
     include("point_vortices_linear.jl")
+    include("toda_lattice.jl")
 
 end
