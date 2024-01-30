@@ -24,6 +24,7 @@ module GeometricProblems
     include("lotka_volterra_4d_plots.jl")
     include("massless_charged_particle.jl")
     include("massless_charged_particle_plots.jl")
+    include("coupled_harmonic_oscillator.jl")
     include("mathews_lakshmanan_oscillator.jl")
     include("morse_oscillator.jl")
     include("pendulum.jl")
