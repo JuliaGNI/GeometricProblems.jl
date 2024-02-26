@@ -83,6 +83,12 @@ module CoupledHarmonicOscillator
         HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
     end
 
+    function v̄(v, t, q, p, params)
+        v[1] = p[1]
+        v[2] = p[2]
+        nothing
+    end
+
     """
         Lagrangian problem for the coupled oscillator
 
@@ -101,7 +107,7 @@ module CoupledHarmonicOscillator
         t, x, v = lagrangian_variables(2)
         sparams = symbolize(params)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = θ̇, parameters = params)
+        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
     end
 
 end
