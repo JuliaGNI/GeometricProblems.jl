@@ -25,6 +25,7 @@
 - [x] Lotka-Volterra in 4D,
 - [x] Massless Charged Particle,
 - [x] Harmonic Oscillator,
+- [x] Coupled Harmonic Oscillator,
 - [ ] Nonlinear Oscillators,
     - [ ] Duffing Oscillator,
     - [ ] Lennard-Jones Oscillator,
@@ -37,7 +38,8 @@
 - [ ] Chaplygin Sleigh,
 - [ ] Inner Solar System,
 - [ ] Outer Solar System,
-- [ ] Heavy Top.
+- [ ] Heavy Top,
+- [x] Toda lattice.
 
 
 See [ChargedParticleDynamics.jl](https://github.com/JuliaPlasma/ChargedParticleDynamics.jl) for
