@@ -19,7 +19,7 @@ jobs:
         run: |
           julia --project=docs/ -e '
             using Pkg
-            Pkg.add(url="https://github.com/JuliaGNI/GeometricMachineLearning.jl#volume_preserving_transformer")
+            Pkg.add(url="https://github.com/JuliaGNI/GeometricMachineLearning.jl", rev="volume_preserving_transformer")
             Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()
             Pkg.build()
