@@ -37,9 +37,15 @@ n_param_sets = length(params_collection)
 labels = reshape(["k = "*string(params.k) for params in params_collection], 1, n_param_sets)
 
 const one_plot = false
-const psize = (1500,1000)
+const psize = (900,600)
 plot_q₁ = one_plot ? plot(t, q₁, size=psize) : plot(t, q₁, layout=(n_param_sets, 1), size=psize, label=labels, legend=:topright)
+
+savefig("plot.svg")
+
+nothing
 ```
+
+![](plot.svg)
 
 ## Library functions
 
