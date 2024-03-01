@@ -100,7 +100,7 @@ module HarmonicOscillator
 
         samples = vec(collect.(collect(Base.Iterators.product(qs...))))
 
-        [(q = q,) for q in samples]
+        (q = samples,)
     end
 
     function _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)
@@ -111,7 +111,7 @@ module HarmonicOscillator
         psamples = vec(collect.(collect(Base.Iterators.product(ps...))))
         samples = vec(collect(Base.Iterators.product(qsamples, psamples)))
 
-        [(q = z[1], p = z[2]) for z in samples]
+        (q = qsamples, p = psamples)
     end
 
 
@@ -129,7 +129,7 @@ module HarmonicOscillator
 
     function odeensemble(qmin = xmin, qmax = xmax, nsamples = nsamples; parameters = default_parameters, tspan = tspan, tstep = Δt)
         samples = _ode_samples(qmin, qmax, nsamples)
-        ODEEnsemble(oscillator_ode_v, tspan, tstep, samples; invariants = (h=hamiltonian,), parameters = parameters)
+        ODEEnsemble(oscillator_ode_v, tspan, tstep, samples...; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
     function exact_solution!(sol::GeometricSolution, prob::ODEProblem)
@@ -167,12 +167,12 @@ module HarmonicOscillator
 
     function podeensemble(qmin = [xmin[1]], qmax = [xmax[1]], pmin = [xmin[2]], pmax = [xmax[2]], qsamples = [nsamples[1]], psamples = [nsamples[2]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
         samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)     
-        PODEEnsemble(oscillator_pode_v, oscillator_pode_f, tspan, tstep, samples; invariants = (h=hamiltonian,), parameters = parameters)
+        PODEEnsemble(oscillator_pode_v, oscillator_pode_f, tspan, tstep, samples...; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
     function hodeensemble(qmin = [xmin[1]], qmax = [xmax[1]], pmin = [xmin[2]], pmax = [xmax[2]], qsamples = [nsamples[1]], psamples = [nsamples[2]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
         samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)     
-        HODEEnsemble(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, samples; parameters = parameters)
+        HODEEnsemble(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, samples...; parameters = parameters)
     end
 
     function exact_solution!(sol::GeometricSolution, prob::Union{PODEProblem,HODEProblem})
