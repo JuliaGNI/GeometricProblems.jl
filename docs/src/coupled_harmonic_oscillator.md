@@ -37,7 +37,7 @@ n_param_sets = length(params_collection) #hide
 labels = reshape(["k = "*string(params.k) for params in params_collection], 1, n_param_sets) # hide
  # hide
 const one_plot = false # hide
-const psize = (900,600) # hide
+const psize = (900, 600) # hide
 plot_q₁ = one_plot ? plot(t, q₁, size=psize) : plot(t, q₁, layout=(n_param_sets, 1), size=psize, label=labels, legend=:topright) # hide
 ```
 
