@@ -38,3 +38,9 @@ GeometricProblems.ABCFlow
 Modules = [GeometricProblems.ABCFlow]
 Order = [:constant, :type, :macro, :function]
 ```
+
+```@bibliography
+Pages = []
+
+hairer2006geometric
+```
