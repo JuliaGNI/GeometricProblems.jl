@@ -1,7 +1,7 @@
 
 .PHONY: documenter images
 
-all: images install_gml precompile documenter remove_gml
+all: images install_gml precompile documenter remove_gml 
 
 precompile:
 	cd .. ; julia --project=docs -e '; \
@@ -9,8 +9,7 @@ precompile:
 		Pkg.develop(PackageSpec(path=pwd())); \
 		Pkg.instantiate(); \
 		Pkg.build(); \
-		Pkg.precompile()' ;
-	cd docs
+		Pkg.precompile()' 
 
 test_docs: 
 	cd ..; julia --project=docs  -e ';									\
@@ -28,10 +27,9 @@ install_gml:
 	julia --project=. -e '; \
 		using Pkg; \
 		Pkg.add(url="https://github.com/JuliaGNI/GeometricMachineLearning.jl", rev="volume_preserving_transformer")'
-	cd docs
 
 remove_gml: 
-	cd .. ; julia --project=. -e '; \
+	cd .. ; julia --project=docs -e '; \
 		using Pkg; \
 		Pkg.rm("GeometricMachineLearning")'
 
