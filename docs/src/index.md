@@ -22,6 +22,8 @@ Typical structures are
 ```@contents
 Pages = [
 "diagnostics.md",
+"abc_flow.md",
+"coupled_harmonic_oscillator.md",
 "henon_heiles.md",
 "kepler_problem.md",
 "lorenz_attractor.md",
@@ -36,6 +38,7 @@ Pages = [
 "point_vortices.md",
 "inner_solar_system.md",
 "outer_solar_system.md",
+"toda_lattice.md"
 ]
 Depth = 1
 ```
