@@ -17,13 +17,10 @@ jobs:
       - uses: julia-actions/setup-julia@latest
       - name: Configure doc environment
         run: |
-          julia --project=docs/ -e '
-            using Pkg
-            Pkg.add(url="https://github.com/JuliaGNI/GeometricMachineLearning.jl", rev="volume_preserving_transformer")
-            Pkg.develop(PackageSpec(path=pwd()))
-            Pkg.instantiate()
-            Pkg.build()
-            Pkg.precompile()'
+          cd docs
+          make install_gml
+          make precompile
+          cd ..
           sudo apt-get install imagemagick
           sudo apt-get install poppler-utils
           sudo apt-get install texlive-xetex
@@ -40,8 +37,5 @@ jobs:
           GKSwstype: 100
       - name: Doctests
         run: |
-          julia --project=docs -e '
-            using Documenter: DocMeta, doctest
-            using GeometricProblems
-            DocMeta.setdocmeta!(GeometricProblems, :DocTestSetup, :(using GeometricProblems); recursive=true)
-            doctest(GeometricProblems)'
+          cd docs
+          make test_docs
