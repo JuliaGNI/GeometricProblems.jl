@@ -15,12 +15,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@latest
-      - name: Configure doc environment
+      - name: Install GML and precompile
         run: |
-          cd docs
           make install_gml
           make precompile
-          cd ..
+        working-directory: docs
+      - name: Install poppler-utils and texlive
+        run: |
           sudo apt-get install imagemagick
           sudo apt-get install poppler-utils
           sudo apt-get install texlive-xetex
