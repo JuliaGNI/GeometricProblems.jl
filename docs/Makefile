@@ -3,6 +3,8 @@
 
 all: images install_gml precompile documenter remove_gml 
 
+mac: images_mac install_gml precompile documenter remove_gml
+
 precompile:
 	cd .. ; julia --project=docs -e '; \
 		using Pkg; \
@@ -39,6 +41,11 @@ documenter:
 images:
 	$(MAKE) all   -C src/images
 	$(MAKE) clean -C src/images
+
+images_mac:
+	$(MAKE) pdf 				-C src/images
+	$(MAKE) convert_with_sips	-C src/images
+	$(MAKE) clean				-C src/images
 
 clean:
 	$(MAKE) empty -C src/images
