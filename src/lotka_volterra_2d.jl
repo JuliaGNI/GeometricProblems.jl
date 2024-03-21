@@ -11,7 +11,7 @@ H(q) &= a_1 \, q_1 + a_2 \, q_2 + b_1 \, \log q_1 + b_2 \, \log q_2
 """
 module LotkaVolterra2d
 
-    export lotka_volterra_2d_dg_gauge
+    export iodeproblem_dg_gauge
 
     ϑ₁(t, q) = q[2] + log(q[2]) / q[1]
     ϑ₂(t, q) = q[1]
@@ -94,14 +94,16 @@ module LotkaVolterra2d
     # end
 
 
-    function lotka_volterra_2d_dg_gauge(q₀=q₀, p₀=ϑ(0, q₀); params=parameters, κ=0)
+    function iodeproblem_dg_gauge(q₀=q₀, p₀=ϑ(t₀, q₀); tspan=tspan, tstep=Δt, parameters=default_parameters, κ=0)
         lotka_volterra_2d_ϑ = (p, t, q, v, params) -> lotka_volterra_2d_ϑ_κ(p, t, q, v, params, κ)
         lotka_volterra_2d_f = (f, t, q, v, params) -> lotka_volterra_2d_f_κ(f, t, q, v, params, κ)
         lotka_volterra_2d_g = (g, t, q, λ, params) -> lotka_volterra_2d_g_κ(g, t, q, λ, params, κ)
 
-        IODE(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-             lotka_volterra_2d_g, q₀, p₀;
-             parameters=params, v̄=lotka_volterra_2d_v)
+        IODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
+                    lotka_volterra_2d_g, tspan, tstep, q₀, p₀;
+                    parameters=parameters,
+                    invariants=(h=hamiltonian_iode,),
+                    v̄=lotka_volterra_2d_v)
     end
 
 end
