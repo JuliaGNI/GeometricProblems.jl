@@ -193,14 +193,14 @@ module LotkaVolterra4dLagrangian
     end
 
 
-    function lotka_volterra_4d_ode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
+    function odeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
         GeometricEquations.ODEProblem(funcs[:ẋ], tspan, tstep, q₀;
                     parameters=parameters, invariants = (h = funcs[:H],))
     end
 
-    function lotka_volterra_4d_iode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
+    function iodeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
         IODEProblem(funcs[:ϑ],
@@ -211,7 +211,7 @@ module LotkaVolterra4dLagrangian
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
     end
 
-    function lotka_volterra_4d_lode(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
+    function lodeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
         LODEProblem(funcs[:ϑ],
@@ -225,7 +225,7 @@ module LotkaVolterra4dLagrangian
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
     end
 
-    function lotka_volterra_4d_idae(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
+    function idaeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
         a, b = get_parameters(parameters)
         funcs = get_functions(A,B,a,b)
         IDAEProblem(funcs[:ϑ],
@@ -238,14 +238,14 @@ module LotkaVolterra4dLagrangian
                     parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
     end
 
-    # function lotka_volterra_4d_ldae(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
+    # function ldaeproblem(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
     #     LDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
     #          lotka_volterra_4d_g, lotka_volterra_4d_g̅,
     #          lotka_volterra_4d_ϕ, lotka_volterra_4d_ψ,
     #          q₀, p₀, λ₀; parameters=params, h=hamiltonian, v=lotka_volterra_4d_v)
     # end
 
-    # function lotka_volterra_4d_dg(q₀=q₀, p₀=ϑ(0, q₀), params=p)
+    # function iodeproblem_dg(q₀=q₀, p₀=ϑ(0, q₀), params=p)
     #     IODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
     #          lotka_volterra_4d_g, q₀, p₀;
     #          parameters=params, h=hamiltonian, v=lotka_volterra_4d_v)

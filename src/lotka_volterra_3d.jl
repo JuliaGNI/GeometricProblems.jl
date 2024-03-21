@@ -44,7 +44,7 @@ module LotkaVolterra3d
     using GeometricSolutions
     using Parameters
 
-    export lotka_volterra_3d_ode
+    export odeproblem
 
     export hamiltonian, casimir
     export compute_energy_error, compute_casimir_error
@@ -101,7 +101,7 @@ module LotkaVolterra3d
     end
 
 
-    function lotka_volterra_3d_ode(q₀=q₀; tspan=tspan, tstep=Δt, parameters=default_parameters)
+    function odeproblem(q₀=q₀; tspan=tspan, tstep=Δt, parameters=default_parameters)
         ODEProblem(lotka_volterra_3d_v, tspan, tstep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
     end
 

@@ -116,11 +116,11 @@ module DoublePendulum
     )
     ```
     """
-    function hodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function hodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(2)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
     """
@@ -137,11 +137,11 @@ module DoublePendulum
     )
     ```
     """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function lodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(2)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = θ̇, parameters = params)
+        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = θ̇, parameters = parameters)
     end
 
 end

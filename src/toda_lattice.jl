@@ -14,7 +14,7 @@ module TodaLattice
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
 
-    include("initial_conditions.jl")
+    include("toda_lattice_initial_conditions.jl")
 
     const α̃ = .8
     const Ñ = 200
@@ -48,21 +48,21 @@ module TodaLattice
     """
     Hamiltonian problem for the Toda lattice.
     """
-    function hodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function hodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
     """
     Lagrangian problem for the Toda lattice.
     """
-    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = params)
+        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
 end

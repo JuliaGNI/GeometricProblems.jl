@@ -7,16 +7,16 @@ using GeometricSolutions
 
 @testset "$(rpad("Lotka-Volterra 2d",80))" begin
 
-    ode  = lotka_volterra_2d_ode()
-    hode = lotka_volterra_2d_hode()
-    iode = lotka_volterra_2d_iode()
-    pode = lotka_volterra_2d_pode()
-    lode = lotka_volterra_2d_lode()
-    dae  = lotka_volterra_2d_dae()
-    hdae = lotka_volterra_2d_hdae()
-    idae = lotka_volterra_2d_idae()
-    pdae = lotka_volterra_2d_pdae()
-    ldae = lotka_volterra_2d_ldae()
+    ode  = odeproblem()
+    hode = hodeproblem()
+    iode = iodeproblem()
+    pode = podeproblem()
+    lode = lodeproblem()
+    dae  = daeproblem()
+    hdae = hdaeproblem()
+    idae = idaeproblem()
+    pdae = pdaeproblem()
+    ldae = ldaeproblem()
 
     ref  = integrate(ode, Gauss(8))
 
