@@ -14,7 +14,7 @@
 
 #### Example Problems
 
-- [ ] ABC Flow,
+- [x] ABC Flow,
 - [x] Exponential Growth,
 - [ ] Fermi-Pasta-Ulam Problem,
 - [ ] Hénon-Heiles System,
@@ -31,8 +31,9 @@
     - [ ] Lennard-Jones Oscillator,
     - [ ] Mathews-Lakshmanan Oscillator,
     - [ ] Morse Oscillator,
-- [x] Mathematical Pendulum,
-- [x] Double Pendulum,
+- [x] Pendulum,
+    - [x] Mathematical Pendulum,
+    - [x] Double Pendulum,
 - [x] Planar Point Vortices,
 - [ ] Rigid Body,
 - [ ] Chaplygin Sleigh,
