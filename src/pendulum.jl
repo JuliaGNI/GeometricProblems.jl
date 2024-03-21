@@ -6,7 +6,7 @@ module Pendulum
 
     using GeometricEquations
 
-    export pendulum_ode, pendulum_pode, pendulum_iode, pendulum_idae
+    export odeproblem, podeproblem, iodeproblem, idaeproblem
 
     function pendulum_ode_v(v, t, q, params)
         v[1] = q[2]
@@ -14,7 +14,7 @@ module Pendulum
         nothing
     end
 
-    function pendulum_ode(q₀=[acos(0.4), 0.0])
+    function odeproblem(q₀=[acos(0.4), 0.0])
         ODE(pendulum_ode_v, q₀)
     end
 
@@ -29,7 +29,7 @@ module Pendulum
         nothing
     end
 
-    function pendulum_pode(q₀=[acos(0.4)], p₀=[0.0])
+    function podeproblem(q₀=[acos(0.4)], p₀=[0.0])
         PODE(pendulum_pode_v, pendulum_pode_f, q₀, p₀)
     end
 
@@ -58,7 +58,7 @@ module Pendulum
         nothing
     end
 
-    function pendulum_iode(q₀=[acos(0.4), 0.0], p₀=[0.0, 0.0])
+    function iodeproblem(q₀=[acos(0.4), 0.0], p₀=[0.0, 0.0])
         IODE(pendulum_iode_α, pendulum_iode_f,
              pendulum_iode_g, q₀, p₀; v̄=pendulum_iode_v)
     end
@@ -114,7 +114,7 @@ module Pendulum
         nothing
     end
 
-    function pendulum_idae(q₀=[acos(0.4), 0.0], p₀=[0.0, 0.0], λ₀=[0.0, 0.0])
+    function idaeproblem(q₀=[acos(0.4), 0.0], p₀=[0.0, 0.0], λ₀=[0.0, 0.0])
         IDAE(pendulum_iode_f, pendulum_iode_α,
              pendulum_idae_u, pendulum_idae_g,
              pendulum_idae_ϕ, q₀, p₀, λ₀;
