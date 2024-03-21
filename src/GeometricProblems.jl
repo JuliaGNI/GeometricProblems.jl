@@ -6,6 +6,7 @@ module GeometricProblems
     include("diagnostics.jl")
     include("plot_recipes.jl")
 
+    include("abc_flow.jl")
     include("double_pendulum.jl")
     include("duffing_oscillator.jl")
     include("harmonic_oscillator.jl")

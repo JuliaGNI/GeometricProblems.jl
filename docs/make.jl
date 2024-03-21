@@ -18,6 +18,7 @@ makedocs(;
     ),
     pages = ["Home" => "index.md",
              "Diagnostics"                 => "diagnostics.md",
+             "ABC Flow"                    => "abc_flow.md",
              "Coupled Harmonic Oscillator" => "coupled_harmonic_oscillator.md",
              "Double Pendulum"             => "double_pendulum.md",
              "Harmonic Oscillator"         => "harmonic_oscillator.md",
