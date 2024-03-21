@@ -33,7 +33,7 @@ Reexport = "1"
 Requires = "1"
 RuntimeGeneratedFunctions = "0.5"
 Symbolics = "5"
-julia = "1.8"
+julia = "1.10"
 
 [extras]
 GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
