@@ -7,6 +7,7 @@ using GeometricSolutions
 @testset "$(rpad("ABC Flow",80))" begin
 
     @test_nowarn odeproblem()
+    @test_nowarn odeensemble()
 
     ode = odeproblem([0.5, 0., 0.])
 
