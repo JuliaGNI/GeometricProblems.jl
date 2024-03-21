@@ -37,7 +37,7 @@ module ABCFlow
         nothing
     end
 
-    function odeproblem(q₀ = (q = q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function odeproblem(q₀ = q₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         ODEProblem(abc_flow_v, tspan, tstep, q₀; parameters = parameters)
     end
 
