@@ -58,7 +58,7 @@ module CoupledHarmonicOscillator
     function lagrangian(t, q, q̇, params)
         @unpack k₁, k₂, m₁, m₂, k = params
 
-        q̇[1] ^ 2 / (2 * m₁) + q̇[2] ^ 2 / (2 * m₂) - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
+        m₁*q̇[1] ^ 2 / 2 + m₂*q̇[2] ^ 2 / 2 - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
 
 
