@@ -19,7 +19,7 @@ module RigidBody
     using GeometricSolutions
     using Parameters 
 
-    export odeproblem, q₀, default_parameters, tspan, tstep
+    export odeproblem, odeensemble
 
     const tspan = (0.0, 100.0)
     const tstep = 0.1
@@ -30,7 +30,9 @@ module RigidBody
         I₃ = 2. / 3.
     )
 
-    const q₀ = (q = [cos(1.1), 0., sin(1.1)], )
+    const q₀ = [cos(1.1), 0., sin(1.1)]
+    const q₁ = [cos(2.1), 0., sin(2.1)]
+    const q₂ = [cos(2.2), 0., sin(2.2)]
 
     function rigid_body_v(v, t, q, params)
         @unpack I₁, I₂, I₃ = params
@@ -46,6 +48,10 @@ module RigidBody
 
     function odeproblem(q₀ = q₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         ODEProblem(rigid_body_v, tspan, tstep, q₀; parameters = parameters)
+    end
+
+    function odeensemble(samples = [q₀, q₁, q₂]; parameters = default_parameters, tspan = tspan, tstep = tstep)
+        ODEEnsemble(rigid_body_v, tspan, tstep, samples; parameters = parameters)
     end
 
 end
