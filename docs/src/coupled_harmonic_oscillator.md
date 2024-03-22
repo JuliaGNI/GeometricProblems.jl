@@ -48,7 +48,7 @@ png(plot_q₁, "q_component")
 nothing
 ```
 
-![]("q_component.png")
+![](q_component.png)
 
 
 ## Library functions
