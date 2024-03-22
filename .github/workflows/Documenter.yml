@@ -15,11 +15,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@latest
-      - name: Install imagemagick, poppler-utils and texlive
+      - name: Install imagemagick, poppler-utils and packages needed for Makie
         run: |
           sudo apt-get install imagemagick
           sudo apt-get install poppler-utils
           sudo apt-get install texlive-xetex
+          sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
       - name: Generate Images
         run: |
           make all   -C src/images
