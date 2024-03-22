@@ -14,8 +14,7 @@ The following shows the ``q_1`` component of the system for different values of 
 
 ```@eval
 using GeometricIntegrators: integrate, ImplicitMidpoint 
-using GeometricProblems.CoupledHarmonicOscillator: hodeproblem, default_parameters, tspan, tstep, q₀, p₀ 
-using GeometricEquations: EnsembleProblem 
+using GeometricProblems.CoupledHarmonicOscillator: hodeproblem, default_parameters
 using Plots 
  
 const m₁ = default_parameters.m₁  
@@ -25,15 +24,15 @@ const k₂ = default_parameters.k₂
 const k = [0.0, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0] 
  
 params_collection = [(m₁ = m₁, m₂ = m₂, k₁ = k₁, k₂ = k₂, k = k_val) for k_val in k] 
-ensemble_problem = EnsembleProblem(hodeproblem().equation, tspan, tstep, (q = q₀, p = p₀), params_collection) 
-ensemble_solution = integrate(ensemble_problem, ImplicitMidpoint()) 
+problems = [hodeproblem(; params = params_collection[i]) for i in axes(k, 1)] 
+ensemble_solution = [integrate(problem, ImplicitMidpoint()) for problem in problems]
  
-t = ensemble_solution.t
+t = ensemble_solution[1].t
 
 q₁ = zeros(1, length(t), length(k))
 
 for index in axes(k, 1)
-    q₁[1, :, index] =  ensemble_solution.s[index].q[:, 1]
+    q₁[1, :, index] =  ensemble_solution[index].q[:, 1]
 end
 
 n_param_sets = length(params_collection) #hide 
