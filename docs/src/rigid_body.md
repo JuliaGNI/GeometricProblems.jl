@@ -5,7 +5,7 @@ using GeometricProblems.RigidBody: odeensemble
 using GeometricIntegrators: integrate, ImplicitMidpoint
 using GeometricEquations: EnsembleProblem
 using GeometricSolutions: GeometricSolution
-using GLMakie
+using CairoMakie
 
 ics = [
         [sin(1.1), 0., cos(1.1)],
@@ -39,7 +39,7 @@ for (i, solution) in zip(1:length(ensemble_solution), ensemble_solution.s)
     plot_geometric_solution!(ax, solution; label = "trajectory "*string(i), linewidth=2)
 end
 
-ax
+fig
 ```
 
 
