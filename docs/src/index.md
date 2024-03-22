@@ -38,6 +38,7 @@ Pages = [
 "point_vortices.md",
 "inner_solar_system.md",
 "outer_solar_system.md",
+"rigid_body.md",
 "toda_lattice.md"
 ]
 Depth = 1

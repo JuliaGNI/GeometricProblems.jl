@@ -10,6 +10,18 @@ png:
 	pdftocairo  -png -r 250 -transp -singlefile  coupled_harmonic_oscillator.pdf        coupled_harmonic_oscillator              
 	pdftocairo  -png -r 250 -transp -singlefile  coupled_harmonic_oscillator_dark.pdf   coupled_harmonic_oscillator_dark       
 
+MYDIR := .
+convert_with_sips: $(MYDIR)/*.pdf
+	for file in $^ ; do \
+		sips --setProperty format png --resampleHeightWidthMax 600 $${file} --out $${file%.*}.png ; \
+	done
+
+# this is converting pdfs to pngs using pdftocairo (linux version)
+convert_with_pdftocairo: $(MYDIR)/*.pdf
+	for file in $^ ; do \
+		pdftocairo -png -r 250 -transp -singlefile $${file} $${file%.*} ; \
+	done
+
 clean:
 	rm -f *.aux
 	rm -f *.fdb_latexmk

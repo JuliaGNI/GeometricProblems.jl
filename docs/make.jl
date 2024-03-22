@@ -34,6 +34,7 @@ makedocs(;
              "Point Vortices"              => "point_vortices.md",
              "Inner Solar System"          => "inner_solar_system.md",
              "Outer Solar System"          => "outer_solar_system.md",
+             "Rigid body"                  => "rigid_body.md",
              "Toda Lattice"                => "toda_lattice.md",
             ]
 )
