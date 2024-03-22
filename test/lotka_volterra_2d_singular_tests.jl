@@ -6,9 +6,9 @@ using GeometricSolutions
 
 
 @testset "$(rpad("Lotka-Volterra 2D with singular Lagrangian",80))" begin
-    ode  = lotka_volterra_2d_ode()
-    iode = lotka_volterra_2d_iode()
-    idae = lotka_volterra_2d_idae()
+    ode  = odeproblem()
+    iode = iodeproblem()
+    idae = idaeproblem()
     ref  = integrate(ode, Gauss(8))
 
     sol = integrate(ode, Gauss(2))

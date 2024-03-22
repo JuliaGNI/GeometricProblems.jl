@@ -10,13 +10,13 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
 
 @testset "$(rpad("Lotka-Volterra 4D (Lagrangian)",80))" begin
-    lag_ode  = LotkaVolterra4dLagrangian.lotka_volterra_4d_ode()
-    lag_iode = LotkaVolterra4dLagrangian.lotka_volterra_4d_iode()
-    lag_idae = LotkaVolterra4dLagrangian.lotka_volterra_4d_idae()
+    lag_ode  = LotkaVolterra4dLagrangian.odeproblem()
+    lag_iode = LotkaVolterra4dLagrangian.iodeproblem()
+    lag_idae = LotkaVolterra4dLagrangian.idaeproblem()
 
-    ref_ode  = LotkaVolterra4d.lotka_volterra_4d_ode()
-    ref_iode = LotkaVolterra4d.lotka_volterra_4d_iode()
-    ref_idae = LotkaVolterra4d.lotka_volterra_4d_idae()
+    ref_ode  = LotkaVolterra4d.odeproblem()
+    ref_iode = LotkaVolterra4d.iodeproblem()
+    ref_idae = LotkaVolterra4d.idaeproblem()
 
     ref = integrate(ref_ode, Gauss(8))
 

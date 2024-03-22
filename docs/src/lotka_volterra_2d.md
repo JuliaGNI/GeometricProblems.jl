@@ -17,7 +17,7 @@ using GeometricIntegrators
 using GeometricProblems.LotkaVolterra2d
 using GeometricProblems.LotkaVolterra2dPlots
 
-ode = lotka_volterra_2d_ode()
+ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
 plot_lotka_volterra_2d(sol, ode)

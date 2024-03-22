@@ -23,6 +23,10 @@ using GeometricSolutions
     @test_nowarn ldaeproblem()
     @test_nowarn pdaeproblem()
 
+    @test_nowarn odeensemble()
+    @test_nowarn podeensemble()
+    @test_nowarn hodeensemble()
+
 
     ode = odeproblem()
     iode = degenerate_iodeproblem()

@@ -15,7 +15,7 @@ module ABCFlow
     using GeometricSolutions
     using Parameters 
 
-    export odeproblem, q₀, default_parameters, tspan, tstep
+    export odeproblem, odeensemble
 
     const tspan = (0.0, 100.0)
     const tstep = 0.1
@@ -26,7 +26,10 @@ module ABCFlow
         C = 1.
     )
 
-    const q₀ = [0., 0., 0.]
+    const q₀ = [0.0, 0., 0.]
+    const q₁ = [0.5, 0., 0.]
+    const q₂ = [0.6, 0., 0.]
+
 
     function abc_flow_v(v, t, q, params)
         @unpack A, B, C = params
@@ -37,8 +40,12 @@ module ABCFlow
         nothing
     end
 
-    function odeproblem(q₀ = (q = q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function odeproblem(q₀ = q₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         ODEProblem(abc_flow_v, tspan, tstep, q₀; parameters = parameters)
+    end
+
+    function odeensemble(samples = [q₀, q₁, q₂]; parameters = default_parameters, tspan = tspan, tstep = tstep)
+        ODEEnsemble(abc_flow_v, tspan, tstep, samples; parameters = parameters)
     end
 
 end
