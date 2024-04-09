@@ -54,3 +54,12 @@ See [ChargedParticleDynamics.jl](https://github.com/JuliaPlasma/ChargedParticleD
 See [GeometricExamples.jl](https://github.com/JuliaGNI/GeometricExamples.jl) for
 example scripts that run these problems with the integrators implemented in
 [GeometricIntegrators.jl](https://github.com/JuliaGNI/GeometricIntegrators.jl).
+
+
+## Development
+
+We are using git hooks, e.g., to enforce that all tests pass before pushing.
+In order to activate these hooks, the following command must be executed once:
+```
+git config core.hooksPath .githooks
+```
