@@ -14,3 +14,4 @@ using SafeTestsets
 @safetestset "Lotka-Volterra 4D (Lagrangian)                                                  " begin include("lotka_volterra_4d_lagrangian_tests.jl") end
 @safetestset "Point Vortices                                                                  " begin include("point_vortices_tests.jl") end
 @safetestset "Point Vortices (linear)                                                         " begin include("point_vortices_linear_tests.jl") end
+@safetestset "Rigid Body                                                                      " begin include("rigid_body_test.jl") end

@@ -20,7 +20,7 @@ documenter:
 images:
 	$(MAKE) all   -C src/images
 	$(MAKE) clean -C src/images
-
+	
 clean:
 	$(MAKE) empty -C src/images
 	rm -Rf build
