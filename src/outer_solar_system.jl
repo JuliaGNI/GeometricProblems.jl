@@ -59,62 +59,80 @@ module OuterSolarSystem
     const p₆ = m₆*q̇₆
 
 
-    const m = [m₁,m₂,m₃,m₄,m₅,m₆]
-    const q₀ = [q₁;q₂;q₃;q₄;q₅;q₆]
-    const q̇₀ = [q̇₁;q̇₂;q̇₃;q̇₄;q̇₅;q̇₆]
-    const p₀ = [p₁;p₂;p₃;p₄;p₅;p₆]
+    # const m = [m₁,m₂,m₃,m₄,m₅,m₆]
+    # const q₀ = [q₁;q₂;q₃;q₄;q₅;q₆]
+    # const q̇₀ = [q̇₁;q̇₂;q̇₃;q̇₄;q̇₅;q̇₆]
+    # const p₀ = [p₁;p₂;p₃;p₄;p₅;p₆]
+
+    # const default_parameters = (
+    #     G = 2.95912208286e-4,
+    #     m = [m₁,m₂,m₃,m₄,m₅,m₆]
+    #     )
+
+    const m = [m₁,m₂]
+    const q₀ = [q₁;q₂]
+    const q̇₀ = [q̇₁;q̇₂]
+    const p₀ = [p₁;p₂]
 
     const default_parameters = (
     G = 2.95912208286e-4,
-    m = [m₁,m₂,m₃,m₄,m₅,m₆]
+    m = [m₁,m₂]
     )
 
-    function hamiltonian(t, q, p, params;d=3,n=6)
-    @unpack G, m = params
+    # function hamiltonian(t, q, p, params;d=3,n=6)
+    function hamiltonian(t, q, p, params;d=3,n=2)
 
-    q = reshape(q,d,n)
-    p = reshape(p,d,n)
+        @unpack G, m = params
 
-    T = 0
-    for i in 2:n
-    for j in 1:i-1
-        T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
-    end
-    end
+        q = reshape(q,d,n)
+        p = reshape(p,d,n)
 
-    1/2 * sum([p[:,i]'*p[:,i]/m[i] for i in 1:n]) - T 
-    end
+        T = 0
+        for i in 2:n
+        for j in 1:i-1
+            T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
+        end
+        end
 
-
-    function lagrangian(t, q, q̇, params;d=3,n=6)
-    @unpack G, m = params
-
-    q = reshape(q,d,n)
-    q̇ = reshape(q̇,d,n)
-
-    T = 0
-    for i in 1:n
-    for j in 1:i
-        T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
-    end
+        1/2 * sum([p[:,i]'*p[:,i]/m[i] for i in 1:n]) - T 
     end
 
-    1/2 * sum([m[i]*q̇[:,i]'*q̇[:,i] for i in 1:n]) + T 
+
+    # function lagrangian(t, q, q̇, params;d=3,n=6)
+    function lagrangian(t, q, q̇, params;d=3,n=2)
+
+        @unpack G, m = params
+
+        q = reshape(q,d,n)
+        q̇ = reshape(q̇,d,n)
+
+        T = 0
+        for i in 1:n
+            for j in 1:i
+                T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
+            end
+        end
+
+        1/2 * sum([m[i]*q̇[:,i]'*q̇[:,i] for i in 1:n]) + T 
     end
 
     function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
-    t, q, p = hamiltonian_variables(18)
-    sparams = symbolize(params)
-    ham_sys = EulerLagrange.HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-    HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        # t, q, p = hamiltonian_variables(18)
+        t, q, p = hamiltonian_variables(6)
+
+        sparams = symbolize(params)
+        ham_sys = EulerLagrange.HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
     end
 
     function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
-    t, x, v = lagrangian_variables(18)
-    sparams = symbolize(params)
-    lag = lagrangian(t, x, v, sparams)
-    lag_sys = EulerLagrange.LagrangianSystem(lag, t, x, v, sparams)
-    LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
+        # t, x, v = lagrangian_variables(18)
+        t, x, v = lagrangian_variables(6)
+
+        sparams = symbolize(params)
+        lag = lagrangian(t, x, v, sparams)
+        lag_sys = EulerLagrange.LagrangianSystem(lag, t, x, v, sparams)
+        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
     end
 end
 
