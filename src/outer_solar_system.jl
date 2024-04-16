@@ -79,6 +79,10 @@ module OuterSolarSystem
     m = [m₁,m₂]
     )
 
+    function v̄(v,q̇)
+        v .= q̇
+    end
+
     # function hamiltonian(t, q, p, params;d=3,n=6)
     function hamiltonian(t, q, p, params;d=3,n=2)
 
