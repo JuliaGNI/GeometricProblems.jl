@@ -59,32 +59,33 @@ module OuterSolarSystem
     const p₆ = m₆*q̇₆
 
 
-    # const m = [m₁,m₂,m₃,m₄,m₅,m₆]
-    # const q₀ = [q₁;q₂;q₃;q₄;q₅;q₆]
-    # const q̇₀ = [q̇₁;q̇₂;q̇₃;q̇₄;q̇₅;q̇₆]
-    # const p₀ = [p₁;p₂;p₃;p₄;p₅;p₆]
-
-    # const default_parameters = (
-    #     G = 2.95912208286e-4,
-    #     m = [m₁,m₂,m₃,m₄,m₅,m₆]
-    #     )
-
-    const m = [m₁,m₂]
-    const q₀ = [q₁;q₂]
-    const q̇₀ = [q̇₁;q̇₂]
-    const p₀ = [p₁;p₂]
+    const m = [m₁,m₂,m₃,m₄,m₅,m₆]
+    const q₀ = [q₁;q₂;q₃;q₄;q₅;q₆]
+    const q̇₀ = [q̇₁;q̇₂;q̇₃;q̇₄;q̇₅;q̇₆]
+    const p₀ = [p₁;p₂;p₃;p₄;p₅;p₆]
 
     const default_parameters = (
-    G = 2.95912208286e-4,
-    m = [m₁,m₂]
-    )
+        G = 2.95912208286e-4,
+        m = [m₁,m₂,m₃,m₄,m₅,m₆]
+        )
 
-    function v̄(v,q̇)
-        v .= q̇
-    end
+    # const m = [m₁,m₂]
+    # const q₀ = [q₁;q₂]
+    # const q̇₀ = [q̇₁;q̇₂]
+    # const p₀ = [p₁;p₂]
 
-    # function hamiltonian(t, q, p, params;d=3,n=6)
-    function hamiltonian(t, q, p, params;d=3,n=2)
+    # const default_parameters = (
+    # G = 2.95912208286e-4,
+    # m = [m₁,m₂]
+    # )
+
+    # function v̄(v,t,q,p,params)
+    #     @unpack G, m = params
+    #     v = p ./ m
+    # end
+
+    function hamiltonian(t, q, p, params;d=3,n=6)
+    # function hamiltonian(t, q, p, params;d=3,n=2)
 
         @unpack G, m = params
 
@@ -93,17 +94,17 @@ module OuterSolarSystem
 
         T = 0
         for i in 2:n
-        for j in 1:i-1
-            T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
-        end
+            for j in 1:i-1
+                T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
+            end
         end
 
         1/2 * sum([p[:,i]'*p[:,i]/m[i] for i in 1:n]) - T 
     end
 
 
-    # function lagrangian(t, q, q̇, params;d=3,n=6)
-    function lagrangian(t, q, q̇, params;d=3,n=2)
+    function lagrangian(t, q, q̇, params;d=3,n=6)
+    # function lagrangian(t, q, q̇, params;d=3,n=2)
 
         @unpack G, m = params
 
@@ -111,8 +112,8 @@ module OuterSolarSystem
         q̇ = reshape(q̇,d,n)
 
         T = 0
-        for i in 1:n
-            for j in 1:i
+        for i in 2:n
+            for j in 1:i-1
                 T = T + G*(m[i]*m[j])/norm(q[:,i]-q[:,j])
             end
         end
@@ -121,8 +122,8 @@ module OuterSolarSystem
     end
 
     function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
-        # t, q, p = hamiltonian_variables(18)
-        t, q, p = hamiltonian_variables(6)
+        t, q, p = hamiltonian_variables(18)
+        # t, q, p = hamiltonian_variables(6)
 
         sparams = symbolize(params)
         ham_sys = EulerLagrange.HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
@@ -130,8 +131,8 @@ module OuterSolarSystem
     end
 
     function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
-        # t, x, v = lagrangian_variables(18)
-        t, x, v = lagrangian_variables(6)
+        t, x, v = lagrangian_variables(18)
+        # t, x, v = lagrangian_variables(6)
 
         sparams = symbolize(params)
         lag = lagrangian(t, x, v, sparams)
