@@ -39,8 +39,9 @@ module LinearWave
         sum(q̇[n] ^ 2 / (2 * Δx) for n in 1 : Ñ) - q ⋅ (K.parent * q)
     end
 
-    const tstep = .1 
-    const tspan = (0.0, 120.0)
+    const tspan = (0, 1)
+    const n_time_steps = 200
+    const tstep = (tspan[2] - tspan[1]) / (n_time_steps-1)
 
     const q̃₀ = get_initial_condition(μ̃, Ñ).q 
     const p̃₀ = get_initial_condition(μ̃, Ñ).p 
