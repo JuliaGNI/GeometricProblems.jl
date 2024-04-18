@@ -26,9 +26,11 @@ module CoupledHarmonicOscillator
     using EulerLagrange
     using LinearAlgebra
     using Parameters
+    using GeometricEquations: HODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
+    export hodeensemble
 
     const tspan = (0.0, 100.0)
     const tstep = 0.4
@@ -84,8 +86,8 @@ module CoupledHarmonicOscillator
     end
 
     function v̄(v, t, q, p, params)
-        v[1] = p[1]
-        v[2] = p[2]
+        v[1] = p[1] / params.m₁
+        v[2] = p[2] / params.m₂
         nothing
     end
 
@@ -110,4 +112,28 @@ module CoupledHarmonicOscillator
         LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
     end
 
+    # q₀_vec and p₀_vec means vectors of various q₀ and p₀.
+    function hodeensemble(params::NT, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT <: NamedTuple}
+        @assert length(q₀_vec) == length(p₀_vec) "Did not supply an equal number of q₀'s and p₀'s."
+
+        eq = hodeproblem().equation
+        HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = params)
+    end
+
+    function hodeensemble(params::NT2, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT2 <: Vector{<:NamedTuple}}
+        @assert length(q₀_vec) == length(p₀_vec) "Did not supply an equal number of q₀'s and p₀'s."
+        eq_size = length(q₀_vec) == length(params)
+        @assert eq_size || length(q₀_vec) == 1 "Supply a number of initial conditions that is euqal to the number of parameters or 1!"
+
+        eq = hodeproblem().equation
+        if eq_size 
+            return HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = params)
+        else
+            return HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, [q₀_vec[1] for _ in axes(params, 1)], [p₀_vec[1] for _ in axes(params, 1)]; parameters = params)
+        end
+    end
+
+    function hodeensemble(q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep, params = default_parameters)
+        hodeensemble(params, q₀_vec, p₀_vec; tspan = tspan, tstep = tstep)
+    end
 end
