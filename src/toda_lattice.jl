@@ -16,7 +16,7 @@ module TodaLattice
 
     include("bump_initial_condition.jl")
 
-    const α̃ = .8
+    const α̃ = .64
     const Ñ = 200
 
     const default_parameters = (
@@ -27,13 +27,13 @@ module TodaLattice
     function hamiltonian(t, q, p, params)
         @unpack N, α = params
         
-        sum(p[n] ^ 2 / 2 + α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
+        sum(p[n] ^ 2 / 2 + α * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
     end
 
     function lagrangian(t, q, q̇, params)
         @unpack N, α = params 
 
-        sum(q̇[n] ^ 2 / 2 - α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
+        sum(q̇[n] ^ 2 / 2 - α * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
     end
 
     const tstep = .1 
