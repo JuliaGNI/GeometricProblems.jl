@@ -14,7 +14,7 @@ module TodaLattice
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
 
-    include("toda_lattice_initial_conditions.jl")
+    include("bump_initial_condition.jl")
 
     const α̃ = .8
     const Ñ = 200
