@@ -15,3 +15,5 @@ using SafeTestsets
 @safetestset "Point Vortices                                                                  " begin include("point_vortices_tests.jl") end
 @safetestset "Point Vortices (linear)                                                         " begin include("point_vortices_linear_tests.jl") end
 @safetestset "Rigid Body                                                                      " begin include("rigid_body_test.jl") end
+
+@safetestset "HODEEnsemble                                                                    " begin include("test_hodeensembles.jl") end
