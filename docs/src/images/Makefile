@@ -3,12 +3,16 @@ pdf:
 	xelatex -shell-escape double-pendulum_dark
 	xelatex -shell-escape coupled_harmonic_oscillator
 	xelatex -shell-escape coupled_harmonic_oscillator_dark
+	xelatex -shell-escape third_degree_spline
+	xelatex -shell_escape third_degree_spline_dark
 
 png:
 	pdftocairo  -png -r 150 -transp -singlefile  double-pendulum.pdf               		double-pendulum              
 	pdftocairo  -png -r 150 -transp -singlefile  double-pendulum_dark.pdf          		double-pendulum_dark       
 	pdftocairo  -png -r 250 -transp -singlefile  coupled_harmonic_oscillator.pdf        coupled_harmonic_oscillator              
-	pdftocairo  -png -r 250 -transp -singlefile  coupled_harmonic_oscillator_dark.pdf   coupled_harmonic_oscillator_dark       
+	pdftocairo  -png -r 250 -transp -singlefile  coupled_harmonic_oscillator_dark.pdf   coupled_harmonic_oscillator_dark  
+	pdftocairo  -png -r 150 -transp -singlefile  third_degree_spline.pdf               	third_degree_spline              
+	pdftocairo  -png -r 150 -transp -singlefile  third_degree_spline_dark.pdf          	third_degree_spline_dark         
 
 MYDIR := .
 convert_with_sips: $(MYDIR)/*.pdf
