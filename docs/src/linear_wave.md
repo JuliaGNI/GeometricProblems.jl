@@ -30,7 +30,7 @@ using GeometricProblems, GeometricIntegrators, Plots # hide
 problem = GeometricProblems.LinearWave.hodeproblem() 
 sol = integrate(problem, ImplicitMidpoint())
 
-time_steps = (0, 200, 400, 600, 800, 1000, 1200)
+time_steps = (0, 50, 150, 190)
 p = plot()
 for time_step in time_steps
     plot!(p, sol.q[time_step, :], label = "t = $(sol.t[time_step])")
