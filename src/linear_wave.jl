@@ -20,36 +20,35 @@ module LinearWave
     const μ̃ = .6
     const Ñ = 128
 
-    const default_parameters = (
-        μ = μ̃, 
-        N = Ñ
-    )
+    make_parameters(μ = μ̃, N = Ñ) = (μ = μ, N = N, K = assemble_matrix(μ, N).parent)
 
-    function hamiltonian(t, q, p, params)
-        @unpack N, μ = params
+    const default_parameters = make_parameters()
+
+    function hamiltonian(t, q, p, parameters)
+        @unpack N, μ, K = parameters
         
-        Δx = typeof(μ)(1) / (Ñ + 1)
-        K = assemble_matrix(μ, Ñ)
-        sum(Δx * p[n] ^ 2 / 2 for n in 1 : Ñ) + q ⋅ (K.parent * q)
+        Δx = one(μ) / (Ñ + 1)
+        sum(Δx * p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + q ⋅ (K * q)
     end
 
-    function lagrangian(t, q, q̇, params)
-        @unpack N, α = params 
+    function lagrangian(t, q, q̇, parameters)
+        @unpack N, μ, K = parameters 
 
-        sum(q̇[n] ^ 2 / (2 * Δx) for n in 1 : Ñ) - q ⋅ (K.parent * q)
+        Δx = one(μ) / (Ñ + 1)
+        sum(q̇[n] ^ 2 / (2 * Δx) for n in 1 : (Ñ + 2)) - q ⋅ (K * q)
     end
 
     const tspan = (0, 1)
     const n_time_steps = 200
     const tstep = (tspan[2] - tspan[1]) / (n_time_steps-1)
 
-    const q̃₀ = get_initial_condition(μ̃, Ñ).q 
-    const p̃₀ = get_initial_condition(μ̃, Ñ).p 
+    const q₀ = get_initial_condition(μ̃, Ñ + 2).q 
+    const p₀ = get_initial_condition(μ̃, Ñ + 2).p 
 
     """
     Hamiltonian problem for the linear wave equation.
     """
-    function hodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ + 2)
         sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
@@ -59,7 +58,7 @@ module LinearWave
     """
     Lagrangian problem for the linear wave equation.
     """
-    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ + 2)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
