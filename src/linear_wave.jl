@@ -3,7 +3,7 @@ The discretized version of the 1d linear wave equation.
 
 It is a prime example of a non-trivial completely integrable system.
 
-The only system parameters are the *number of points* ``N`` for which the system is discretized and `\alpha`.
+The only system parameters are the *number of points* ``N`` for which the system is discretized and ``\mu``.
 """
 module LinearWave 
 
@@ -15,35 +15,39 @@ module LinearWave
     export hodeproblem, lodeproblem  
 
     include("bump_initial_condition.jl")
-    include("assemble_matrix_for_linear_wave_equation.jl")
 
     const μ̃ = .6
-    const Ñ = 128
+    const Ñ = 256
 
-    make_parameters(μ = μ̃, N = Ñ) = (μ = μ, N = N, K = assemble_matrix(μ, N).parent)
-
-    const default_parameters = make_parameters()
+    const default_parameters = (μ = μ̃, N = Ñ)
 
     function hamiltonian(t, q, p, parameters)
-        @unpack N, μ, K = parameters
+        @unpack N, μ = parameters
         
         Δx = one(μ) / (Ñ + 1)
-        sum(Δx * p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + q ⋅ (K * q)
+        Δx² = Δx ^ 2
+        μ² = μ ^ 2
+        sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
     end
 
     function lagrangian(t, q, q̇, parameters)
-        @unpack N, μ, K = parameters 
+        @unpack N, μ = parameters 
 
         Δx = one(μ) / (Ñ + 1)
-        sum(q̇[n] ^ 2 / (2 * Δx) for n in 1 : (Ñ + 2)) - q ⋅ (K * q)
+        Δx² = Δx ^ 2 
+        μ² = μ ^ 2
+        sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
     end
+
+    get_tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
+
 
     const tspan = (0, 1)
     const n_time_steps = 200
-    const tstep = (tspan[2] - tspan[1]) / (n_time_steps-1)
+    const tstep = get_tstep(tspan, n_time_steps)
 
-    const q₀ = get_initial_condition(μ̃, Ñ + 2).q 
-    const p₀ = get_initial_condition(μ̃, Ñ + 2).p 
+    const q₀ = get_initial_condition2(μ̃, Ñ + 2).q 
+    const p₀ = get_initial_condition2(μ̃, Ñ + 2).p 
 
     """
     Hamiltonian problem for the linear wave equation.
