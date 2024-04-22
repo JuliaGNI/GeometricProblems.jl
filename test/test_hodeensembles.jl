@@ -28,7 +28,7 @@ function test_multiple_parameters(cho::Module)
     end
 
     # ensemble problem
-    epr = cho.hodeensemble(; params = params_vec)
+    epr = cho.hodeensemble(; parameters = params_vec)
     # ensemble solution
     esol = integrate(epr, ImplicitMidpoint())
 
