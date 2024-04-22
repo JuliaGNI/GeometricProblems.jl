@@ -50,15 +50,15 @@ module CoupledHarmonicOscillator
         T(1) / (T(1) + exp(-x))
     end
 
-    function hamiltonian(t, q, p, params)
-        @unpack k₁, k₂, m₁, m₂, k = params
+    function hamiltonian(t, q, p, parameters)
+        @unpack k₁, k₂, m₁, m₂, k = parameters
 
         p[1] ^ 2 / (2 * m₁) + p[2] ^ 2 / (2 * m₂) + k₁ * q[1] ^ 2 / 2 + k₂ * q[2] ^ 2 / 2  + k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
 
 
-    function lagrangian(t, q, q̇, params)
-        @unpack k₁, k₂, m₁, m₂, k = params
+    function lagrangian(t, q, q̇, parameters)
+        @unpack k₁, k₂, m₁, m₂, k = parameters
 
         q̇[1] ^ 2 / (2 * m₁) + q̇[2] ^ 2 / (2 * m₂) - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
@@ -74,20 +74,20 @@ module CoupledHarmonicOscillator
         p₀ = $(p₀);
         tspan = $(tspan),
         tstep = $(tstep),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(2)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function v̄(v, t, q, p, params)
-        v[1] = p[1] / params.m₁
-        v[2] = p[2] / params.m₂
+    function v̄(v, t, q, p, parameters)
+        v[1] = p[1] / parameters.m₁
+        v[2] = p[2] / parameters.m₂
         nothing
     end
 
@@ -101,39 +101,39 @@ module CoupledHarmonicOscillator
         p₀ = $(p₀);
         tspan = $(tspan),
         tstep = $(tstep),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(2)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
+        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
     # q₀_vec and p₀_vec means vectors of various q₀ and p₀.
-    function hodeensemble(params::NT, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT <: NamedTuple}
+    function hodeensemble(parameters::NT, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT <: NamedTuple}
         @assert length(q₀_vec) == length(p₀_vec) "Did not supply an equal number of q₀'s and p₀'s."
 
         eq = hodeproblem().equation
-        HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = params)
+        HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = parameters)
     end
 
-    function hodeensemble(params::NT2, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT2 <: Vector{<:NamedTuple}}
+    function hodeensemble(parameters::NT2, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT2 <: Vector{<:NamedTuple}}
         @assert length(q₀_vec) == length(p₀_vec) "Did not supply an equal number of q₀'s and p₀'s."
-        eq_size = length(q₀_vec) == length(params)
+        eq_size = length(q₀_vec) == length(parameters)
         @assert eq_size || length(q₀_vec) == 1 "Supply a number of initial conditions that is euqal to the number of parameters or 1!"
 
         eq = hodeproblem().equation
         if eq_size 
-            return HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = params)
+            return HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = parameters)
         else
-            return HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, [q₀_vec[1] for _ in axes(params, 1)], [p₀_vec[1] for _ in axes(params, 1)]; parameters = params)
+            return HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, [q₀_vec[1] for _ in axes(parameters, 1)], [p₀_vec[1] for _ in axes(parameters, 1)]; parameters = parameters)
         end
     end
 
-    function hodeensemble(q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep, params = default_parameters)
-        hodeensemble(params, q₀_vec, p₀_vec; tspan = tspan, tstep = tstep)
+    function hodeensemble(q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep, parameters = default_parameters)
+        hodeensemble(parameters, q₀_vec, p₀_vec; tspan = tspan, tstep = tstep)
     end
 end
