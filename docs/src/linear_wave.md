@@ -5,7 +5,7 @@ The linear wave equation in one dimension has the following Hamiltonian (see e.g
 ```math
     \mathcal{H}_\mathrm{cont}(q, p; \mu) := \frac{1}{2}\int_\Omega \mu^2(\partial_\xi q(t, \xi; \mu))^2 + p(t, \xi; \mu)^2 d\xi,
 ```
-where the domain is ``\Omega = (-1/2, 1/2)``. We then divide the domain into ``\tilde{N}`` equidistantly spaces points[^1] ``\xi_i = i\Delta_\xi - 1/2`` for ``i = 1, \ldots, N`` and ``\Delta_xi := 1/(\tilde{N} + 1)``.
+where the domain is ``\Omega = (-1/2, 1/2)``. We then divide the domain into ``\tilde{N}`` equidistantly spaces points[^1] ``\xi_i = i\Delta_\xi - 1/2`` for ``i = 1, \ldots, \tilde{N}`` and ``\Delta_xi := 1/(\tilde{N} + 1)``.
 
 [^1]: In total the system is therefore described by ``N = \tilde{N} + 2`` coordinates, since we also have to consider the boundary. The resulting Hamiltonian then is:
 
