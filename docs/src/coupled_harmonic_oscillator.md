@@ -25,7 +25,7 @@ const k = [0.0, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0]
  
 params_collection = [(m₁ = m₁, m₂ = m₂, k₁ = k₁, k₂ = k₂, k = k_val) for k_val in k] 
 # ensemble problem
-ep = hodeensemble(; params = params_collection)
+ep = hodeensemble(; parameters = params_collection)
 ensemble_solution = integrate(ep, ImplicitMidpoint())
  
 t = ensemble_solution.t
@@ -37,7 +37,7 @@ for index in axes(k, 1)
 end
 
 n_param_sets = length(params_collection) #hide 
-labels = reshape(["k = "*string(params.k) for params in params_collection], 1, n_param_sets) 
+labels = reshape(["k = "*string(parameters.k) for parameters in params_collection], 1, n_param_sets) 
  
 q₁ = q₁[1, :, :]
 const one_plot = false 
