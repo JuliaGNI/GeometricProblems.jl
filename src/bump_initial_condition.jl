@@ -17,11 +17,11 @@ function ∂h(x::T) where T <: Real
     elseif 1 < x ≤ 2
         - 3 * (2 - x) ^ 2 / 4
     else
-        zeros(T)
+        zero(T)
     end
 end
 
-function s(ξ::T, μ::T) where T <: Real
+function s(ξ::Real, μ::Real)
     20μ * abs(ξ + μ / 2)
 end
 
@@ -30,7 +30,7 @@ function ∂s(ξ::T, μ::T) where T <: Real
 end
 
 function s(ξ::AbstractVector{T}, μ::T) where T <: Real
-    s_closure(ξ_scal) = s(ξ_scal, μ)
+    s_closure(ξ_scalar) = s(ξ_scalar, μ)
     s_closure.(ξ)
 end
 
@@ -39,7 +39,7 @@ function ∂s(ξ::AbstractVector{T}, μ::T) where T <: Real
     ∂s_closure.(ξ)
 end
 
-u₀(ξ::T, μ::T) where T <: Real = h(s(ξ, μ))
+u₀(ξ::Real, μ::Real) = h(s(ξ, μ))
 
 function u₀(ξ::AbstractVector{T}, μ::T) where T <: Real
     h.(s(ξ, μ))
