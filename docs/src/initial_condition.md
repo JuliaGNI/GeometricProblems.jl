@@ -42,15 +42,15 @@ Three initial conditions and their time evolutions are shown in the figure below
 
 ```@example
 # Plot our initial conditions for different values of μ here! 
-using GeometricProblems: get_initial_condition, get_domain
+using GeometricProblems: compute_initial_condition, compute_domain
 using Plots # hide
 using LaTeXStrings # hide
 
 μ_vals = [0.416, 0.508, 0.600]
 Ñ = 128
 
-Ω = get_domain(Ñ)
-ics = [get_initial_condition(μ, Ñ) for μ in μ_vals]
+Ω = compute_domain(Ñ)
+ics = [compute_initial_condition(μ, Ñ) for μ in μ_vals]
 p = plot(Ω, ics[1].q, label = L"\mu"*"="*string(μ_vals[1]), xlabel = L"\Omega", ylabel = L"q_0")
 plot!(p, Ω, ics[2].q, label = L"\mu"*"="*string(μ_vals[2]))
 plot!(p, Ω, ics[3].q, label = L"\mu"*"="*string(μ_vals[3]))

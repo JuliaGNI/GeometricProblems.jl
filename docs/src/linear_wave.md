@@ -45,7 +45,7 @@ sol = integrate(problem, ImplicitMidpoint())
 time_steps = 0 : (length(sol.t) - 1)  ÷ 5 : (length(sol.t) - 1)
 p = plot()
 for time_step in time_steps
-    plot!(p, lw.get_domain(lw.Ñ + 2), sol.q[time_step, :], label = "t = "*string(round(sol.t[time_step]; digits = 2)))
+    plot!(p, lw.compute_domain(lw.Ñ + 2), sol.q[time_step, :], label = "t = "*string(round(sol.t[time_step]; digits = 2)))
 end
 
 p
