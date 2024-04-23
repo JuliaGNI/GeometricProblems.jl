@@ -1,32 +1,58 @@
-using ForwardDiff
-
 """
 Third-degree spline that is used as a basis to construct the initial conditions. 
 """
-function h(x::T) where T 
+function h(x::T) where T <: Real
     if 0 ≤ x ≤ 1
         1 - 3 * x ^ 2 / 2 + 3 * x ^ 3 / 4 
-    elseif T(1) < x ≤ 2
+    elseif 1 < x ≤ 2
         (2 - x) ^ 3 / 4
     else
-        T(0)
+        zero(T)
     end 
 end
 
-function s(ξ::Union{T, ForwardDiff.Dual}, μ::T) where T <: Real
-    20 * μ * abs(ξ + μ / 2)
+function ∂h(x::T) where T <: Real
+    if 0 ≤ x ≤ 1
+        -3x + 9 * x ^ 2 / 4
+    elseif 1 < x ≤ 2
+        - 3 * (2 - x) ^ 2 / 4
+    else
+        zeros(T)
+    end
 end
 
-function s(ξ::AbstractVector{T}, μ::T) where T 
+function s(ξ::T, μ::T) where T <: Real
+    20μ * abs(ξ + μ / 2)
+end
+
+function ∂s(ξ::T, μ::T) where T <: Real
+    ξ + μ / 2 ≥ 0 ? 20μ : -20μ
+end
+
+function s(ξ::AbstractVector{T}, μ::T) where T <: Real
     s_closure(ξ_scal) = s(ξ_scal, μ)
     s_closure.(ξ)
 end
 
-function u₀(ξ::AbstractVector{T}, μ::T) where T 
+function ∂s(ξ::AbstractVector{T}, μ::T) where T <: Real
+    ∂s_closure(ξ_scalar) = s(ξ_scalar, μ)
+    ∂s_closure.(ξ)
+end
+
+u₀(ξ::T, μ::T) where T <: Real = h(s(ξ, μ))
+
+function u₀(ξ::AbstractVector{T}, μ::T) where T <: Real
     h.(s(ξ, μ))
 end
 
-u₀(ξ::Union{T, ForwardDiff.Dual}, μ::T) where T <: Real = h(s(ξ, μ))
+function ∂u₀(ξ::T, μ::T) where T <: Real
+    ∂h(s(ξ, μ)) * ∂s(ξ, μ)
+end
+
+function ∂u₀(ξ::AbstractVector{T}, μ::T) where T <: Real 
+    ∂u₀_closure(ξ_scalar) = ∂u₀(ξ_scalar, μ)
+    ∂u₀_closure.(ξ)
+end
 
 function get_domain(N::Integer, T=Float64)
     Δx = 1. / (N - 1)
@@ -34,7 +60,7 @@ function get_domain(N::Integer, T=Float64)
 end
 
 function get_p₀(ξ::T, μ::T) where T <: Real
-    - μ * ForwardDiff.derivative(ξ -> u₀(ξ, μ), ξ)
+    - μ * ∂u₀(ξ, μ)
 end
 
 function get_p₀(Ω::AbstractVector{T}, μ::T) where T 
