@@ -39,15 +39,15 @@ module LinearWave
         sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
     end
 
-    get_tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
+    _tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
 
 
     const tspan = (0, 1)
     const n_time_steps = 200
-    const tstep = get_tstep(tspan, n_time_steps)
+    const tstep = _tstep(tspan, n_time_steps)
 
-    const q₀ = get_initial_condition2(μ̃, Ñ + 2).q 
-    const p₀ = get_initial_condition2(μ̃, Ñ + 2).p 
+    const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
+    const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
 
     """
     Hamiltonian problem for the linear wave equation.

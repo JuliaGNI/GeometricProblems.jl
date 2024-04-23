@@ -54,32 +54,32 @@ function ∂u₀(ξ::AbstractVector{T}, μ::T) where T <: Real
     ∂u₀_closure.(ξ)
 end
 
-function get_domain(N::Integer, T=Float64)
+function compute_domain(N::Integer, T=Float64)
     Δx = 1. / (N - 1)
     T(-0.5) : Δx : T(0.5)
 end
 
-function get_p₀(ξ::T, μ::T) where T <: Real
+function compute_p₀(ξ::T, μ::T) where T <: Real
     - μ * ∂u₀(ξ, μ)
 end
 
-function get_p₀(Ω::AbstractVector{T}, μ::T) where T 
-    p₀_closure(ξ::T) = get_p₀(ξ, μ)
+function compute_p₀(Ω::AbstractVector{T}, μ::T) where T 
+    p₀_closure(ξ::T) = compute_p₀(ξ, μ)
     p₀_closure.(Ω)
 end
 
 @doc raw"""
 Produces initial conditions for the bump function. Here the ``p``-part is initialized with zeros. 
 """
-function get_initial_condition(μ::T, N::Integer) where T 
-    Ω = get_domain(N, T)
+function compute_initial_condition(μ::T, N::Integer) where T 
+    Ω = compute_domain(N, T)
     (q =u₀(Ω, μ), p = zero(Ω))
 end 
 
 @doc raw"""
 Produces initial condition for the bump function. Here the ``p``-part is initialized as ``-\mu\partial_\xi u_0(\xi, \mu)``. 
 """
-function get_initial_condition2(μ::T, N::Integer) where T 
-    Ω = get_domain(N, T)
-    (q =u₀(Ω, μ), p = get_p₀(Ω, μ))
+function compute_initial_condition2(μ::T, N::Integer) where T 
+    Ω = compute_domain(N, T)
+    (q =u₀(Ω, μ), p = compute_p₀(Ω, μ))
 end 

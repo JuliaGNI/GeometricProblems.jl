@@ -42,8 +42,8 @@ module TodaLattice
     # parameter for the initial conditions
     const μ = .3
 
-    const q̃₀ = get_initial_condition(μ, Ñ).q 
-    const p̃₀ = get_initial_condition(μ, Ñ).p 
+    const q̃₀ = compute_initial_condition(μ, Ñ).q 
+    const p̃₀ = compute_initial_condition(μ, Ñ).p 
 
     """
     Hamiltonian problem for the Toda lattice.
