@@ -1,5 +1,6 @@
 using SafeTestsets
 
+@safetestset "Bump initial condition: test derivative.                                        " begin include("bump_initial_condition_test_derivatives.jl") end
 @safetestset "ABC Flow                                                                        " begin include("abc_flow_tests.jl") end
 @safetestset "Double Pendulum                                                                 " begin include("double_pendulum_tests.jl") end
 @safetestset "Harmonic Oscillator                                                             " begin include("harmonic_oscillator_tests.jl") end
