@@ -39,7 +39,7 @@ end
 p
 ```
 
-As we can see the thin pulse separates into two smaller pulses an they start traveling in opposite directions until they meet again at time ``t\approx120``. 
+As we can see the thin pulse separates into two smaller pulses an they start traveling in opposite directions until they meet again at time ``t\approx120``. But it is important to note that the right peak at time ``120`` is below the one at time ``0``. This is not a numerical artifact but a feature of the Toda lattice! 
 
 ## Library functions
 
