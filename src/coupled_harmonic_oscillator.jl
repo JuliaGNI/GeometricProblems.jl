@@ -113,14 +113,14 @@ module CoupledHarmonicOscillator
     end
 
     # q₀_vec and p₀_vec means vectors of various q₀ and p₀.
-    function hodeensemble(parameters::NT, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT <: NamedTuple}
+    function _hodeensemble(parameters::NT, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT <: NamedTuple}
         @assert length(q₀_vec) == length(p₀_vec) "Did not supply an equal number of q₀'s and p₀'s."
 
         eq = hodeproblem().equation
         HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀_vec, p₀_vec; parameters = parameters)
     end
 
-    function hodeensemble(parameters::NT2, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT2 <: Vector{<:NamedTuple}}
+    function _hodeensemble(parameters::NT2, q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep) where {NT2 <: Vector{<:NamedTuple}}
         @assert length(q₀_vec) == length(p₀_vec) "Did not supply an equal number of q₀'s and p₀'s."
         eq_size = length(q₀_vec) == length(parameters)
         @assert eq_size || length(q₀_vec) == 1 "Supply a number of initial conditions that is euqal to the number of parameters or 1!"
@@ -134,6 +134,6 @@ module CoupledHarmonicOscillator
     end
 
     function hodeensemble(q₀_vec = [q₀], p₀_vec = [p₀]; tspan = tspan, tstep = tstep, parameters = default_parameters)
-        hodeensemble(parameters, q₀_vec, p₀_vec; tspan = tspan, tstep = tstep)
+        _hodeensemble(parameters, q₀_vec, p₀_vec; tspan = tspan, tstep = tstep)
     end
 end
