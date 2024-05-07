@@ -26,9 +26,11 @@ module CoupledHarmonicOscillator
     using EulerLagrange
     using LinearAlgebra
     using Parameters
+    using GeometricEquations: HODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
+    export hodeensemble
 
     const tspan = (0.0, 100.0)
     const tstep = 0.4
@@ -48,15 +50,15 @@ module CoupledHarmonicOscillator
         T(1) / (T(1) + exp(-x))
     end
 
-    function hamiltonian(t, q, p, params)
-        @unpack k₁, k₂, m₁, m₂, k = params
+    function hamiltonian(t, q, p, parameters)
+        @unpack k₁, k₂, m₁, m₂, k = parameters
 
         p[1] ^ 2 / (2 * m₁) + p[2] ^ 2 / (2 * m₂) + k₁ * q[1] ^ 2 / 2 + k₂ * q[2] ^ 2 / 2  + k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
 
 
-    function lagrangian(t, q, q̇, params)
-        @unpack k₁, k₂, m₁, m₂, k = params
+    function lagrangian(t, q, q̇, parameters)
+        @unpack k₁, k₂, m₁, m₂, k = parameters
 
         q̇[1] ^ 2 / (2 * m₁) + q̇[2] ^ 2 / (2 * m₂) - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
@@ -72,20 +74,20 @@ module CoupledHarmonicOscillator
         p₀ = $(p₀);
         tspan = $(tspan),
         tstep = $(tstep),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(2)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function v̄(v, t, q, p, params)
-        v[1] = p[1]
-        v[2] = p[2]
+    function v̄(v, t, q, p, parameters)
+        v[1] = p[1] / parameters.m₁
+        v[2] = p[2] / parameters.m₂
         nothing
     end
 
@@ -99,15 +101,20 @@ module CoupledHarmonicOscillator
         p₀ = $(p₀);
         tspan = $(tspan),
         tstep = $(tstep),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(2)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
+        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
+    function hodeensemble(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+        eq = hodeproblem().equation
+
+        HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
 end
