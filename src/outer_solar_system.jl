@@ -79,14 +79,22 @@ module OuterSolarSystem
     # m = [m₁,m₂]
     # )
 
-    # function v̄(v,t,q,p,params)
-    #     @unpack G, m = params
-    #     v = p ./ m
-    # end
+    function v̄(v,t,q,p,params)
+        @unpack G, m = params
+        n = length(m)
+        tem_mass=[]
+        for i in 1:n
+            for d in 1:3
+                push!(tem_mass,m[i])
+            end
+        end
+
+        # tem_mass = [m[1],m[1],m[1],m[2],m[2],m[2],m[3],m[3],m[3],
+        #             m[4],m[4],m[4],m[5],m[5],m[5],m[6],m[6],m[6]]
+        v = p ./ tem_mass
+    end
 
     function hamiltonian(t, q, p, params;d=3,n=6)
-    # function hamiltonian(t, q, p, params;d=3,n=2)
-
         @unpack G, m = params
 
         q = reshape(q,d,n)
@@ -99,7 +107,7 @@ module OuterSolarSystem
             end
         end
 
-        1/2 * sum([p[:,i]'*p[:,i]/m[i] for i in 1:n]) - T 
+        1/2 * sum([p[:,i] ⋅ p[:,i] /m[i] for i in 1:n]) - T 
     end
 
 
@@ -118,26 +126,36 @@ module OuterSolarSystem
             end
         end
 
-        1/2 * sum([m[i]*q̇[:,i]'*q̇[:,i] for i in 1:n]) + T 
+        1/2 * sum([m[i]* q̇[:,i]⋅q̇[:,i] for i in 1:n]) + T 
     end
 
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
-        t, q, p = hamiltonian_variables(18)
-        # t, q, p = hamiltonian_variables(6)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters,n=6,d=3)
+        @assert 1<n<7 
+        t, q, p = hamiltonian_variables(n*d)
+
+        @unpack G, m = params
+        m=m[1:n]
+        params=(G=G,m=m)
 
         sparams = symbolize(params)
-        ham_sys = EulerLagrange.HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        ham_sys = EulerLagrange.HamiltonianSystem(hamiltonian(t, q, p, sparams,d=d,n=n), t, q, p, sparams)
+        HODEProblem(ham_sys, tspan, tstep, q₀[1:d*n], p₀[1:d*n]; parameters = params)
     end
 
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters)
-        t, x, v = lagrangian_variables(18)
-        # t, x, v = lagrangian_variables(6)
+        
+    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters,n=6,d=3)
+        @assert 1<n<7 
+        t, x, v = lagrangian_variables(n*d)
+
+        @unpack G, m = params
+        m=m[1:n]
+        params=(G=G,m=m)
 
         sparams = symbolize(params)
-        lag = lagrangian(t, x, v, sparams)
+        lag = lagrangian(t, x, v, sparams,d=d,n=n)
         lag_sys = EulerLagrange.LagrangianSystem(lag, t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = v̄, parameters = params)
+        LODEProblem(lag_sys, tspan, tstep, q₀[1:d*n], p₀[1:d*n]; v̄ = v̄, parameters = params)
     end
+
 end
 
