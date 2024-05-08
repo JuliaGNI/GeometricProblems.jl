@@ -6,9 +6,9 @@ using GeometricSolutions
 
 
 @testset "$(rpad("Lotka-Volterra 4D",80))" begin
-    ode  = lotka_volterra_4d_ode()
-    iode = lotka_volterra_4d_iode()
-    idae = lotka_volterra_4d_idae()
+    ode  = odeproblem()
+    iode = iodeproblem()
+    idae = idaeproblem()
     ref  = integrate(ode, Gauss(8))
 
     sol = integrate(ode, Gauss(2))

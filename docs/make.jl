@@ -24,6 +24,7 @@ makedocs(;
              "Harmonic Oscillator"         => "harmonic_oscillator.md",
              "Hénon-Heiles System"         => "henon_heiles.md",
              "Kepler Problem"              => "kepler_problem.md",
+             "Linear Wave Equation"        => "linear_wave.md",
              "Lorenz Attractor"            => "lorenz_attractor.md",
              "Lotka-Volterra 2d"           => "lotka_volterra_2d.md",
              "Lotka-Volterra 3d"           => "lotka_volterra_3d.md",
@@ -34,7 +35,9 @@ makedocs(;
              "Point Vortices"              => "point_vortices.md",
              "Inner Solar System"          => "inner_solar_system.md",
              "Outer Solar System"          => "outer_solar_system.md",
+             "Rigid body"                  => "rigid_body.md",
              "Toda Lattice"                => "toda_lattice.md",
+             "Initial conditions"          => ["bump" => "initial_condition.md",]
             ]
 )
 

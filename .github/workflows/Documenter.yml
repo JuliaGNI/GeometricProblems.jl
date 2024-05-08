@@ -15,12 +15,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: julia-actions/setup-julia@latest
-      - name: Configure doc environment
+      - name: Install imagemagick, poppler-utils and texlive
         run: |
-          cd docs
-          make install_gml
-          make precompile
-          cd ..
           sudo apt-get install imagemagick
           sudo apt-get install poppler-utils
           sudo apt-get install texlive-xetex
@@ -35,7 +31,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: 100
-      - name: Doctests
+      - name: Run doctests
+        shell: julia --project=docs --color=yes {0}
         run: |
-          cd docs
-          make test_docs
+          using Documenter: DocMeta, doctest
+          using GeometricProblems
+          DocMeta.setdocmeta!(GeometricProblems, :DocTestSetup, :(using GeometricProblems); recursive=true)
+          doctest(GeometricProblems)

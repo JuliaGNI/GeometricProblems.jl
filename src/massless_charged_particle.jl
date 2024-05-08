@@ -42,8 +42,7 @@ module MasslessChargedParticle
     import ..Diagnostics: compute_invariant_error, compute_momentum_error
 
     export ϑ, A, B, ϕ, E, hamiltonian
-    export massless_charged_particle_ode, massless_charged_particle_iode,
-           massless_charged_particle_idae, massless_charged_particle_idae_spark
+    export odeproblem, iodeproblem, idaeproblem, idaeproblem_spark
     export compute_energy_error, compute_momentum_error
 
 
@@ -185,12 +184,12 @@ module MasslessChargedParticle
 
 
     "Creates an ODE object for the massless charged particle in 2D."
-    function massless_charged_particle_ode(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+    function odeproblem(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
         ODEProblem(massless_charged_particle_v, tspan, tstep, q₀; invariants=(h=hamiltonian,), parameters=params)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
-    function massless_charged_particle_iode(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+    function iodeproblem(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
         IODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g,
                 tspan, tstep, q₀, ϑ(0., q₀, params);
@@ -199,7 +198,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function massless_charged_particle_idae(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+    function idaeproblem(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,
@@ -209,7 +208,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function massless_charged_particle_idae_spark(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
+    function idaeproblem_spark(q₀=q₀; tspan=tspan, tstep=Δt, params=default_parameters)
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f̄,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,

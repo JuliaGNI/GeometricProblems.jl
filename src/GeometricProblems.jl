@@ -3,6 +3,8 @@ GeometricProblems.jl is a collection of ODEs and DAEs with interesting geometric
 """
 module GeometricProblems
 
+    include("bump_initial_condition.jl")
+
     include("diagnostics.jl")
     include("plot_recipes.jl")
 
@@ -12,6 +14,7 @@ module GeometricProblems
     include("harmonic_oscillator.jl")
     include("kubo_oscillator.jl")
     include("lennard_jones_oscillator.jl")
+    include("linear_wave.jl")
     include("lorenz_attractor.jl")
     include("lotka_volterra_2d.jl")
     include("lotka_volterra_2d_gauge.jl")
@@ -31,6 +34,6 @@ module GeometricProblems
     include("pendulum.jl")
     include("point_vortices.jl")
     include("point_vortices_linear.jl")
+    include("rigid_body.jl")
     include("toda_lattice.jl")
-
 end

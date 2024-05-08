@@ -14,9 +14,9 @@ module TodaLattice
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
 
-    include("initial_conditions.jl")
+    include("bump_initial_condition.jl")
 
-    const α̃ = .8
+    const α̃ = .64
     const Ñ = 200
 
     const default_parameters = (
@@ -27,13 +27,13 @@ module TodaLattice
     function hamiltonian(t, q, p, params)
         @unpack N, α = params
         
-        sum(p[n] ^ 2 / 2 + α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
+        sum(p[n] ^ 2 / 2 + α * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
     end
 
     function lagrangian(t, q, q̇, params)
         @unpack N, α = params 
 
-        sum(q̇[n] ^ 2 / 2 - α ^ 2 * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
+        sum(q̇[n] ^ 2 / 2 - α * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
     end
 
     const tstep = .1 
@@ -42,27 +42,27 @@ module TodaLattice
     # parameter for the initial conditions
     const μ = .3
 
-    const q̃₀ = get_initial_condition(μ, Ñ).q 
-    const p̃₀ = get_initial_condition(μ, Ñ).p 
+    const q̃₀ = compute_initial_condition(μ, Ñ).q 
+    const p̃₀ = compute_initial_condition(μ, Ñ).p 
 
     """
     Hamiltonian problem for the Toda lattice.
     """
-    function hodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function hodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = params)
+        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
     """
     Lagrangian problem for the Toda lattice.
     """
-    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, params = default_parameters)
+    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ)
-        sparams = symbolize(params)
+        sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = params)
+        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
 end

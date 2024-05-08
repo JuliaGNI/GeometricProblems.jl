@@ -10,7 +10,7 @@ using GeometricIntegrators
 using GeometricProblems.MasslessChargedParticle
 using GeometricProblems.MasslessChargedParticlePlots
 
-ode = massless_charged_particle_ode()
+ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
 plot_massless_charged_particle(sol, ode)

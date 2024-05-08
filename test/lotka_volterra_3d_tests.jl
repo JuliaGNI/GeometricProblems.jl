@@ -5,7 +5,7 @@ using GeometricSolutions
 
 
 @testset "$(rpad("Lotka-Volterra 3D",80))" begin
-    ode = lotka_volterra_3d_ode()
+    ode = odeproblem()
     ref = integrate(ode, Gauss(8))
 
     sol = integrate(ode, Gauss(1))
