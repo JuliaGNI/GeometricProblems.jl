@@ -18,6 +18,9 @@ module OuterSolarSystem
     using LinearAlgebra
     using Parameters
 
+    export hamiltonian, lagrangian
+    export hodeproblem, lodeproblem
+
     const tspan = (0.0, 3)
     const tstep = 0.5
 
