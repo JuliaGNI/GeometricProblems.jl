@@ -1,10 +1,11 @@
 using GeometricIntegrators: ImplicitMidpoint, integrate
 import GeometricProblems.CoupledHarmonicOscillator as cho
+import GeometricProblems.TodaLattice as tl
 using Test
 
 function test_multiple_initial_conditions(cho::Module)
-    q₀_vec = [cho.q₀ .+ α for α in 0.:.1:1.]
-    p₀_vec = [cho.p₀ .+ α for α in 0.:.1:1.]
+    q₀_vec = [cho.q₀ .+ α for α in 0. : .4 : .8]
+    p₀_vec = [cho.p₀ .+ α for α in 0. : .4 : .8]
 
     # ensemble problem
     epr = cho.hodeensemble(q₀_vec, p₀_vec)
@@ -38,5 +39,7 @@ function test_multiple_parameters(cho::Module)
 end
 
 test_multiple_initial_conditions(cho)
+test_multiple_initial_conditions(tl)
 
 test_multiple_parameters(cho)
+test_multiple_parameters(tl)
