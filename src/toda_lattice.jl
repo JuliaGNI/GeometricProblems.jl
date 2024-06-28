@@ -3,16 +3,18 @@ The Toda lattice is a model for a one-dimensional crystal named after its discov
 
 It is a prime example of a non-trivial completely integrable system.
 
-The only system parameters are the *number of points* ``N`` in the periodic lattice and `\alpha` which adjusts the strength of the interactions in the lattice.
+The only system parameters are the *number of points* ``N`` in the periodic lattice and ``\alpha`` which adjusts the strength of the interactions in the lattice.
 """
 module TodaLattice 
 
     using EulerLagrange
     using LinearAlgebra 
     using Parameters 
+    using GeometricEquations: HODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
+    export hodeensemble
 
     include("bump_initial_condition.jl")
 
@@ -42,13 +44,13 @@ module TodaLattice
     # parameter for the initial conditions
     const μ = .3
 
-    const q̃₀ = compute_initial_condition(μ, Ñ).q 
-    const p̃₀ = compute_initial_condition(μ, Ñ).p 
+    const q₀ = compute_initial_condition(μ, Ñ).q 
+    const p₀ = compute_initial_condition(μ, Ñ).p 
 
     """
     Hamiltonian problem for the Toda lattice.
     """
-    function hodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ)
         sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
@@ -58,11 +60,17 @@ module TodaLattice
     """
     Lagrangian problem for the Toda lattice.
     """
-    function lodeproblem(q₀ = q̃₀, p₀ = p̃₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
         lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function hodeensemble(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+        eq = hodeproblem().equation
+
+        HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
 end
