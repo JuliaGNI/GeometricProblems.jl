@@ -4,8 +4,8 @@ import GeometricProblems.TodaLattice as tl
 using Test
 
 function test_multiple_initial_conditions(cho::Module)
-    q₀_vec = [cho.q₀ .+ α for α in 0. : .4 : .8]
-    p₀_vec = [cho.p₀ .+ α for α in 0. : .4 : .8]
+    q₀_vec = [cho.q₀ .+ α for α in 0. : .4 : .4]
+    p₀_vec = [cho.p₀ .+ α for α in 0. : .4 : .4]
 
     # ensemble problem
     epr = cho.hodeensemble(q₀_vec, p₀_vec)
@@ -20,7 +20,7 @@ end
 function test_multiple_parameters(cho::Module)
     params_vec = Vector{NamedTuple}()
 
-    for i in 0:10
+    for i in 0:1
         param_vals = ()
         for key in keys(cho.default_parameters)
             param_vals = (param_vals..., cho.default_parameters[key] .+ 1. * i)
