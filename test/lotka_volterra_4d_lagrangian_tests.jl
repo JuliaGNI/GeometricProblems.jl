@@ -53,6 +53,7 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     lag_equs = functions(lag_iode)
     lag_invs = invariants(lag_iode)
+    lag_igs  = initialguess(lag_iode)
     ref_equs = functions(ref_iode)
     ref_invs = invariants(ref_iode)
 
@@ -82,14 +83,14 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     v1 = zero(lag_iode.ics.q)
     v2 = zero(ref_iode.ics.q)
-    lag_equs[:v̄](v1, tbegin(lag_iode), lag_iode.ics.q, zero(f1), parameters(lag_iode))
-    ref_equs[:v̄](v2, tbegin(ref_iode), ref_iode.ics.q, zero(f2), parameters(ref_iode))
+    lag_igs[:v](v1, tbegin(lag_iode), lag_iode.ics.q, zero(f1), parameters(lag_iode))
+    lag_igs[:v](v2, tbegin(ref_iode), ref_iode.ics.q, zero(f2), parameters(ref_iode))
     @test v1 ≈ v2  atol=eps()
 
     f1 = zero(lag_iode.ics.q)
     f2 = zero(ref_iode.ics.q)
-    lag_equs[:f̄](f1, tbegin(lag_iode), lag_iode.ics.q, v1, parameters(lag_iode))
-    ref_equs[:f̄](f2, tbegin(ref_iode), ref_iode.ics.q, v2, parameters(ref_iode))
+    lag_igs[:f](f1, tbegin(lag_iode), lag_iode.ics.q, v1, parameters(lag_iode))
+    lag_igs[:f](f2, tbegin(ref_iode), ref_iode.ics.q, v2, parameters(ref_iode))
     @test f1 ≈ f2  atol=eps()
 
     h1 = lag_invs[:h](tbegin(lag_iode), lag_iode.ics.q, zero(lag_iode.ics.q), parameters(lag_iode))
@@ -111,6 +112,7 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     lag_equs = functions(lag_idae)
     lag_invs = invariants(lag_idae)
+    lag_igs  = initialguess(lag_idae)
     ref_equs = functions(ref_idae)
     ref_invs = invariants(ref_idae)
 
@@ -120,14 +122,14 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     v1 = zero(lag_idae.ics.q)
     v2 = zero(ref_idae.ics.q)
-    lag_equs[:v̄](v1, tbegin(lag_idae), lag_idae.ics.q, zero(f1), parameters(lag_idae))
-    ref_equs[:v̄](v2, tbegin(ref_idae), ref_idae.ics.q, zero(f2), parameters(ref_idae))
+    lag_igs[:v](v1, tbegin(lag_idae), lag_idae.ics.q, zero(f1), parameters(lag_idae))
+    lag_igs[:v](v2, tbegin(ref_idae), ref_idae.ics.q, zero(f2), parameters(ref_idae))
     @test v1 ≈ v2  atol=eps()
 
     f1 = zero(lag_idae.ics.q)
     f2 = zero(ref_idae.ics.q)
-    lag_equs[:f̄](f1, tbegin(lag_idae), lag_idae.ics.q, v1, parameters(lag_idae))
-    ref_equs[:f̄](f2, tbegin(ref_idae), ref_idae.ics.q, v2, parameters(ref_idae))
+    lag_igs[:f](f1, tbegin(lag_idae), lag_idae.ics.q, v1, parameters(lag_idae))
+    lag_igs[:f](f2, tbegin(ref_idae), ref_idae.ics.q, v2, parameters(ref_idae))
     @test f1 ≈ f2  atol=eps()
 
     h1 = lag_invs[:h](tbegin(lag_idae), lag_idae.ics.q, zero(lag_idae.ics.q), parameters(lag_idae))
