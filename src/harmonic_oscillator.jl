@@ -217,7 +217,7 @@ module HarmonicOscillator
     function sodeproblem(x₀ = x₀; parameters = default_parameters, tspan = tspan, tstep = Δt)
         SODEProblem((oscillator_sode_v_1, oscillator_sode_v_2),
                     (oscillator_sode_q_1, oscillator_sode_q_2),
-                    tspan, tstep, x₀; parameters = parameters)
+                    tspan, tstep, x₀; v̄ = oscillator_ode_v, parameters = parameters)
     end
 
 
