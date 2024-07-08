@@ -21,8 +21,10 @@ function test_multiple_parameters(cho::Module)
     for i in 0:1
         param_vals = ()
 
-        # take the first parameter (compute the ensemble by changing this parameter)
-        key = keys(cho.default_parameters)[1]
+        param_vals = ()
+        for key in keys(cho.default_parameters)
+            param_vals = (param_vals..., cho.default_parameters[key] .+ 1. * i)
+        end
     
         params_vec = push!(params_vec, NamedTuple{keys(cho.default_parameters)}(param_vals))
     end
