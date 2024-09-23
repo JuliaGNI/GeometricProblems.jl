@@ -46,7 +46,7 @@ module TodaLattice
 
     const q₀ = compute_initial_condition(μ, Ñ).q 
     const p₀ = compute_initial_condition(μ, Ñ).p 
-    const Ω = compute_domain(N̄, Float64)
+    const Ω = compute_domain(Ñ, Float64)
 
     """
     Hamiltonian problem for the Toda lattice.
