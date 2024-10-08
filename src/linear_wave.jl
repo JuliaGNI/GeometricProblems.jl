@@ -43,7 +43,7 @@ module LinearWave
 
 
     const tspan = (0, 1)
-    const n_time_steps = 200
+    const n_time_steps = 500
     const tstep = _tstep(tspan, n_time_steps)
 
     const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
