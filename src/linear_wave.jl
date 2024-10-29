@@ -10,55 +10,52 @@ module LinearWave
     using EulerLagrange
     using LinearAlgebra 
     using Parameters 
+    using GeometricIntegrators
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
 
     include("bump_initial_condition.jl")
 
-    const μ̃ = 1.
+    const μ̃ = 0.5
     const Ñ = 256
-    const l̄ = 2 * π
-    const Δx = l̄ / (Ñ-1)
-    const default_parameters = (μ = μ̃, N = Ñ, l = l̄)
+
+    const default_parameters = (μ = μ̃, N = Ñ)
 
     function hamiltonian(t, q, p, parameters)
-        @unpack N, μ ,l = parameters
+        @unpack N, μ = parameters
         
-        Δx = l / (N - 1)
-        (sum(p[n] ^ 2 / 2 for n in 1 : N) + sum(μ^2 * (q[i] - q[i-1])^2 / 2 for i in 2 : (N)) +  μ^2 * q[1]^2 / 2) * Δx
+        Δx = one(μ) / (Ñ + 1)
+        Δx² = Δx ^ 2
+        μ² = μ ^ 2
+        # sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
+        sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2)
+
     end
 
     function lagrangian(t, q, q̇, parameters)
         @unpack N, μ = parameters 
 
-        Δx = l / (N - 1)
-        (sum(q̇[n] ^ 2 / 2 for n in 1 : N) - sum(μ^2 * (q[i] - q[i-1])^2 / 2 for i in 2 : (N)) +  μ^2 * q[1]^2 / 2) * Δx
+        Δx = one(μ) / (Ñ + 1)
+        Δx² = Δx ^ 2 
+        μ² = μ ^ 2
+        # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
+        sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2)
+
     end
 
     _tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
 
 
     const tspan = (0, 1)
-    const n_time_steps = 500
+    const n_time_steps = 200
     const tstep = _tstep(tspan, n_time_steps)
 
     const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
     const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
 
-    function initial_position(N,l)
-        x_grid = range(0, l, length=N)
-        return 2 * exp.(-( x_grid .- l/2).^2)
-    end
-
-    function initial_velocity(N,l)
-        x_grid = range(0, l, length=N)
-        2*exp.(-(x_grid .- l/2).^2) .* 2 .* (-(x_grid .- l/2))
-    end
-
-    # const q₀ = initial_position(Ñ,l̄)
-    # const p₀ = initial_velocity(Ñ,l̄)
-
+    # const q₀ = initial_position(Ñ + 2)
+    # const p₀ = initial_velocity(Ñ + 2)
 
     """
     Hamiltonian problem for the linear wave equation.
