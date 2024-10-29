@@ -14,7 +14,7 @@ module LinearWave
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
 
-    # include("bump_initial_condition.jl")
+    include("bump_initial_condition.jl")
 
     const μ̃ = 1.
     const Ñ = 256
@@ -31,7 +31,7 @@ module LinearWave
 
     function lagrangian(t, q, q̇, parameters)
         @unpack N, μ = parameters 
-        
+
         Δx = l / (N - 1)
         (sum(q̇[n] ^ 2 / 2 for n in 1 : N) - sum(μ^2 * (q[i] - q[i-1])^2 / 2 for i in 2 : (N)) +  μ^2 * q[1]^2 / 2) * Δx
     end
@@ -43,21 +43,21 @@ module LinearWave
     const n_time_steps = 500
     const tstep = _tstep(tspan, n_time_steps)
 
-    # const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
-    # const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
+    const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
+    const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
 
     function initial_position(N,l)
         x_grid = range(0, l, length=N)
-        return 2*exp(-(x_grid-l/2).^2)
+        return 2 * exp.(-( x_grid .- l/2).^2)
     end
 
     function initial_velocity(N,l)
         x_grid = range(0, l, length=N)
-        2*exp(-(x_grid-l/2).^2) .* 2 * (-(x_grid-l/2))
+        2*exp.(-(x_grid .- l/2).^2) .* 2 .* (-(x_grid .- l/2))
     end
 
-    const q₀ = initial_position(Ñ,l̄)
-    const p₀ = initial_velocity(Ñ,l̄)
+    # const q₀ = initial_position(Ñ,l̄)
+    # const p₀ = initial_velocity(Ñ,l̄)
 
 
     """
