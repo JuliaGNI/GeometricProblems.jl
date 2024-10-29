@@ -10,7 +10,6 @@ module LinearWave
     using EulerLagrange
     using LinearAlgebra 
     using Parameters 
-    using GeometricIntegrators
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem  
