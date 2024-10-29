@@ -8,6 +8,7 @@ Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 EulerLagrange = "e4b6a126-98cc-486b-a68d-c3e5d57f8cc9"
 GeometricBase = "9a0b12b7-583b-4f04-aa1f-d8551b6addc9"
 GeometricEquations = "c85262ba-a08a-430a-b926-d29770767bf2"
+GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
 GeometricSolutions = "7843afe4-64f4-4df4-9231-049495c56661"
 LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -35,12 +36,12 @@ RuntimeGeneratedFunctions = "0.5"
 julia = "1.10"
 
 [extras]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
 GeometricSolutions = "7843afe4-64f4-4df4-9231-049495c56661"
 PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 
 [targets]
 test = ["GeometricIntegrators", "GeometricSolutions", "SafeTestsets", "Test", "ForwardDiff"]
