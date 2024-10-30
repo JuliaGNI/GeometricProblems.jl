@@ -50,8 +50,11 @@ module LinearWave
     const n_time_steps = 200
     const tstep = _tstep(tspan, n_time_steps)
 
-    const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
-    const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
+    # const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
+    # const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
+
+    const q₀ = compute_initial_condition3(μ̃, Ñ + 2).q 
+    const p₀ = compute_initial_condition3(μ̃, Ñ + 2).p 
 
     # const q₀ = initial_position(Ñ + 2)
     # const p₀ = initial_velocity(Ñ + 2)
