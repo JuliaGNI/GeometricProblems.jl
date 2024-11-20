@@ -43,7 +43,7 @@ record(fig, "toda_animation.mp4", time_steps;
     empty!(ax)
     lines!(ax, sol.q[time_step, :], label = "t = $(sol.t[time_step])", color = mblue)
     ylims!(ax, 0., 1.)
-    axislegend(ax_val; position = (1.01, 1.5), labelsize = 8)
+    axislegend(ax; position = (1.01, 1.5), labelsize = 8)
 end
 Docs.HTML("""<video mute autoplay loop controls src="toda_animation.mp4" />""")
 ```
