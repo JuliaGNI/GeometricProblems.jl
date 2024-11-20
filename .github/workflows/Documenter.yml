@@ -36,7 +36,7 @@ jobs:
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: 100
       - name: Run doctests
-        shell: DISPLAY=:0 xvfb-run -s '-screen 0 1024x768x24' julia --project=docs --color=yes {0}
+        shell: julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
           using GeometricProblems
