@@ -20,6 +20,8 @@ jobs:
           sudo apt-get install imagemagick
           sudo apt-get install poppler-utils
           sudo apt-get install texlive-xetex
+      - name: Install binary dependencies
+        run: sudo apt-get update && sudo apt-get install -y xorg-dev mesa-utils xvfb libgl1 freeglut3-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
       - name: Generate Images
         run: |
           make all   -C src/images
@@ -27,12 +29,14 @@ jobs:
         working-directory: docs
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-docdeploy@v1
+        with:
+          prefix: xvfb-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
           GKSwstype: 100
       - name: Run doctests
-        shell: julia --project=docs --color=yes {0}
+        shell: DISPLAY=:0 xvfb-run -s '-screen 0 1024x768x24' julia --project=docs --color=yes {0}
         run: |
           using Documenter: DocMeta, doctest
           using GeometricProblems
