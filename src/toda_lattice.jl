@@ -18,7 +18,7 @@ module TodaLattice
 
     include("bump_initial_condition.jl")
 
-    const α̃ = .64
+    const α̃  = .64
     const Ñ = 200
 
     const default_parameters = (
@@ -46,6 +46,7 @@ module TodaLattice
 
     const q₀ = compute_initial_condition(μ, Ñ).q 
     const p₀ = compute_initial_condition(μ, Ñ).p 
+    const Ω = compute_domain(Ñ, Float64)
 
     """
     Hamiltonian problem for the Toda lattice.
