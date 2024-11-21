@@ -109,9 +109,12 @@ module HarmonicOscillator
 
         qsamples = vec(collect.(collect(Base.Iterators.product(qs...))))
         psamples = vec(collect.(collect(Base.Iterators.product(ps...))))
-        samples = vec(collect(Base.Iterators.product(qsamples, psamples)))
+        zsamples = Base.Iterators.product(qsamples, psamples)
 
-        (q = qsamples, p = psamples)
+        return (
+            q = vec([zs[1] for zs in zsamples]),
+            p = vec([zs[2] for zs in zsamples]),
+        )
     end
 
 
