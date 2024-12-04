@@ -27,7 +27,7 @@ module LinearWave
         Δx = one(μ) / (Ñ + 1)
         Δx² = Δx ^ 2
         μ² = μ ^ 2
-        sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
+        sum(p[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 + μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
     end
 
     function lagrangian(t, q, q̇, parameters)
@@ -36,7 +36,7 @@ module LinearWave
         Δx = one(μ) / (Ñ + 1)
         Δx² = Δx ^ 2 
         μ² = μ ^ 2
-        sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
+        sum(q̇[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 - μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
     end
 
     _tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
@@ -55,7 +55,7 @@ module LinearWave
     function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ + 2)
         sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
+        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams; dosimplify = false)
         HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
@@ -65,7 +65,7 @@ module LinearWave
     function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ + 2)
         sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; dosimplify = false)
         lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
