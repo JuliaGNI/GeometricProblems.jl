@@ -17,7 +17,7 @@ module LinearWave
     include("bump_initial_condition.jl")
 
     const μ̃ = 0.5
-    const Ñ = 256
+    const Ñ = 249
 
     const default_parameters = (μ = μ̃, N = Ñ)
 
