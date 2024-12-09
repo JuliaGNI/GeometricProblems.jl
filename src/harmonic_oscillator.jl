@@ -109,9 +109,12 @@ module HarmonicOscillator
 
         qsamples = vec(collect.(collect(Base.Iterators.product(qs...))))
         psamples = vec(collect.(collect(Base.Iterators.product(ps...))))
-        samples = vec(collect(Base.Iterators.product(qsamples, psamples)))
+        zsamples = Base.Iterators.product(qsamples, psamples)
 
-        (q = qsamples, p = psamples)
+        return (
+            q = vec([zs[1] for zs in zsamples]),
+            p = vec([zs[2] for zs in zsamples]),
+        )
     end
 
 
@@ -217,7 +220,7 @@ module HarmonicOscillator
     function sodeproblem(x₀ = x₀; parameters = default_parameters, tspan = tspan, tstep = Δt)
         SODEProblem((oscillator_sode_v_1, oscillator_sode_v_2),
                     (oscillator_sode_q_1, oscillator_sode_q_2),
-                    tspan, tstep, x₀; parameters = parameters)
+                    tspan, tstep, x₀; v̄ = oscillator_ode_v, parameters = parameters)
     end
 
 

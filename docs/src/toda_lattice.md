@@ -25,18 +25,27 @@ Hence we have:
 We can model the evolution of a thin pulse in this system:
 
 ```@example
-using GeometricProblems, GeometricIntegrators, Plots # hide
+using GeometricProblems, GeometricIntegrators, GLMakie # hide
 
-problem = GeometricProblems.TodaLattice.hodeproblem() 
+problem = GeometricProblems.TodaLattice.hodeproblem(; tspan = (0.0, 2000.)) 
 sol = integrate(problem, ImplicitMidpoint())
 
-time_steps = (0, 200, 400, 600, 800, 1000, 1200)
-p = plot()
-for time_step in time_steps
-    plot!(p, sol.q[time_step, :], label = "t = $(sol.t[time_step])")
-end
+time_steps = 0:10:length(sol.q)
 
-p
+fig = Figure()
+ax = Axis(fig[1, 1])
+mblue = RGBf(31 / 256, 119 / 256, 180 / 256)
+lines!(ax, sol.q[0, :], label = "t = $(sol.t[0])", color = mblue)
+framerate = 30
+mblue = 
+record(fig, "toda_animation.mp4", time_steps;
+    framerate = framerate) do time_step
+    empty!(ax)
+    lines!(ax, sol.q[time_step, :], label = "t = $(sol.t[time_step])", color = mblue)
+    ylims!(ax, 0., 1.)
+    axislegend(ax; position = (1.01, 1.5), labelsize = 8)
+end
+Docs.HTML("""<video mute autoplay loop controls src="toda_animation.mp4" />""")
 ```
 
 As we can see the thin pulse separates into two smaller pulses an they start traveling in opposite directions until they meet again at time ``t\approx120``. But it is important to note that the right peak at time ``120`` is below the one at time ``0``. This is not a numerical artifact but a feature of the Toda lattice! 

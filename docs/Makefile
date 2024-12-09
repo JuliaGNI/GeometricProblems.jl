@@ -15,7 +15,7 @@ doctests:
 		doctest(GeometricProblems)'					
 
 documenter:
-	julia --color=yes --project=. make.jl
+	julia --color=yes --project=. --threads=8 make.jl
 
 images:
 	$(MAKE) all   -C src/images
