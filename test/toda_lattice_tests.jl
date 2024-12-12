@@ -1,16 +1,25 @@
 using GeometricIntegrators: ImplicitMidpoint, integrate
-import GeometricProblems.TodaLattice as tl
+using GeometricProblems.TodaLattice
 using Test
 
+# Initial conditions
+
 N = 20
-q₀ = tl.compute_initial_q(tl.μ, N)
+μ = TodaLattice.μ
+q₀ = TodaLattice.compute_initial_q(μ, N)
 p₀ = zero(q₀)
+params = TodaLattice.default_parameters
+
+# Ensemble initial conditions and parameters
 
 q₀_vec = [q₀ .+ α for α in 0. : .4 : .4]
 p₀_vec = [p₀ .+ α for α in 0. : .4 : .4]
 
-# ensemble problem
-epr = tl.hodeensemble(N, q₀_vec, p₀_vec)
+param_vec = [NamedTuple{keys(params)}(values(params) .+ i) for i in 0:1]
+
+
+# Ensemble problem with different initial conditions
+epr = hodeensemble(N, q₀_vec, p₀_vec)
 
 # ensemble solution
 esol = integrate(epr, ImplicitMidpoint())
@@ -18,12 +27,17 @@ esol = integrate(epr, ImplicitMidpoint())
 @test esol.s[2].q.d.parent ≉ esol.s[1].q.d.parent
 
 
-function _params(i)
-    NamedTuple{keys(tl.default_parameters)}(values(tl.default_parameters) .+ i)
-end
+# Ensemble problem with different parameters
+epr = hodeensemble(N; parameters = param_vec)
 
-# ensemble problem
-epr = tl.hodeensemble(N; parameters = [_params(i) for i in 0:1])
+# ensemble solution
+esol = integrate(epr, ImplicitMidpoint())
+
+@test esol.s[2].q.d.parent ≉ esol.s[1].q.d.parent
+
+
+# Ensemble problem with different initial conditions and parameters
+epr = hodeensemble(q₀_vec, p₀_vec; parameters = param_vec)
 
 # ensemble solution
 esol = integrate(epr, ImplicitMidpoint())
