@@ -10,12 +10,10 @@ module TodaLattice
     using EulerLagrange
     using LinearAlgebra 
     using Parameters 
-    using GeometricEquations: HODEEnsemble
+    using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem
 
-    export hamiltonian, lagrangian
-    export hodeproblem, lodeproblem  
-    export hodeensemble
-    export hamiltonian_system, lagrangian_system
+    export hodeproblem, hodeensemble, hamiltonian, hamiltonian_system
+    export lodeproblem, lodeensemble, lagrangian, lagrangian_system
 
     include("bump_initial_condition.jl")
 
@@ -30,7 +28,7 @@ module TodaLattice
     hamiltonian(t, q, p, params, N) = p ⋅ p / 2 + potential(q, params, N)
     lagrangian(t, q, q̇, params, N) = q̇ ⋅ q̇ / 2 - potential(q, params, N)
 
-    const tstep = .1 
+    const tstep = .1
     const tspan = (0.0, 120.0)
 
     # parameter for the default initial conditions
@@ -89,6 +87,16 @@ module TodaLattice
     function lodeproblem(q₀, p₀; kwargs...)
         @assert length(q₀) == length(p₀)
         lodeproblem(length(q₀), q₀, p₀; kwargs...)
+    end
+
+    function lodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+        eqs = functions(lagrangian_system(N, _parameters(parameters)))
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function lodeensemble(q₀, p₀; kwargs...)
+        @assert length(q₀) == length(p₀)
+        lodeensemble(length(q₀), q₀, p₀; kwargs...)
     end
 
 end
