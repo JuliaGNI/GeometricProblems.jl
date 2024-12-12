@@ -53,7 +53,10 @@ module TodaLattice
     end
 
     _parameters(p::NamedTuple) = p
-    _parameters(p::AbstractVector) = p[begin]
+    _parameters(p::AbstractVector{<:NamedTuple}) = p[begin]
+
+    _length(q::AbstractArray{<:Number}) = length(q)
+    _length(q::AbstractVector{<:AbstractArray}) = length(q[begin])
 
     """
     Hamiltonian problem for the Toda lattice.
@@ -74,7 +77,7 @@ module TodaLattice
 
     function hodeensemble(q₀, p₀; kwargs...)
         @assert length(q₀) == length(p₀)
-        hodeensemble(length(q₀), q₀, p₀; kwargs...)
+        hodeensemble(_length(q₀), q₀, p₀; kwargs...)
     end
 
     """
@@ -96,7 +99,7 @@ module TodaLattice
 
     function lodeensemble(q₀, p₀; kwargs...)
         @assert length(q₀) == length(p₀)
-        lodeensemble(length(q₀), q₀, p₀; kwargs...)
+        lodeensemble(_length(q₀), q₀, p₀; kwargs...)
     end
 
 end

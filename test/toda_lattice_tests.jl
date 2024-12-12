@@ -68,11 +68,9 @@ lode_ens = lodeensemble(q₀_vec, p₀_vec; parameters = param_vec)
 hode_sol = integrate(hode_ens, Gauss(1))
 lode_sol = integrate(lode_ens, Gauss(1))
 
-# TODO: reactivate
-# @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 4E-14
-# @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 4E-14
+@test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
+@test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
 
-# TODO: reactivate
-# for (hsol,lsol) in zip(hode_sol,lode_sol)
-#     @test relative_maximum_error(hsol.q, lsol.q) < 2E-14
-# end
+for (hsol,lsol) in zip(hode_sol,lode_sol)
+    @test relative_maximum_error(hsol.q, lsol.q) < 2E-14
+end
