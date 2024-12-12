@@ -68,6 +68,16 @@ function compute_p₀(Ω::AbstractVector{T}, μ::T) where T
     p₀_closure.(Ω)
 end
 
+function compute_initial_q(μ::T, N::Integer) where T 
+    Ω = compute_domain(N, T)
+    u₀(Ω, μ)
+end 
+
+function compute_initial_p(μ::T, N::Integer) where T 
+    Ω = compute_domain(N, T)
+    compute_p₀(Ω, μ)
+end 
+
 @doc raw"""
 Produces initial conditions for the bump function. Here the ``p``-part is initialized with zeros. 
 """
