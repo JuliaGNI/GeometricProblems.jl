@@ -185,16 +185,16 @@ module MasslessChargedParticle
 
     "Creates an ODE object for the massless charged particle in 2D."
     function odeproblem(q₀=q₀; tspan=tspan, tstep=Δt, parameters = default_parameters)
-        ODEProblem(massless_charged_particle_v, tspan, tstep, q₀; invariants=(h=hamiltonian,), parameters=params)
+        ODEProblem(massless_charged_particle_v, tspan, tstep, q₀; invariants=(h=hamiltonian,), parameters=parameters)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
     function iodeproblem(q₀=q₀; tspan=tspan, tstep=Δt, parameters = default_parameters)
         IODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g,
-                tspan, tstep, q₀, ϑ(0., q₀, params);
+                tspan, tstep, q₀, ϑ(0., q₀, parameters);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-                invariants=(h=hamiltonian,), parameters=params)
+                invariants=(h=hamiltonian,), parameters=parameters)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
@@ -202,9 +202,9 @@ module MasslessChargedParticle
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,
-                tspan, tstep, q₀, ϑ(0., q₀, params), zero(q₀);
+                tspan, tstep, q₀, ϑ(0., q₀, parameters), zero(q₀);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-                invariants=(h=hamiltonian,), parameters=params)
+                invariants=(h=hamiltonian,), parameters=parameters)
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
@@ -212,9 +212,9 @@ module MasslessChargedParticle
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f̄,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,
-                tspan, tstep, q₀, ϑ(0., q₀, params), zero(q₀);
+                tspan, tstep, q₀, ϑ(0., q₀, parameters), zero(q₀);
                 v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-                invariants=(h=hamiltonian,), parameters=params)
+                invariants=(h=hamiltonian,), parameters=parameters)
     end
 
 
