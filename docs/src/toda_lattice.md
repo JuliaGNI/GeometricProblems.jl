@@ -24,7 +24,7 @@ Hence we have:
 
 We can model the evolution of a thin pulse in this system:
 
-```@example
+```julia
 using GeometricProblems, GeometricIntegrators, GLMakie # hide
 
 problem = GeometricProblems.TodaLattice.hodeproblem(; tspan = (0.0, 2000.)) 
