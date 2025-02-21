@@ -35,5 +35,6 @@ module GeometricProblems
     include("point_vortices.jl")
     include("point_vortices_linear.jl")
     include("rigid_body.jl")
+    include("three_body_problem.jl")
     include("toda_lattice.jl")
 end

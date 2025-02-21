@@ -36,6 +36,7 @@ makedocs(;
              "Inner Solar System"          => "inner_solar_system.md",
              "Outer Solar System"          => "outer_solar_system.md",
              "Rigid body"                  => "rigid_body.md",
+             "Three Body Problem"          => "three_body_problem.md",
              "Toda Lattice"                => "toda_lattice.md",
              "Initial conditions"          => ["bump" => "initial_condition.md",]
             ]
