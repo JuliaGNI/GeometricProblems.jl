@@ -37,4 +37,6 @@ module GeometricProblems
     include("rigid_body.jl")
     include("toda_lattice.jl")
     include("outer_solar_system.jl")
+    include("perturbed_pendulum.jl")
+    include("henon_heiles_potential.jl")
 end
