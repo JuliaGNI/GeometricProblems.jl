@@ -24,10 +24,11 @@ module HarmonicOscillator
     const nt = 10
     const tspan = (t₀, Δt*nt)
 
+    const m = 1.0
     const k = 0.5
-    const ω = √k
+    const ω = √(k/m)
 
-    const default_parameters = (k=k, ω=ω)
+    const default_parameters = (m=m, k=k, ω=ω)
     
     ϑ₁(t,q) = q[2]
     ϑ₂(t,q) = zero(eltype(q))
@@ -48,18 +49,18 @@ module HarmonicOscillator
     end
 
     function hamiltonian(t, q, params)
-        @unpack k = params
-        q[2]^2 / 2 + k * q[1]^2 / 2
+        @unpack m, k = params
+        m * q[2]^2 / 2 + k * q[1]^2 / 2
     end
 
     function hamiltonian(t, q, p, params)
-        @unpack k = params
-        p[1]^2 / 2 + k * q[1]^2 / 2
+        @unpack m, k = params
+        p[1]^2 / (2m) + k * q[1]^2 / 2
     end
 
     function lagrangian(t, q, v, params)
-        @unpack k = params
-        v[1]^2 / 2 - k * q[1]^2 / 2
+        @unpack m, k = params
+        m * v[1]^2 / 2 - k * q[1]^2 / 2
     end
 
     function degenerate_lagrangian(t, q, v, params)
