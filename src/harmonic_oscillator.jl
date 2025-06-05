@@ -66,6 +66,9 @@ module HarmonicOscillator
         ϑ₁(t,q) * v[1] + ϑ₂(t,q) * v[2] - hamiltonian(t, q, params)
     end
 
+    function discrete_lagrangian(h,q̄,q,params)
+        h*lagrangian(0, (q̄ + q)/2, (q - q̄)/h, params)
+    end
 
     A(q, p, params) = q * sqrt(1 + p^2 / q^2 / params.k)
     ϕ(q, p, params) = atan(p / q / params.ω)
@@ -222,7 +225,6 @@ module HarmonicOscillator
                     (oscillator_sode_q_1, oscillator_sode_q_2),
                     tspan, tstep, x₀; v̄ = oscillator_ode_v, parameters = parameters)
     end
-
 
     function oscillator_iode_ϑ(p, t, q, v, params)
         p[1] = v[1]

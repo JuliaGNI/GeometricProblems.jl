@@ -88,3 +88,8 @@ function compute_initial_condition3(μ::T, N::Integer) where T
     Ω = compute_domain(N, T)
     (q =cos.(2pi*Ω), p = 2pi * sin.(2pi*Ω))
 end 
+
+function compute_initial_condition4(μ::T, N::Integer) where T 
+    Ω = compute_domain(N, T)
+    (q = sin.(2pi*Ω .+ pi/6), p = zero(Ω))
+end 

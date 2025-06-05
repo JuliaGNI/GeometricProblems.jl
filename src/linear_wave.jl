@@ -28,8 +28,15 @@ module LinearWave
         Δx² = Δx ^ 2
         μ² = μ ^ 2
         # sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
-        sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2)
+        # sum(p[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) + sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2) # zero boundary conditions
 
+        #periodic boundary conditions
+        kinetic_energy = sum(p[n]^2 / 2 for n in 1:(Ñ + 2))
+        potential_energy = sum(μ² / (2Δx²) * (q[i] - q[i-1])^2 for i in 2:(Ñ+2))
+    
+        # Enforce periodic boundary condition
+        potential_energy += μ² / (2Δx²) * (q[1] - q[Ñ+2])^2
+        kinetic_energy + potential_energy
     end
 
     function lagrangian(t, q, q̇, parameters)
@@ -39,8 +46,15 @@ module LinearWave
         Δx² = Δx ^ 2 
         μ² = μ ^ 2
         # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
-        sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2)
+        # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2) # zero boundary conditions
 
+        kinetic_energy = sum(q̇[n]^2 / 2 for n in 1:(Ñ + 2))
+        potential_energy = sum(μ² / (2Δx²) * (q[i] - q[i-1])^2 for i in 2:(Ñ+2))
+    
+        # Enforce periodic boundary condition
+        potential_energy += μ² / (2Δx²) * (q[1] - q[Ñ+2])^2
+    
+        kinetic_energy - potential_energy
     end
 
     _tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
@@ -50,11 +64,17 @@ module LinearWave
     const n_time_steps = 200
     const tstep = _tstep(tspan, n_time_steps)
 
+    # const q₀ = compute_initial_condition(μ̃, Ñ + 2).q 
+    # const p₀ = compute_initial_condition(μ̃, Ñ + 2).p 
+
     # const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
     # const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
 
-    const q₀ = compute_initial_condition3(μ̃, Ñ + 2).q 
-    const p₀ = compute_initial_condition3(μ̃, Ñ + 2).p 
+    # const q₀ = compute_initial_condition3(μ̃, Ñ + 2).q 
+    # const p₀ = compute_initial_condition3(μ̃, Ñ + 2).p 
+
+    const q₀ = compute_initial_condition4(μ̃, Ñ + 2).q 
+    const p₀ = compute_initial_condition4(μ̃, Ñ + 2).p 
 
     # const q₀ = initial_position(Ñ + 2)
     # const p₀ = initial_velocity(Ñ + 2)
