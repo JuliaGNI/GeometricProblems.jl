@@ -64,6 +64,14 @@ module DoublePendulum
 
     const tstep = 0.01
     const tspan = (0.0, 10.0)
+    
+    const alternative_parameters = (
+        l₁ = 2.0,
+        l₂ = 3.0,
+        m₁ = 1.0,
+        m₂ = 2.0,
+        g = 9.80665,
+    )
 
     const default_parameters = (
         l₁ = 1.0,
