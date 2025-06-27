@@ -1,7 +1,7 @@
 name = "GeometricProblems"
 uuid = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
-authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
 version = "0.6.8"
+authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
 
 [deps]
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
@@ -20,9 +20,9 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 [compat]
 Documenter = "0.25, 0.26, 0.27, 1"
 EulerLagrange = "0.4"
-GeometricBase = "0.7, 0.8, 0.9, 0.10"
-GeometricEquations = "0.18"
-GeometricSolutions = "0.4"
+GeometricBase = "0.11"
+GeometricEquations = "0.19"
+GeometricSolutions = "0.5"
 LaTeXStrings = "1"
 Measures = "0.3"
 Parameters = "0.12"
