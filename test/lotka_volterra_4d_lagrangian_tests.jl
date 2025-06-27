@@ -20,9 +20,9 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     ref = integrate(ref_ode, Gauss(8))
 
-    @test tbegin(lag_ode)  == tbegin(ref_ode)
-    @test tbegin(lag_lode) == tbegin(ref_lode)
-    @test tbegin(lag_ldae) == tbegin(ref_ldae)
+    @test initialtime(lag_ode)  == initialtime(ref_ode)
+    @test initialtime(lag_lode) == initialtime(ref_lode)
+    @test initialtime(lag_ldae) == initialtime(ref_ldae)
 
     @test lag_ode.ics  == ref_ode.ics
     @test lag_lode.ics == ref_lode.ics
@@ -36,12 +36,12 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     v1 = zero(lag_ode.ics.q)
     v2 = zero(ref_ode.ics.q)
-    lag_equs.v(v1, tbegin(lag_ode), lag_ode.ics.q, parameters(lag_ode))
-    ref_equs.v(v2, tbegin(ref_ode), ref_ode.ics.q, parameters(ref_ode))
+    lag_equs.v(v1, initialtime(lag_ode), lag_ode.ics.q, parameters(lag_ode))
+    ref_equs.v(v2, initialtime(ref_ode), ref_ode.ics.q, parameters(ref_ode))
     @test v1 ≈ v2  atol=eps()
 
-    h1 = lag_invs.h(tbegin(lag_ode), lag_ode.ics.q, parameters(lag_ode))
-    h2 = ref_invs.h(tbegin(ref_ode), ref_ode.ics.q, parameters(ref_ode))
+    h1 = lag_invs.h(initialtime(lag_ode), lag_ode.ics.q, parameters(lag_ode))
+    h2 = ref_invs.h(initialtime(ref_ode), ref_ode.ics.q, parameters(ref_ode))
     @test h1 ≈ h2  atol=eps()
 
     lag_sol = integrate(lag_ode, Gauss(2))
@@ -63,36 +63,36 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     ϑ1 = zero(lag_lode.ics.q)
     ϑ2 = zero(ref_lode.ics.q)
-    lag_equs.ϑ(ϑ1, tbegin(lag_lode), lag_lode.ics.q, v1, parameters(lag_lode))
-    ref_equs.ϑ(ϑ2, tbegin(ref_lode), ref_lode.ics.q, v2, parameters(ref_lode))
+    lag_equs.ϑ(ϑ1, initialtime(lag_lode), lag_lode.ics.q, v1, parameters(lag_lode))
+    ref_equs.ϑ(ϑ2, initialtime(ref_lode), ref_lode.ics.q, v2, parameters(ref_lode))
     @test ϑ1 ≈ ϑ2  atol=eps()
 
     f1 = zero(lag_lode.ics.q)
     f2 = zero(ref_lode.ics.q)
-    lag_equs.f(f1, tbegin(lag_lode), lag_lode.ics.q, v1, parameters(lag_lode))
-    ref_equs.f(f2, tbegin(ref_lode), ref_lode.ics.q, v2, parameters(ref_lode))
+    lag_equs.f(f1, initialtime(lag_lode), lag_lode.ics.q, v1, parameters(lag_lode))
+    ref_equs.f(f2, initialtime(ref_lode), ref_lode.ics.q, v2, parameters(ref_lode))
     @test f1 ≈ f2  atol=eps()
 
     g1 = zero(lag_lode.ics.q)
     g2 = zero(ref_lode.ics.q)
-    lag_equs.g(g1, tbegin(lag_lode), lag_lode.ics.q, v1, zero(v1), parameters(lag_lode))
-    ref_equs.g(g2, tbegin(ref_lode), ref_lode.ics.q, v2, zero(v2), parameters(ref_lode))
+    lag_equs.g(g1, initialtime(lag_lode), lag_lode.ics.q, v1, zero(v1), parameters(lag_lode))
+    ref_equs.g(g2, initialtime(ref_lode), ref_lode.ics.q, v2, zero(v2), parameters(ref_lode))
     @test g1 ≈ g2  atol=eps()
 
     v1 = zero(lag_lode.ics.q)
     v2 = zero(ref_lode.ics.q)
-    lag_igs.v(v1, tbegin(lag_lode), lag_lode.ics.q, zero(f1), parameters(lag_lode))
-    lag_igs.v(v2, tbegin(ref_lode), ref_lode.ics.q, zero(f2), parameters(ref_lode))
+    lag_igs.v(v1, initialtime(lag_lode), lag_lode.ics.q, zero(f1), parameters(lag_lode))
+    lag_igs.v(v2, initialtime(ref_lode), ref_lode.ics.q, zero(f2), parameters(ref_lode))
     @test v1 ≈ v2  atol=eps()
 
     f1 = zero(lag_lode.ics.q)
     f2 = zero(ref_lode.ics.q)
-    lag_igs.f(f1, tbegin(lag_lode), lag_lode.ics.q, v1, parameters(lag_lode))
-    lag_igs.f(f2, tbegin(ref_lode), ref_lode.ics.q, v2, parameters(ref_lode))
+    lag_igs.f(f1, initialtime(lag_lode), lag_lode.ics.q, v1, parameters(lag_lode))
+    lag_igs.f(f2, initialtime(ref_lode), ref_lode.ics.q, v2, parameters(ref_lode))
     @test f1 ≈ f2  atol=eps()
 
-    h1 = lag_invs.h(tbegin(lag_lode), lag_lode.ics.q, lag_lode.ics.v, parameters(lag_lode))
-    h2 = ref_invs.h(tbegin(ref_lode), ref_lode.ics.q, ref_lode.ics.v, parameters(ref_lode))
+    h1 = lag_invs.h(initialtime(lag_lode), lag_lode.ics.q, lag_lode.ics.v, parameters(lag_lode))
+    h2 = ref_invs.h(initialtime(ref_lode), ref_lode.ics.q, ref_lode.ics.v, parameters(ref_lode))
     @test h1 ≈ h2  atol=eps()
 
     lag_sol = integrate(lag_lode, Gauss(2))
@@ -127,48 +127,48 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     ϑ1 = zero(lag_ldae.ics.q)
     ϑ2 = zero(ref_ldae.ics.q)
-    lag_equs.ϑ(ϑ1, tbegin(lag_ldae), lag_ldae.ics.q, v1, parameters(lag_ldae))
-    ref_equs.ϑ(ϑ2, tbegin(ref_ldae), ref_ldae.ics.q, v2, parameters(ref_ldae))
+    lag_equs.ϑ(ϑ1, initialtime(lag_ldae), lag_ldae.ics.q, v1, parameters(lag_ldae))
+    ref_equs.ϑ(ϑ2, initialtime(ref_ldae), ref_ldae.ics.q, v2, parameters(ref_ldae))
     @test ϑ1 ≈ ϑ2  atol=eps()
 
     f1 = zero(lag_ldae.ics.q)
     f2 = zero(ref_ldae.ics.q)
-    lag_equs.f(f1, tbegin(lag_ldae), lag_ldae.ics.q, v1, parameters(lag_ldae))
-    ref_equs.f(f2, tbegin(ref_ldae), ref_ldae.ics.q, v2, parameters(ref_ldae))
+    lag_equs.f(f1, initialtime(lag_ldae), lag_ldae.ics.q, v1, parameters(lag_ldae))
+    ref_equs.f(f2, initialtime(ref_ldae), ref_ldae.ics.q, v2, parameters(ref_ldae))
     @test f1 ≈ f2  atol=eps()
 
     g1 = zero(lag_ldae.ics.q)
     g2 = zero(ref_ldae.ics.q)
-    lag_equs.g(g1, tbegin(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
-    ref_equs.g(g2, tbegin(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
+    lag_equs.g(g1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
+    ref_equs.g(g2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
     @test g1 ≈ g2  atol=eps()
 
     u1 = zero(lag_ldae.ics.q)
     u2 = zero(ref_ldae.ics.q)
-    lag_equs.u(u1, tbegin(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
-    ref_equs.u(u2, tbegin(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
+    lag_equs.u(u1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
+    ref_equs.u(u2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
     @test u1 ≈ u2  atol=eps()
 
     ϕ1 = zero(lag_ldae.ics.q)
     ϕ2 = zero(ref_ldae.ics.q)
-    lag_equs.ϕ(ϕ1, tbegin(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, parameters(lag_ldae))
-    ref_equs.ϕ(ϕ2, tbegin(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, parameters(ref_ldae))
+    lag_equs.ϕ(ϕ1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, parameters(lag_ldae))
+    ref_equs.ϕ(ϕ2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, parameters(ref_ldae))
     @test ϕ1 ≈ ϕ2  atol=eps()
 
     v1 = zero(lag_ldae.ics.q)
     v2 = zero(ref_ldae.ics.q)
-    lag_igs.v(v1, tbegin(lag_ldae), lag_ldae.ics.q, zero(f1), parameters(lag_ldae))
-    lag_igs.v(v2, tbegin(ref_ldae), ref_ldae.ics.q, zero(f2), parameters(ref_ldae))
+    lag_igs.v(v1, initialtime(lag_ldae), lag_ldae.ics.q, zero(f1), parameters(lag_ldae))
+    lag_igs.v(v2, initialtime(ref_ldae), ref_ldae.ics.q, zero(f2), parameters(ref_ldae))
     @test v1 ≈ v2  atol=eps()
 
     f1 = zero(lag_ldae.ics.q)
     f2 = zero(ref_ldae.ics.q)
-    lag_igs.f(f1, tbegin(lag_ldae), lag_ldae.ics.q, v1, parameters(lag_ldae))
-    lag_igs.f(f2, tbegin(ref_ldae), ref_ldae.ics.q, v2, parameters(ref_ldae))
+    lag_igs.f(f1, initialtime(lag_ldae), lag_ldae.ics.q, v1, parameters(lag_ldae))
+    lag_igs.f(f2, initialtime(ref_ldae), ref_ldae.ics.q, v2, parameters(ref_ldae))
     @test f1 ≈ f2  atol=eps()
 
-    h1 = lag_invs.h(tbegin(lag_ldae), lag_ldae.ics.q, zero(lag_ldae.ics.q), parameters(lag_ldae))
-    h2 = ref_invs.h(tbegin(ref_ldae), ref_ldae.ics.q, zero(ref_ldae.ics.q), parameters(ref_ldae))
+    h1 = lag_invs.h(initialtime(lag_ldae), lag_ldae.ics.q, zero(lag_ldae.ics.q), parameters(lag_ldae))
+    h2 = ref_invs.h(initialtime(ref_ldae), ref_ldae.ics.q, zero(ref_ldae.ics.q), parameters(ref_ldae))
     @test h1 ≈ h2  atol=eps()
 
     lag_sol = integrate(lag_ldae, TableauVSPARKGLRKpMidpoint(2))
