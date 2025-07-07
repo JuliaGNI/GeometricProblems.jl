@@ -27,6 +27,8 @@ Modules = [GeometricProblems.ABCFlow]
 Order = [:constant, :type, :macro, :function]
 ```
 
+## References
+
 ```@bibliography
 Pages = []
 

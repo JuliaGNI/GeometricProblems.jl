@@ -85,7 +85,7 @@ module LinearWave
     function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ + 2)
         sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams,simplify = false)
+        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams; dosimplify = false)
         HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
@@ -95,8 +95,8 @@ module LinearWave
     function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ + 2)
         sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams,simplify = false)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; simplify = false)
+        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
 end

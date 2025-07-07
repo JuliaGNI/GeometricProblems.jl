@@ -11,6 +11,7 @@ module HarmonicOscillator
     export odeproblem, podeproblem, hodeproblem, iodeproblem, lodeproblem, sodeproblem,
            daeproblem, pdaeproblem, hdaeproblem, idaeproblem, ldaeproblem,
            degenerate_iodeproblem, degenerate_lodeproblem
+    export deleproblem_midpoint, deleproblem_trapezoidal
 
     export odeensemble, podeensemble, hodeensemble
 
@@ -24,11 +25,12 @@ module HarmonicOscillator
     const nt = 10
     const tspan = (t₀, Δt*nt)
 
+    const m = 1.0
     const k = 0.5
-    const ω = √k
+    const ω = √(k/m)
 
-    const default_parameters = (k=k, ω=ω)
-    
+    const default_parameters = (m=m, k=k, ω=ω)
+
     ϑ₁(t,q) = q[2]
     ϑ₂(t,q) = zero(eltype(q))
 
@@ -47,19 +49,27 @@ module HarmonicOscillator
         nothing
     end
 
-    function hamiltonian(t, q, params)
-        @unpack k = params
-        q[2]^2 / 2 + k * q[1]^2 / 2
+    function hamiltonian(t::Number, q::AbstractArray, params)
+        @unpack m, k = params
+        m * q[2]^2 / 2 + k * q[1]^2 / 2
     end
 
-    function hamiltonian(t, q, p, params)
-        @unpack k = params
-        p[1]^2 / 2 + k * q[1]^2 / 2
+    function hamiltonian(t::Number, q::Number, p::Number, params)
+        @unpack m, k = params
+        p^2 / (2m) + k * q^2 / 2
     end
 
-    function lagrangian(t, q, v, params)
-        @unpack k = params
-        v[1]^2 / 2 - k * q[1]^2 / 2
+    function hamiltonian(t::Number, q::AbstractArray, p::AbstractArray, params)
+        hamiltonian(t, q[1], p[1], params)
+    end
+
+    function lagrangian(t::Number, q::Number, v::Number, params)
+        @unpack m, k = params
+        m * v^2 / 2 - k * q^2 / 2
+    end
+
+    function lagrangian(t::Number, q::AbstractArray, v::AbstractArray, params)
+        lagrangian(t, q[1], v[1], params)
     end
 
     function degenerate_lagrangian(t, q, v, params)
@@ -78,12 +88,12 @@ module HarmonicOscillator
 
     exact_solution_q(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params) = exact_solution_q(t, q₀[1], p₀[1], t₀, params)
     exact_solution_p(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params) = exact_solution_p(t, q₀[1], p₀[1], t₀, params)
-    
+
     exact_solution_q(t, x₀::AbstractVector, t₀, params) = exact_solution_q(t, x₀[1], x₀[2], t₀, params)
     exact_solution_p(t, x₀::AbstractVector, t₀, params) = exact_solution_p(t, x₀[1], x₀[2], t₀, params)
     exact_solution(t, x₀::AbstractVector, t₀, params) = [exact_solution_q(t, x₀, t₀, params), exact_solution_p(t, x₀, t₀, params)]
 
-    
+
     const q₀ = [0.5]
     const p₀ = [0.0]
     const x₀ = vcat(q₀, p₀)
@@ -96,7 +106,7 @@ module HarmonicOscillator
     const reference_solution_p = exact_solution_p(Δt * nt, q₀[1], p₀[1], t₀, default_parameters)
 
     const reference_solution = [reference_solution_q, reference_solution_p]
-    
+
 
     function _ode_samples(qmin, qmax, nsamples)
         qs = [range(qmin[i], qmax[i]; length = nsamples[i]) for i in eachindex(qmin, qmax, nsamples)]
@@ -172,12 +182,12 @@ module HarmonicOscillator
     end
 
     function podeensemble(qmin = [xmin[1]], qmax = [xmax[1]], pmin = [xmin[2]], pmax = [xmax[2]], qsamples = [nsamples[1]], psamples = [nsamples[2]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
-        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)     
+        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)
         PODEEnsemble(oscillator_pode_v, oscillator_pode_f, tspan, tstep, samples...; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
     function hodeensemble(qmin = [xmin[1]], qmax = [xmax[1]], pmin = [xmin[2]], pmax = [xmax[2]], qsamples = [nsamples[1]], psamples = [nsamples[2]]; parameters = default_parameters, tspan = tspan, tstep = Δt)
-        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)     
+        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)
         HODEEnsemble(oscillator_pode_v, oscillator_pode_f, hamiltonian, tspan, tstep, samples...; parameters = parameters)
     end
 
@@ -379,7 +389,7 @@ module HarmonicOscillator
 
     function hdaeproblem(q₀ = q₀, p₀ = p₀, λ₀ = zero(q₀); parameters = default_parameters, tspan = tspan, tstep = Δt)
         @assert length(q₀) == length(p₀) == 1
-        HDAEProblem(oscillator_pdae_v, oscillator_pdae_f, 
+        HDAEProblem(oscillator_pdae_v, oscillator_pdae_f,
                     oscillator_pdae_u, oscillator_pdae_g, oscillator_pdae_ϕ,
                     oscillator_pdae_ū, oscillator_pdae_ḡ, oscillator_pdae_ψ,
                     hamiltonian, tspan, tstep, q₀, p₀, λ₀; parameters = parameters)
@@ -405,6 +415,78 @@ module HarmonicOscillator
         LDAEProblem(oscillator_iode_ϑ, oscillator_iode_f,
                     oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ, ω!, lagrangian,
                     tspan, tstep, q₀, p₀, λ₀; v̄ = oscillator_iode_v, invariants = (h=hamiltonian,), parameters = parameters)
+    end
+
+
+    function oscillator_dele_midpoint_Ld(t₀, t₁, q₀, q₁, params)
+        h = (t₁ - t₀)
+        t = (t₀ + t₁) / 2
+        q = (q₀[1] + q₁[1]) / 2
+        v = (q₁[1] - q₀[1]) / h
+        return h * lagrangian(t, q, v, params)
+    end
+
+    function oscillator_dele_midpoint_D1Ld(d, t₀, t₁, q₀, q₁, params)
+        @unpack m, k = params
+        h = (t₁ - t₀)
+        q = (q₀[1] + q₁[1]) / 2
+        v = (q₁[1] - q₀[1]) / h
+        d[1] = - m * v - h * k * q / 2
+        return nothing
+    end
+
+    function oscillator_dele_midpoint_D2Ld(d, t₀, t₁, q₀, q₁, params)
+        @unpack m, k = params
+        h = (t₁ - t₀)
+        q = (q₀[1] + q₁[1]) / 2
+        v = (q₁[1] - q₀[1]) / h
+        d[1] = + m * v - h * k * q / 2
+        return nothing
+    end
+
+    function deleproblem_midpoint(q₀ = q₀; parameters = default_parameters, tspan = tspan, tstep = Δt)
+        @assert length(q₀) == 1
+
+        q₁ = [exact_solution_q(tspan[begin] - Δt, q₀, zero(q₀), tspan[begin], parameters)]
+
+        DELEProblem(oscillator_dele_midpoint_Ld,
+            oscillator_dele_midpoint_D1Ld,
+            oscillator_dele_midpoint_D2Ld,
+            tspan, tstep, q₁, q₀; invariants = (h=hamiltonian,), parameters = parameters)
+    end
+
+
+    function oscillator_dele_trapezoidal_Ld(t₀, t₁, q₀, q₁, params)
+        h = (t₁ - t₀)
+        v = (q₁[1] - q₀[1]) / h
+        return h * ( lagrangian(t₀, q₀[1], v, params) + lagrangian(t₁, q₁[1], v, params) ) / 2
+    end
+
+    function oscillator_dele_trapezoidal_D1Ld(d, t₀, t₁, q₀, q₁, params)
+        @unpack m, k = params
+        h = (t₁ - t₀)
+        v = (q₁[1] - q₀[1]) / h
+        d[1] = - m * v - h * k * q₀[1] / 2
+        return nothing
+    end
+
+    function oscillator_dele_trapezoidal_D2Ld(d, t₀, t₁, q₀, q₁, params)
+        @unpack m, k = params
+        h = (t₁ - t₀)
+        v = (q₁[1] - q₀[1]) / h
+        d[1] = + m * v - h * k * q₁[1] / 2
+        return nothing
+    end
+
+    function deleproblem_trapezoidal(q₀ = q₀; parameters = default_parameters, tspan = tspan, tstep = Δt)
+        @assert length(q₀) == 1
+
+        q₁ = [exact_solution_q(tspan[begin] - Δt, q₀, zero(q₀), tspan[begin], parameters)]
+
+        DELEProblem(oscillator_dele_trapezoidal_Ld,
+            oscillator_dele_trapezoidal_D1Ld,
+            oscillator_dele_trapezoidal_D2Ld,
+            tspan, tstep, q₁, q₀; invariants = (h=hamiltonian,), parameters = parameters)
     end
 
 

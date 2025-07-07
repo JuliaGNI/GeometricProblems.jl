@@ -35,6 +35,7 @@ module GeometricProblems
     include("point_vortices.jl")
     include("point_vortices_linear.jl")
     include("rigid_body.jl")
+    include("three_body_problem.jl")
     include("toda_lattice.jl")
     include("outer_solar_system.jl")
     include("perturbed_pendulum.jl")

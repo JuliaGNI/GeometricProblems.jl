@@ -12,22 +12,16 @@ H(q) = a_1 q^1 + a_2 q^2 + a_3 q^3 + a_4 q^4 + b_1 \log q^1 + b_2 \log q^2 + b_3
 """
 module LotkaVolterra4dLagrangian
 
-    using GeometricEquations
+    using EulerLagrange
     using GeometricSolutions
+    using LinearAlgebra
     using Parameters
-    using RuntimeGeneratedFunctions
-    using Symbolics
-    using Symbolics: Sym
-
-    RuntimeGeneratedFunctions.init(@__MODULE__)
 
     # export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
     export lotka_volterra_4d_ode, 
-           lotka_volterra_4d_iode, lotka_volterra_4d_idae,
-           lotka_volterra_4d_lode
-        #    lotka_volterra_4d_ldae,
-        #    lotka_volterra_4d_dg
+           lotka_volterra_4d_lode,
+           lotka_volterra_4d_ldae
 
 
     # include("lotka_volterra_4d_plots.jl")
@@ -88,167 +82,46 @@ module LotkaVolterra4dLagrangian
     const B_default = zero(B)
 
 
-    _parameter(name::Symbol) = Num(Sym{Real}(name))
-
     function get_parameters(p)
-        return (a = [p.a₁, p.a₂, p.a₃, p.a₄],
-                b = [p.b₁, p.b₂, p.b₃, p.b₄])
+        (a = [p.a₁, p.a₂, p.a₃, p.a₄],
+         b = [p.b₁, p.b₂, p.b₃, p.b₄])
     end
 
-    H(x, a, b) = a' * x + b' * log.(x)
-    K(x, v, A, B) = log.(x)' * A * (v ./ x) + x' * B * v
+    H(x, a, b) = a ⋅ x + b ⋅ log.(x)
+    K(x, v, A, B) = log.(x) ⋅ ( A * (v ./ x) ) + x ⋅ (B * v)
     L(x, v, A, B, a, b) = K(x, v, A, B) - H(x, a, b)
 
 
-    function substitute_ẋ_with_v!(eqs, ẋ, v)
-        for i in eachindex(eqs)
-            eqs[i] = substitute(eqs[i], [ẋᵢ=>vᵢ for (ẋᵢ,vᵢ) in zip(ẋ,v)])
-        end
-        return eqs
+    function lagrangian_system(A, B, parameters)
+        t, x, v = lagrangian_variables(4)
+        sparams = symbolize(parameters)
+
+        Ks = K(x, v, A, B)
+        Hs = H(x, get_parameters(sparams)...)
+
+        DegenerateLagrangianSystem(Ks, Hs, t, x, v, sparams)
     end
 
-    function substitute_variables!(eqs, x, v, X, V)
-        for i in eachindex(eqs)
-            eqs[i] = substitute(eqs[i], [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
-        end
-        return eqs
-    end
-
-
-    function get_functions(A,B,a,b)
-        t = _parameter(:t)
-        params = _parameter(:params)
-
-        @variables x₁(t), x₂(t), x₃(t), x₄(t)
-        @variables v₁(t), v₂(t), v₃(t), v₄(t)
-
-        @variables X[1:4]
-        @variables V[1:4]
-        @variables P[1:4]
-        @variables F[1:4]
-
-        x = [x₁, x₂, x₃, x₄]
-        v = [v₁, v₂, v₃, v₄]
-
-        Dt = Differential(t)
-        Dx = Differential.(x)
-        Dv = Differential.(v)
-        # DX = Differential.(X)
-        # DV = Differential.(V)
-
-        let L = simplify(L(x, v, A, B, a, b)), K = simplify(K(x, v, A, B)), H = simplify(H(x, a, b))
-        # let L = (L(x, v, A, B, a, b)), K = (K(x, v, A, B)), H = (H(x, a, b))
-            EL = [expand_derivatives(Dx[i](L) - Dt(Dv[i](L))) for i in eachindex(Dx,Dv)]
-            ∇H = [expand_derivatives(dx(H)) for dx in Dx]
-            f  = [expand_derivatives(dx(L)) for dx in Dx]
-            f̄  = [expand_derivatives(dx(K)) for dx in Dx]
-            g  = [expand_derivatives(Dt(dv(L))) for dv in Dv]
-            ϑ  = [expand_derivatives(dv(L)) for dv in Dv]
-            ω  = [expand_derivatives(simplify(Dx[i](ϑ[j]) - Dx[j](ϑ[i]))) for i in eachindex(Dx,ϑ), j in eachindex(Dx,ϑ)]
-            Σ  = simplify.(inv(ω))
-            ẋ  = simplify.(Σ * ∇H)
-
-            for eq in (EL, ∇H, f, f̄, g, ϑ, ω, Σ, ẋ)
-                substitute_ẋ_with_v!(eq, Dt.(x), v)
-                substitute_variables!(eq, x, v, X, V)
-            end
-
-            H = substitute(H, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
-            L = substitute(L, [z=>Z for (z,Z) in zip([x..., v...], [X..., V...])])
-            ϕ = [P[i] - ϑ[i] for i in eachindex(P,ϑ)]
-            ψ = [F[i] - g[i] for i in eachindex(F,g)]
-
-            code_EL = build_function(EL, t, X, V, params)[2]
-            code_f  = build_function(f,  t, X, V, params)[2]
-            code_f̄  = build_function(f̄,  t, X, V, params)[2]
-            code_g  = build_function(g,  t, X, V, params)[2]
-            code_∇H = build_function(∇H, t, X, params)[2]
-            code_p  = build_function(ϑ,  t, X, V, params)[1]
-            code_ϑ  = build_function(ϑ,  t, X, V, params)[2]
-            code_ω  = build_function(ω,  t, X, V, params)[2]
-            code_P  = build_function(Σ,  t, X, params)[2]
-            code_ẋ  = build_function(ẋ,  t, X, params)[2]
-            code_ϕ  = build_function(ϕ,  t, X, V, P, params)[2]
-            code_ψ  = build_function(ψ,  t, X, V, P, F, params)[2]
-            code_H  = build_function(H,  t, X, params)
-            code_L  = build_function(L,  t, X, V, params)
-            
-            return (
-                EL = @RuntimeGeneratedFunction(code_EL),
-                ∇H = @RuntimeGeneratedFunction(code_∇H),
-                f  = @RuntimeGeneratedFunction(code_f),
-                f̄  = @RuntimeGeneratedFunction(code_f̄),
-                g  = @RuntimeGeneratedFunction(code_g),
-                p  = @RuntimeGeneratedFunction(code_p),
-                ϑ  = @RuntimeGeneratedFunction(code_ϑ),
-                ω  = @RuntimeGeneratedFunction(code_ω),
-                P  = @RuntimeGeneratedFunction(code_P),
-                ẋ  = @RuntimeGeneratedFunction(code_ẋ),
-                ϕ  = @RuntimeGeneratedFunction(code_ϕ),
-                ψ  = @RuntimeGeneratedFunction(code_ψ),
-                H  = @RuntimeGeneratedFunction(code_H),
-                L  = @RuntimeGeneratedFunction(code_L),
-            )
-        end
+    function initial_momentum(lag_sys, t₀, q₀, params)
+        functions(lag_sys).p(t₀, q₀, zero(q₀), params)
     end
 
 
-    function odeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
-        a, b = get_parameters(parameters)
-        funcs = get_functions(A,B,a,b)
-        GeometricEquations.ODEProblem(funcs[:ẋ], tspan, tstep, q₀;
-                    parameters=parameters, invariants = (h = funcs[:H],))
+    function odeproblem(q₀ = q₀, A = A_default, B = B_default; tspan = tspan, tstep = Δt, parameters = default_parameters)
+        lag_sys = lagrangian_system(A, B, parameters)
+        ODEProblem(lag_sys, tspan, tstep, q₀; parameters = parameters)
     end
 
-    function iodeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
-        a, b = get_parameters(parameters)
-        funcs = get_functions(A,B,a,b)
-        IODEProblem(funcs[:ϑ],
-                    funcs[:f],
-                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ,params),
-                    tspan, tstep, q₀, funcs[:p](0, q₀, zero(q₀), ());
-                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x,params),
-                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
+    function lodeproblem(q₀ = q₀, A = A_default, B = B_default; tspan = tspan, tstep = Δt, parameters = default_parameters)
+        lag_sys = lagrangian_system(A, B, parameters)
+        p₀ = initial_momentum(lag_sys, tspan[begin], q₀, parameters)
+        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function lodeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
-        a, b = get_parameters(parameters)
-        funcs = get_functions(A,B,a,b)
-        LODEProblem(funcs[:ϑ],
-                    funcs[:f],
-                    (f̄,t,x,v,λ,params) -> funcs[:f̄](f̄,t,x,λ,params),
-                    funcs[:L],
-                    funcs[:ω],
-                    tspan, tstep, q₀, funcs[:p](0, q₀, zero(q₀), ());
-                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x,params),
-                    f̄ = funcs[:f],
-                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
+    function ldaeproblem(q₀ = q₀, A = A_default, B = B_default; tspan = tspan, tstep = Δt, parameters = default_parameters)
+        lag_sys = lagrangian_system(A, B, parameters)
+        p₀ = initial_momentum(lag_sys, tspan[begin], q₀, parameters)
+        LDAEProblem(lag_sys, tspan, tstep, q₀, p₀, zero(q₀); parameters = parameters)
     end
-
-    function idaeproblem(q₀=q₀, A=A_default, B=B_default; tspan=tspan, tstep=Δt, parameters=default_parameters)
-        a, b = get_parameters(parameters)
-        funcs = get_functions(A,B,a,b)
-        IDAEProblem(funcs[:ϑ],
-                    funcs[:f],
-                    (u,t,x,p,v,λ,params) -> u .= λ,
-                    (f̄,t,x,p,v,λ,params) -> funcs[:f̄](f̄,t,x,λ,params),
-                    funcs[:ϕ],
-                    tspan, tstep, q₀, funcs[:p](0, q₀, zero(q₀), ()), zero(q₀);
-                    v̄ = (v,t,x,p,params) -> funcs[:ẋ](v,t,x,params),
-                    parameters=parameters, invariants = (h = (t,x,v,params) -> funcs[:H](t,x,params),))
-    end
-
-    # function ldaeproblem(q₀=q₀, p₀=ϑ(0, q₀), λ₀=zero(q₀), params=p)
-    #     LDAE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
-    #          lotka_volterra_4d_g, lotka_volterra_4d_g̅,
-    #          lotka_volterra_4d_ϕ, lotka_volterra_4d_ψ,
-    #          q₀, p₀, λ₀; parameters=params, h=hamiltonian, v=lotka_volterra_4d_v)
-    # end
-
-    # function iodeproblem_dg(q₀=q₀, p₀=ϑ(0, q₀), params=p)
-    #     IODE(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
-    #          lotka_volterra_4d_g, q₀, p₀;
-    #          parameters=params, h=hamiltonian, v=lotka_volterra_4d_v)
-    # end
 
 end

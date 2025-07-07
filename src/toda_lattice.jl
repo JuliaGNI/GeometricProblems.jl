@@ -10,68 +10,96 @@ module TodaLattice
     using EulerLagrange
     using LinearAlgebra 
     using Parameters 
-    using GeometricEquations: HODEEnsemble
+    using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem
 
-    export hamiltonian, lagrangian
-    export hodeproblem, lodeproblem  
-    export hodeensemble
+    export hodeproblem, hodeensemble, hamiltonian, hamiltonian_system
+    export lodeproblem, lodeensemble, lagrangian, lagrangian_system
 
     include("bump_initial_condition.jl")
 
-    const α̃  = .64
-    const Ñ = 200
-
     const default_parameters = (
-        α = α̃, 
-        N = Ñ
+        α = .64, 
     )
 
-    function hamiltonian(t, q, p, params)
-        @unpack N, α = params
-        
-        sum(p[n] ^ 2 / 2 + α * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
+    function potential(q, params, N)
+        params.α * sum(exp(q[n] - q[n % N + 1]) for n in 1:N)
     end
 
-    function lagrangian(t, q, q̇, params)
-        @unpack N, α = params 
+    hamiltonian(t, q, p, params, N) = p ⋅ p / 2 + potential(q, params, N)
+    lagrangian(t, q, q̇, params, N) = q̇ ⋅ q̇ / 2 - potential(q, params, N)
 
-        sum(q̇[n] ^ 2 / 2 - α * exp(q[n] - q[n % Ñ + 1]) for n in 1:Ñ)
-    end
-
-    const tstep = .1 
+    const tstep = .1
     const tspan = (0.0, 120.0)
 
-    # parameter for the initial conditions
+    # parameter for the default initial conditions
+    const Ñ = 200
     const μ = .3
 
-    const q₀ = compute_initial_condition(μ, Ñ).q 
-    const p₀ = compute_initial_condition(μ, Ñ).p 
-    const Ω = compute_domain(Ñ, Float64)
+    const q₀ = compute_initial_q(μ, Ñ)
+    const p₀ = zero(q₀)
+    const Ω = compute_domain(Ñ, typeof(μ))
+
+
+    function hamiltonian_system(N, parameters)
+        t, q, p = hamiltonian_variables(N)
+        sparams = symbolize(parameters)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams, N), t, q, p, sparams; simplify = N ≤ 10)
+    end
+
+    function lagrangian_system(N, parameters)
+        t, x, v = lagrangian_variables(N)
+        sparams = symbolize(parameters)
+        LagrangianSystem(lagrangian(t, x, v, sparams, N), t, x, v, sparams; simplify = N ≤ 10)
+    end
+
+    _parameters(p::NamedTuple) = p
+    _parameters(p::AbstractVector{<:NamedTuple}) = p[begin]
+
+    _length(q::AbstractArray{<:Number}) = length(q)
+    _length(q::AbstractVector{<:AbstractArray}) = length(q[begin])
 
     """
     Hamiltonian problem for the Toda lattice.
     """
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
-        t, q, p = hamiltonian_variables(Ñ)
-        sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+    function hodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+        HODEProblem(hamiltonian_system(N, parameters), tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function hodeproblem(q₀, p₀; kwargs...)
+        @assert length(q₀) == length(p₀)
+        hodeproblem(length(q₀), q₀, p₀; kwargs...)
+    end
+
+    function hodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+        eqs = functions(hamiltonian_system(N, _parameters(parameters)))
+        HODEEnsemble(eqs.v, eqs.f, eqs.H, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function hodeensemble(q₀, p₀; kwargs...)
+        @assert length(q₀) == length(p₀)
+        hodeensemble(_length(q₀), q₀, p₀; kwargs...)
     end
 
     """
     Lagrangian problem for the Toda lattice.
     """
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
-        t, x, v = lagrangian_variables(Ñ)
-        sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+    function lodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+        LODEProblem(lagrangian_system(N, parameters), tspan, tstep, q₀, p₀; parameters = parameters)
     end
 
-    function hodeensemble(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
-        eq = hodeproblem().equation
+    function lodeproblem(q₀, p₀; kwargs...)
+        @assert length(q₀) == length(p₀)
+        lodeproblem(length(q₀), q₀, p₀; kwargs...)
+    end
 
-        HODEEnsemble(eq.v, eq.f, eq.hamiltonian, tspan, tstep, q₀, p₀; parameters = parameters)
+    function lodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+        eqs = functions(lagrangian_system(N, _parameters(parameters)))
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, tspan, tstep, q₀, p₀; parameters = parameters)
+    end
+
+    function lodeensemble(q₀, p₀; kwargs...)
+        @assert length(q₀) == length(p₀)
+        lodeensemble(_length(q₀), q₀, p₀; kwargs...)
     end
 
 end
