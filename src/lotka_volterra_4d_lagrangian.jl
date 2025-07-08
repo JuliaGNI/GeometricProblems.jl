@@ -29,7 +29,7 @@ module LotkaVolterra4dLagrangian
 
     const Δt = 0.01
     const nt = 1000
-    const tspan = (0.0, Δt*nt)
+    const timespan = (0.0, Δt*nt)
 
     const q₀ = [2.0, 1.0, 1.0, 1.0]
 
@@ -107,21 +107,21 @@ module LotkaVolterra4dLagrangian
     end
 
 
-    function odeproblem(q₀ = q₀, A = A_default, B = B_default; tspan = tspan, tstep = Δt, parameters = default_parameters)
+    function odeproblem(q₀ = q₀, A = A_default, B = B_default; timespan = timespan, timestep = Δt, parameters = default_parameters)
         lag_sys = lagrangian_system(A, B, parameters)
-        ODEProblem(lag_sys, tspan, tstep, q₀; parameters = parameters)
+        ODEProblem(lag_sys, timespan, timestep, q₀; parameters = parameters)
     end
 
-    function lodeproblem(q₀ = q₀, A = A_default, B = B_default; tspan = tspan, tstep = Δt, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, A = A_default, B = B_default; timespan = timespan, timestep = Δt, parameters = default_parameters)
         lag_sys = lagrangian_system(A, B, parameters)
-        p₀ = initial_momentum(lag_sys, tspan[begin], q₀, parameters)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        p₀ = initial_momentum(lag_sys, timespan[begin], q₀, parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
-    function ldaeproblem(q₀ = q₀, A = A_default, B = B_default; tspan = tspan, tstep = Δt, parameters = default_parameters)
+    function ldaeproblem(q₀ = q₀, A = A_default, B = B_default; timespan = timespan, timestep = Δt, parameters = default_parameters)
         lag_sys = lagrangian_system(A, B, parameters)
-        p₀ = initial_momentum(lag_sys, tspan[begin], q₀, parameters)
-        LDAEProblem(lag_sys, tspan, tstep, q₀, p₀, zero(q₀); parameters = parameters)
+        p₀ = initial_momentum(lag_sys, timespan[begin], q₀, parameters)
+        LDAEProblem(lag_sys, timespan, timestep, q₀, p₀, zero(q₀); parameters = parameters)
     end
 
 end

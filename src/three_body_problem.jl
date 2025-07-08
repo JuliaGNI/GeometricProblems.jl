@@ -38,10 +38,10 @@ module ThreeBody
     const G = 1.
 
     @doc raw"Constant taken from [jin2020sympnets](@cite)."
-    const tstep = .5
+    const timestep = .5
 
     @doc raw"Range is taken from [jin2020sympnets](@cite). In that reference the integration is only done for ten time steps."
-    const tspan = (0.0, 10 * tstep)
+    const timespan = (0.0, 10 * timestep)
 
     @doc raw"Default parameters taken from [jin2020sympnets](@cite)."
     const default_parameters = (
@@ -65,7 +65,7 @@ module ThreeBody
 
 
     """
-        hodeproblem(q₀, p₀; tspan, tstep, parameters)
+        hodeproblem(q₀, p₀; timespan, timestep, parameters)
 
     Hamiltonian version of the three-body problem
 
@@ -74,21 +74,21 @@ module ThreeBody
     hodeproblem(
         q₀ = $(initial_condition.q),
         p₀ = $(initial_condition.p);
-        tspan = $(tspan),
-        tstep = $(tstep),
+        timespan = $(timespan),
+        timestep = $(timestep),
         params = $(default_parameters)
     )
     ```
     """
-    function hodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(6)
         sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     """
-        lodeproblem(q₀, p₀; tspan, tstep, parameters)
+        lodeproblem(q₀, p₀; timespan, timestep, parameters)
 
     Lagrangian version of the three-body problem
 
@@ -97,17 +97,17 @@ module ThreeBody
     lodeproblem(
         q₀ = $(initial_condition.q),
         p₀ = $(initial_condition.p);
-        tspan = $(tspan),
-        tstep = $(tstep),
+        timespan = $(timespan),
+        timestep = $(timestep),
         params = $(default_parameters)
     )
     ```
     """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, x, v = lagrangian_variables(2)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
     end
 
 end

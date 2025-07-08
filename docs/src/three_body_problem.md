@@ -12,7 +12,7 @@ mpurple = RGBf(148 / 256, 103 / 256, 189 / 256)
 mblue = RGBf(31 / 256, 119 / 256, 180 / 256)
 mgreen = RGBf(44 / 256, 160 / 256, 44 / 256)
 
-pr = hodeproblem(; tstep = .2)
+pr = hodeproblem(; timestep = .2)
 sol = integrate(pr, ImplicitMidpoint())
 first_body = zeros(2, length(sol.s.q))
 second_body = zeros(2, length(sol.s.q))
