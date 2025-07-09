@@ -13,7 +13,7 @@ module PointVorticesLinear
 
     const Δt = 0.01
     const nt = 1000
-    const tspan = (0.0, Δt*nt)
+    const timespan = (0.0, Δt*nt)
     
     const γ₁ = 4.0
     const γ₂ = 2.0
@@ -118,8 +118,8 @@ module PointVorticesLinear
         nothing
     end
 
-    function odeproblem(q₀=q₀; tspan = tspan, tstep = Δt)
-        ODEProblem(point_vortices_v, tspan, tstep, q₀)
+    function odeproblem(q₀=q₀; timespan = timespan, timestep = Δt)
+        ODEProblem(point_vortices_v, timespan, timestep, q₀)
     end
 
 
@@ -154,20 +154,20 @@ module PointVorticesLinear
         point_vortices_v(v, t, q, params)
     end
 
-    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); tspan = tspan, tstep = Δt)
+    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = timespan, timestep = Δt)
         IODEProblem(point_vortices_ϑ, point_vortices_f,
-                    point_vortices_g, tspan, tstep, q₀, p₀;
+                    point_vortices_g, timespan, timestep, q₀, p₀;
                     v̄=point_vortices_v)
     end
 
-    function iodeproblem_dg(q₀=q₀; tspan = tspan, tstep = Δt)
+    function iodeproblem_dg(q₀=q₀; timespan = timespan, timestep = Δt)
         IODEProblem(point_vortices_ϑ, point_vortices_f,
-                    point_vortices_g, tspan, tstep, q₀, q₀;
+                    point_vortices_g, timespan, timestep, q₀, q₀;
                     v=point_vortices_v)
     end
 
-    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); tspan = tspan, tstep = Δt)
-        LODEProblem(ϑ, point_vortices_f, point_vortices_g, tspan, tstep, q₀, p₀;
+    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = timespan, timestep = Δt)
+        LODEProblem(ϑ, point_vortices_f, point_vortices_g, timespan, timestep, q₀, p₀;
                     v̄=point_vortices_v, Ω=ω, ∇H=dH)
     end
 

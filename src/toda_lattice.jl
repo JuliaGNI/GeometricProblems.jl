@@ -28,8 +28,8 @@ module TodaLattice
     hamiltonian(t, q, p, params, N) = p ⋅ p / 2 + potential(q, params, N)
     lagrangian(t, q, q̇, params, N) = q̇ ⋅ q̇ / 2 - potential(q, params, N)
 
-    const tstep = .1
-    const tspan = (0.0, 120.0)
+    const timestep = .1
+    const timespan = (0.0, 120.0)
 
     # parameter for the default initial conditions
     const Ñ = 200
@@ -61,8 +61,8 @@ module TodaLattice
     """
     Hamiltonian problem for the Toda lattice.
     """
-    function hodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
-        HODEProblem(hamiltonian_system(N, parameters), tspan, tstep, q₀, p₀; parameters = parameters)
+    function hodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); timespan = timespan, timestep = timestep, parameters = default_parameters)
+        HODEProblem(hamiltonian_system(N, parameters), timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     function hodeproblem(q₀, p₀; kwargs...)
@@ -70,9 +70,9 @@ module TodaLattice
         hodeproblem(length(q₀), q₀, p₀; kwargs...)
     end
 
-    function hodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); timespan = timespan, timestep = timestep, parameters = default_parameters)
         eqs = functions(hamiltonian_system(N, _parameters(parameters)))
-        HODEEnsemble(eqs.v, eqs.f, eqs.H, tspan, tstep, q₀, p₀; parameters = parameters)
+        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     function hodeensemble(q₀, p₀; kwargs...)
@@ -83,8 +83,8 @@ module TodaLattice
     """
     Lagrangian problem for the Toda lattice.
     """
-    function lodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
-        LODEProblem(lagrangian_system(N, parameters), tspan, tstep, q₀, p₀; parameters = parameters)
+    function lodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); timespan = timespan, timestep = timestep, parameters = default_parameters)
+        LODEProblem(lagrangian_system(N, parameters), timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     function lodeproblem(q₀, p₀; kwargs...)
@@ -92,9 +92,9 @@ module TodaLattice
         lodeproblem(length(q₀), q₀, p₀; kwargs...)
     end
 
-    function lodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀); timespan = timespan, timestep = timestep, parameters = default_parameters)
         eqs = functions(lagrangian_system(N, _parameters(parameters)))
-        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, tspan, tstep, q₀, p₀; parameters = parameters)
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     function lodeensemble(q₀, p₀; kwargs...)
