@@ -73,7 +73,7 @@ module DoublePendulum
         g = 9.80665,
     )
 
-    const default_parameters = (
+    const default_parameters2 = (
         l₁ = 1.0,
         l₂ = 1.0,
         m₁ = 1.0,

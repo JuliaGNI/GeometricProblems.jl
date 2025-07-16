@@ -45,7 +45,16 @@ module LinearWave
         Δx = one(μ) / (Ñ + 1)
         Δx² = Δx ^ 2 
         μ² = μ ^ 2
-        sum(q̇[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 - μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
+        # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
+        # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2) # zero boundary conditions
+
+        kinetic_energy = sum(q̇[n]^2 / 2 for n in 1:(Ñ + 2))
+        potential_energy = sum(μ² / (2Δx²) * (q[i] - q[i-1])^2 for i in 2:(Ñ+2))
+    
+        # Enforce periodic boundary condition
+        potential_energy += μ² / (2Δx²) * (q[1] - q[Ñ+2])^2
+    
+        kinetic_energy - potential_energy
     end
 
     _timestep(timespan::Tuple, n_time_steps::Integer) = (timespan[2] - timespan[1]) / (n_time_steps-1)
