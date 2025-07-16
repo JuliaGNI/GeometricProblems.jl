@@ -65,7 +65,7 @@ module DoublePendulum
     const timestep = 0.01
     const timespan = (0.0, 10.0)
 
-    const default_parameters = (
+    const default_parameters2 = (
         l₁ = 2.0,
         l₂ = 3.0,
         m₁ = 1.0,
@@ -73,7 +73,7 @@ module DoublePendulum
         g = 9.80665,
     )
 
-    const default_parameters2 = (
+    const default_parameters = (
         l₁ = 1.0,
         l₂ = 1.0,
         m₁ = 1.0,
