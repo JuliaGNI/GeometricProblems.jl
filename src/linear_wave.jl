@@ -45,24 +45,15 @@ module LinearWave
         Δx = one(μ) / (Ñ + 1)
         Δx² = Δx ^ 2 
         μ² = μ ^ 2
-        # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 4Δx² * ((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
-        # sum(q̇[n] ^ 2 / 2 for n in 1 : (Ñ + 2)) - sum(μ² / 2Δx² * ((q[i] - q[i - 1]) ^ 2) for i in 2 : (Ñ + 2)) +   μ² / 2Δx² * ((q[1] - q[Ñ + 2]) ^ 2) # zero boundary conditions
-
-        kinetic_energy = sum(q̇[n]^2 / 2 for n in 1:(Ñ + 2))
-        potential_energy = sum(μ² / (2Δx²) * (q[i] - q[i-1])^2 for i in 2:(Ñ+2))
-    
-        # Enforce periodic boundary condition
-        potential_energy += μ² / (2Δx²) * (q[1] - q[Ñ+2])^2
-    
-        kinetic_energy - potential_energy
+        sum(q̇[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 - μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
     end
 
-    _tstep(tspan::Tuple, n_time_steps::Integer) = (tspan[2] - tspan[1]) / (n_time_steps-1)
+    _timestep(timespan::Tuple, n_time_steps::Integer) = (timespan[2] - timespan[1]) / (n_time_steps-1)
 
 
-    const tspan = (0, 1)
+    const timespan = (0, 1)
     const n_time_steps = 200
-    const tstep = _tstep(tspan, n_time_steps)
+    const timestep = _timestep(timespan, n_time_steps)
 
     # const q₀ = compute_initial_condition(μ̃, Ñ + 2).q 
     # const p₀ = compute_initial_condition(μ̃, Ñ + 2).p 
@@ -82,21 +73,21 @@ module LinearWave
     """
     Hamiltonian problem for the linear wave equation.
     """
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(Ñ + 2)
         sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams; dosimplify = false)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     """
     Lagrangian problem for the linear wave equation.
     """
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, x, v = lagrangian_variables(Ñ + 2)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; simplify = false)
-        lodeproblem(lag_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        lodeproblem(lag_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
 end

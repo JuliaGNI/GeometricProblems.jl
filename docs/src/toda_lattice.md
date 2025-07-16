@@ -27,7 +27,7 @@ We can model the evolution of a thin pulse in this system:
 ```julia
 using GeometricProblems, GeometricIntegrators, GLMakie # hide
 
-problem = GeometricProblems.TodaLattice.hodeproblem(; tspan = (0.0, 2000.)) 
+problem = GeometricProblems.TodaLattice.hodeproblem(; timespan = (0.0, 2000.)) 
 sol = integrate(problem, ImplicitMidpoint())
 
 time_steps = 0:10:length(sol.q)

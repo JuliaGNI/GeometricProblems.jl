@@ -52,7 +52,7 @@ module LotkaVolterra3d
 
     const Δt = 0.01
     const nt = 1000
-    const tspan = (0.0, Δt*nt)
+    const timespan = (0.0, Δt*nt)
 
     const default_parameters = (A1 = 1.0, A2 = 1.0, A3 = 1.0, B1 = 0.0, B2 = 1.0, B3 = 1.0)
     const reference_solution = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
@@ -101,8 +101,8 @@ module LotkaVolterra3d
     end
 
 
-    function odeproblem(q₀=q₀; tspan=tspan, tstep=Δt, parameters=default_parameters)
-        ODEProblem(lotka_volterra_3d_v, tspan, tstep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
+    function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters=default_parameters)
+        ODEProblem(lotka_volterra_3d_v, timespan, timestep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
     end
 
 

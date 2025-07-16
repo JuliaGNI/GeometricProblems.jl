@@ -62,10 +62,10 @@ module DoublePendulum
     end
 
 
-    const tstep = 0.01
-    const tspan = (0.0, 10.0)
-    
-    const alternative_parameters = (
+    const timestep = 0.01
+    const timespan = (0.0, 10.0)
+
+    const default_parameters = (
         l₁ = 2.0,
         l₂ = 3.0,
         m₁ = 1.0,
@@ -83,7 +83,7 @@ module DoublePendulum
 
     const θ₀ = [π/4, π/2]
     const ω₀ = [0.0, π/8]
-    const p₀ = ϑ(tspan[begin], θ₀, ω₀, default_parameters)
+    const p₀ = ϑ(timespan[begin], θ₀, ω₀, default_parameters)
 
 
     function hamiltonian(t, q, p, params)
@@ -118,17 +118,17 @@ module DoublePendulum
     hodeproblem(
         q₀ = [π/4, π/2],
         p₀ = $(p₀);
-        tspan = $(tspan),
-        tstep = $(tstep),
+        timespan = $(timespan),
+        timestep = $(timestep),
         params = $(default_parameters)
     )
     ```
     """
-    function hodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(2)
         sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     """
@@ -139,17 +139,17 @@ module DoublePendulum
     lodeproblem(
         q₀ = [π/4, π/2],
         p₀ = $(p₀);
-        tspan = $(tspan),
-        tstep = $(tstep),
+        timespan = $(timespan),
+        timestep = $(timestep),
         params = $(default_parameters)
     )
     ```
     """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, x, v = lagrangian_variables(2)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
     end
 
 end
