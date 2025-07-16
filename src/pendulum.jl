@@ -139,8 +139,8 @@ module Pendulum
     const q₀ = [0.5]
     const x₀ = vcat(q₀, p₀)
 
-    const tstep = 0.01
-    const tspan = (0.0, 10.0)
+    const timestep = 0.01
+    const timespan = (0.0, 10.0)
 
     function hamiltonian(t,q,p,params)
         @unpack m,ω = params
@@ -169,18 +169,18 @@ module Pendulum
     end
 
 
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(1)
         sparams = symbolize(parameters)
         ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀, p₀; parameters = parameters)
+        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, x, v = lagrangian_variables(1)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
     end
 
 
