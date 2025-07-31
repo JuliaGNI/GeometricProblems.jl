@@ -38,7 +38,6 @@ module HenonHeilesPotential
         nothing
     end
 
-
     function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, q, p = hamiltonian_variables(2)
         sparams = symbolize(parameters)

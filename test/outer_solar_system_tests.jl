@@ -1,14 +1,17 @@
 using Test
 using GeometricIntegrators
+using GeometricSolutions
+using GeometricProblems.OuterSolarSystem
 
-t_end =5.
-t_step = 0.5
-lode_problem = OuterSolarSystem.lodeproblem(tspan = (0,t_end), tstep = t_step,n=3)
-ImMi_sol = integrate(lode_problem, ImplicitMidpoint())
-ImMi_sol.q
+@testset "$(rpad("Outer Solar System",80))" begin
 
+    lode = OuterSolarSystem.lodeproblem(timespan = (0,3000),n=2)
+    hode = OuterSolarSystem.hodeproblem(timespan = (0,3000),n=2)
 
-hode_problem = OuterSolarSystem.hodeproblem(tspan = (0,t_end), tstep = t_step,n=3)
-sol = integrate(hode_problem, RK4())
+    hode_sol = integrate(hode, Gauss(2))
+    lode_sol = integrate(lode, Gauss(2))
 
-relative_maximum_error(sol.q,ImMi_sol.q)
+    @test relative_maximum_error(hode_sol.q, lode_sol.q) < 1E-6
+    @test relative_maximum_error(hode_sol.p, lode_sol.p) < 1E-6
+
+end

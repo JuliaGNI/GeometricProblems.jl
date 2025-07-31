@@ -103,7 +103,7 @@ module ThreeBody
     )
     ```
     """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function lodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = timespan, timestep = timestep, parameters = default_parameters)
         t, x, v = lagrangian_variables(2)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)

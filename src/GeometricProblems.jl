@@ -10,7 +10,6 @@ module GeometricProblems
 
     include("abc_flow.jl")
     include("double_pendulum.jl")
-    include("duffing_oscillator.jl")
     include("harmonic_oscillator.jl")
     include("kubo_oscillator.jl")
     include("lennard_jones_oscillator.jl")
@@ -40,4 +39,6 @@ module GeometricProblems
     include("outer_solar_system.jl")
     include("perturbed_pendulum.jl")
     include("henon_heiles_potential.jl")
+    include("standard_double_pendulum.jl")
+    include("duffing_oscillator.jl")
 end

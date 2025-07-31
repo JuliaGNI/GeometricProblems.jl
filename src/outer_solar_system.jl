@@ -21,8 +21,8 @@ module OuterSolarSystem
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
 
-    const tspan = (0.0, 3)
-    const tstep = 0.5
+    const timespan = (0.0, 3)
+    const timestep = 0.5
 
     const G = 2.95912208286e-4
 
@@ -132,7 +132,7 @@ module OuterSolarSystem
         1/2 * sum([m[i]* q̇[:,i]⋅q̇[:,i] for i in 1:n]) + T 
     end
 
-    function hodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters,n=6,d=3)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, params = default_parameters,n=6,d=3)
         @assert 1<n<7 
         t, q, p = hamiltonian_variables(n*d)
 
@@ -142,11 +142,11 @@ module OuterSolarSystem
 
         sparams = symbolize(params)
         ham_sys = EulerLagrange.HamiltonianSystem(hamiltonian(t, q, p, sparams,d=d,n=n), t, q, p, sparams)
-        HODEProblem(ham_sys, tspan, tstep, q₀[1:d*n], p₀[1:d*n]; parameters = params)
+        HODEProblem(ham_sys, timespan, timestep, q₀[1:d*n], p₀[1:d*n]; parameters = params)
     end
 
         
-    function lodeproblem(q₀ = q₀, p₀ = p₀; tspan = tspan, tstep = tstep, params = default_parameters,n=6,d=3)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, params = default_parameters,n=6,d=3)
         @assert 1<n<7 
         t, x, v = lagrangian_variables(n*d)
 
@@ -157,7 +157,7 @@ module OuterSolarSystem
         sparams = symbolize(params)
         lag = lagrangian(t, x, v, sparams,d=d,n=n)
         lag_sys = EulerLagrange.LagrangianSystem(lag, t, x, v, sparams)
-        LODEProblem(lag_sys, tspan, tstep, q₀[1:d*n], p₀[1:d*n]; v̄ = v̄, parameters = params)
+        LODEProblem(lag_sys, timespan, timestep, q₀[1:d*n], p₀[1:d*n]; v̄ = v̄, parameters = params)
     end
 
 end
