@@ -28,30 +28,6 @@ For evaluating the system we specify the following initial[^2] and boundary cond
 [^2]: The precise shape of ``q_0(\cdot;\cdot)`` is described in [the chapter on initial conditions](initial_condition.md).
 
 
-By default `GeometricProblems` uses the following parameters: 
-```@example linear_wave
-using GeometricIntegrators, Plots # hide
-import GeometricProblems.LinearWave as lw
-
-lw.default_parameters
-```
-
-And if we integrate we get: 
-```@example linear_wave
-problem = lw.hodeproblem() 
-sol = integrate(problem, ImplicitMidpoint())
-
-# plot 6 time steps
-time_steps = 0 : (length(sol.t) - 1)  ÷ 5 : (length(sol.t) - 1)
-p = plot()
-for time_step in time_steps
-    plot!(p, lw.compute_domain(lw.Ñ + 2), sol.q[time_step, :], label = "t = "*string(round(sol.t[time_step]; digits = 2)))
-end
-
-p
-```
-
-As we can see the thin pulse travels in one direction. 
 
 ## Library functions
 
