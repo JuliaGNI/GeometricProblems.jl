@@ -1,6 +1,6 @@
 name = "GeometricProblems"
 uuid = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
-version = "0.6.12"
+version = "0.6.13"
 authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
 
 [deps]
