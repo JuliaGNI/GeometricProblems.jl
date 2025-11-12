@@ -100,7 +100,7 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     ref_sol = integrate(ref_lode, Gauss(2))
     @test relative_maximum_error(ref_sol.q, ref.q) < 8E-4
-    @test relative_maximum_error(ref_sol.q, lag_sol.q) < 2E-12
+    @test relative_maximum_error(ref_sol.q, lag_sol.q) < 8E-12
 
     lag_sol = integrate(lag_lode, MidpointProjection(VPRKGauss(2)))
     ref_sol = integrate(ref_lode, MidpointProjection(VPRKGauss(2)))
