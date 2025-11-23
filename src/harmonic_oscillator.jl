@@ -49,26 +49,26 @@ function ω!(ω, t, q, params)
     nothing
 end
 
-function hamiltonian(t::Number, q::AbstractArray, params)
+function hamiltonian(t, q::AbstractArray, params)
     @unpack m, k = params
     m * q[2]^2 / 2 + k * q[1]^2 / 2
 end
 
-function hamiltonian(t::Number, q::Number, p::Number, params)
+function hamiltonian(t, q::Number, p::Number, params)
     @unpack m, k = params
     p^2 / (2m) + k * q^2 / 2
 end
 
-function hamiltonian(t::Number, q::AbstractArray, p::AbstractArray, params)
+function hamiltonian(t, q::AbstractArray, p::AbstractArray, params)
     hamiltonian(t, q[1], p[1], params)
 end
 
-function lagrangian(t::Number, q::Number, v::Number, params)
+function lagrangian(t, q::Number, v::Number, params)
     @unpack m, k = params
     m * v^2 / 2 - k * q^2 / 2
 end
 
-function lagrangian(t::Number, q::AbstractArray, v::AbstractArray, params)
+function lagrangian(t, q::AbstractArray, v::AbstractArray, params)
     lagrangian(t, q[1], v[1], params)
 end
 
