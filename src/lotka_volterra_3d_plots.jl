@@ -1,10 +1,9 @@
 module LotkaVolterra3dPlots
 
+    using GeometricSolutions
     using LaTeXStrings
     using Measures: mm
     using RecipesBase
-
-    import GeometricProblems.Diagnostics: compute_invariant_error, compute_momentum_error
 
     # export compute_energy_error, compute_momentum_error
 

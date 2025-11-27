@@ -1,11 +1,9 @@
 module PlotRecipes
 
+using GeometricSolutions
 using LaTeXStrings
 using Measures: mm
 using RecipesBase
-
-using GeometricSolutions
-using GeometricProblems.Diagnostics
 
 
 subscript(i::Integer) = i < 0 ? error("$i is negative") : join('₀' + d for d in reverse(digits(i)))
@@ -103,7 +101,7 @@ end
     if length(p.args) == 1 && typeof(p.args[1]) <: GeometricSolution
         sol = p.args[1]
         t = sol.t
-        Δp = compute_momentum_error(sol.t, sol.q, sol.p)
+        Δp = compute_momentum_error(sol)
         # TODO: fix
     elseif length(p.args) == 2 && typeof(p.args[1]) <: TimeSeries && typeof(p.args[2]) <: DataSeries
         t = p.args[1]

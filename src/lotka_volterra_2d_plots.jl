@@ -2,8 +2,6 @@ module LotkaVolterra2dPlots
 
     using GeometricEquations
     using GeometricSolutions
-    using GeometricProblems.Diagnostics
-
     using LaTeXStrings
     using Measures: mm
     using RecipesBase
@@ -196,7 +194,7 @@ module LotkaVolterra2dPlots
         tickfontsize  := 12
 
         # traces
-        
+
         layout := (3,1)
 
         if latex

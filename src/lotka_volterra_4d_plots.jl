@@ -1,11 +1,9 @@
 module LotkaVolterra4dPlots
 
+    using GeometricSolutions
     using LaTeXStrings
     using Measures: mm
     using RecipesBase
-
-    import GeometricProblems.Diagnostics: compute_invariant_error, compute_momentum_error
-
 
     compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
     # compute_momentum_error(t,q,p) = compute_momentum_error(t,q,p,ϑ)

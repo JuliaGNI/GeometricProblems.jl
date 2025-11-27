@@ -2,8 +2,6 @@ module MasslessChargedParticlePlots
 
     using GeometricEquations
     using GeometricSolutions
-    using GeometricProblems.Diagnostics
-
     using LaTeXStrings
     using Measures: mm
     using RecipesBase
