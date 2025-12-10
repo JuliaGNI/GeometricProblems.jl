@@ -1,6 +1,8 @@
 
 using Parameters
 
+import NaNMath: log
+
 export ϑ, ω, hamiltonian
 
 

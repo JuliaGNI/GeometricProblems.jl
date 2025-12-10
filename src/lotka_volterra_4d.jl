@@ -7,6 +7,8 @@ using GeometricEquations
 using LinearAlgebra
 using Parameters
 
+import NaNMath: log
+
 export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
 export odeproblem,
