@@ -21,7 +21,7 @@ Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 [compat]
 Documenter = "1"
 EulerLagrange = "0.4"
-GeometricBase = "0.12"
+GeometricBase = "0.12, 0.14"
 GeometricEquations = "0.20"
 GeometricSolutions = "0.5.7"
 LaTeXStrings = "1"
