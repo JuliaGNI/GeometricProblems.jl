@@ -152,7 +152,7 @@ end
 
 function exact_solution!(sol::GeometricSolution, prob::ODEProblem)
     for n in eachtimestep(sol)
-        sol.q[n] .= exact_solution(sol.t[n], sol.q[0], sol.t[0], parameters(prob))
+        sol[n].q .= exact_solution(sol[n].t, sol[0].q, sol[0].t, parameters(prob))
     end
     return sol
 end
@@ -218,8 +218,8 @@ end
 
 function exact_solution!(sol::GeometricSolution, prob::Union{PODEProblem,HODEProblem})
     for n in eachtimestep(sol)
-        sol.q[n] = [exact_solution_q(sol.t[n], sol.q[0], sol.p[0], sol.t[0], parameters(prob))]
-        sol.p[n] = [exact_solution_p(sol.t[n], sol.q[0], sol.p[0], sol.t[0], parameters(prob))]
+        sol[n].q = [exact_solution_q(sol[n].t, sol[0].q, sol[0].p, sol[0].t, parameters(prob))]
+        sol[n].p = [exact_solution_p(sol[n].t, sol[0].q, sol[0].p, sol[0].t, parameters(prob))]
     end
     return sol
 end
