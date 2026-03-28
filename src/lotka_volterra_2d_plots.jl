@@ -37,7 +37,7 @@ module LotkaVolterra2dPlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, params, invariants(equ)[:h])
 
         size   := (1000,400)
         layout := (1,2)
