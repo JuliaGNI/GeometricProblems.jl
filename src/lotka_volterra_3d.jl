@@ -108,7 +108,7 @@ function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters=defau
 end
 
 
-function compute_energy_error(t::TimeSeries, q::DataSeries{T}, params) where {T}
+function compute_energy_error(t::Union{TimeSeries{T},DataSeries{T}}, q::DataSeries{T}, params) where {T}
     h = DataSeries(T, ntime(q))
     e = DataSeries(T, ntime(q))
 
@@ -120,7 +120,7 @@ function compute_energy_error(t::TimeSeries, q::DataSeries{T}, params) where {T}
     (h, e)
 end
 
-function compute_casimir_error(t::TimeSeries, q::DataSeries{T}, params) where {T}
+function compute_casimir_error(t::Union{TimeSeries{T},DataSeries{T}}, q::DataSeries{T}, params) where {T}
     c = DataSeries(T, ntime(q))
     e = DataSeries(T, ntime(q))
 
