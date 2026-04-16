@@ -39,6 +39,5 @@ module GeometricProblems
     include("outer_solar_system.jl")
     include("perturbed_pendulum.jl")
     include("henon_heiles_potential.jl")
-    include("standard_double_pendulum.jl")
     include("duffing_oscillator.jl")
 end
