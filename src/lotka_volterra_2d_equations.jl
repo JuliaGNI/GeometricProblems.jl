@@ -1,8 +1,7 @@
 
 using GeometricEquations
+using GeometricSolutions
 using Requires
-
-import ..Diagnostics: compute_invariant_error
 
 export odeproblem,  daeproblem,
        podeproblem, pdaeproblem,
@@ -99,7 +98,7 @@ end
 
 "Creates a Hamiltonian DAE object for the Lotka-Volterra 2D model."
 function hdaeproblem(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=timespan, timestep=Δt, parameters=default_parameters)
-    HDAEProblem(lotka_volterra_2d_v, lotka_volterra_2d_f, 
+    HDAEProblem(lotka_volterra_2d_v, lotka_volterra_2d_f,
                 lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
                 lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
                 hamiltonian_pode, timespan, timestep, q₀, p₀, λ₀; parameters=parameters)
@@ -175,6 +174,6 @@ function __init__()
         function iode_poincare_invariant_1st(timestep, nloop, ntime, nsave, DT=Float64)
             PoincareInvariant1st(lotka_volterra_2d_iode, f_loop, ϑ, timestep, 2, nloop, ntime, nsave, DT)
         end
-        
+
     end
 end

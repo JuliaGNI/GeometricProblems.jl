@@ -44,7 +44,7 @@ A = q_0 \, \sqrt{1 + p_0^2 / (k q_0^2)} , \qquad
 using GeometricProblems.HarmonicOscillator
 using CairoMakie
 
-H(q,p) = hamiltonian(0, q, p, HarmonicOscillator.default_parameters)
+H(q,p) = hamiltonian(0, q, p, HarmonicOscillator.default_parameters())
 
 levels = [0.0, 0.05, 0.25, 0.65, 1.2, collect(2:7)...]
 ticks = [-2, -1, 0, +1, +2]

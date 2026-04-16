@@ -36,10 +36,7 @@ The Hamiltonian form of the equations of motion reads
 module MasslessChargedParticle
 
     using GeometricEquations
-    
-    using ..Diagnostics
-    
-    import ..Diagnostics: compute_invariant_error, compute_momentum_error
+    using GeometricSolutions
 
     export ϑ, A, B, ϕ, E, hamiltonian
     export odeproblem, iodeproblem, idaeproblem, idaeproblem_spark
@@ -53,7 +50,7 @@ module MasslessChargedParticle
 
     # default initial conditions and parameters
     q₀ = [1.0, 1.0]
-    
+
     default_parameters = (A₀ = 1.0, E₀ = 1.0)
 
     # components of the vector potential
@@ -122,7 +119,7 @@ module MasslessChargedParticle
         dH[1] = dHd₁(t, q, params)
         dH[2] = dHd₂(t, q, params)
         nothing
-    end 
+    end
 
     function massless_charged_particle_v(v, t, q, params)
         v[1] = v₁(t, q, params)
@@ -137,7 +134,7 @@ module MasslessChargedParticle
     function massless_charged_particle_ϑ(Θ, t, q, params)
         Θ[1] = ϑ₁(t, q, params)
         Θ[2] = ϑ₂(t, q, params)
-        nothing 
+        nothing
     end
 
     massless_charged_particle_ϑ(Θ, t, q, v, params) = massless_charged_particle_ϑ(Θ, t, q, params)

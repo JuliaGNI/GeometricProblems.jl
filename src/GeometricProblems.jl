@@ -5,7 +5,6 @@ module GeometricProblems
 
     include("bump_initial_condition.jl")
 
-    include("diagnostics.jl")
     include("plot_recipes.jl")
 
     include("abc_flow.jl")

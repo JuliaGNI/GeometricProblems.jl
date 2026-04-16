@@ -14,12 +14,12 @@ mgreen = RGBf(44 / 256, 160 / 256, 44 / 256)
 
 pr = hodeproblem(; timestep = .2)
 sol = integrate(pr, ImplicitMidpoint())
-first_body = zeros(2, length(sol.s.q))
-second_body = zeros(2, length(sol.s.q))
-third_body = zeros(2, length(sol.s.q))
+first_body = zeros(2, length(sol.q))
+second_body = zeros(2, length(sol.q))
+third_body = zeros(2, length(sol.q))
 
-for index in axes(sol.s.q, 1)
-  data_for_present_index = sol.s.q[index]
+for index in axes(sol.q, 1)
+  data_for_present_index = sol.q[index]
   first_body[:, index + 1] = data_for_present_index[1:2]
   second_body[:, index + 1] = data_for_present_index[3:4] 
   third_body[:, index + 1] = data_for_present_index[5:6] 

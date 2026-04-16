@@ -2,8 +2,6 @@ module MasslessChargedParticlePlots
 
     using GeometricEquations
     using GeometricSolutions
-    using GeometricProblems.Diagnostics
-
     using LaTeXStrings
     using Measures: mm
     using RecipesBase
@@ -37,7 +35,7 @@ module MasslessChargedParticlePlots
             nt = ntime(sol)
         end
 
-        H, ΔH = compute_invariant_error(sol.t, sol.q, (t,q) -> invariants(equ)[:h](t,q,params))
+        H, ΔH = compute_invariant_error(sol.t, sol.q, params, invariants(equ)[:h])
 
         size   := (800,300)
         layout := (1,2)

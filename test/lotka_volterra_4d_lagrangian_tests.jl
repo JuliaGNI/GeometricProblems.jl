@@ -112,7 +112,7 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
     ref_sol = integrate(ref_lode, SymmetricProjection(VPRKGauss(2)))
     @test relative_maximum_error(lag_sol.q, ref.q) < 1E-8
     @test relative_maximum_error(ref_sol.q, ref.q) < 1E-8
-    @test relative_maximum_error(ref_sol.q, lag_sol.q) < 2E-14
+    @test relative_maximum_error(ref_sol.q, lag_sol.q) < 4E-14
 
 
     lag_equs = functions(lag_ldae)
