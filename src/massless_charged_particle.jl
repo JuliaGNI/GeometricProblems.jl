@@ -87,7 +87,7 @@ module MasslessChargedParticle
 
     ϑ(t, q, params) = [ϑ₁(t, q, params), ϑ₂(t, q, params)]
 
-    function ϑ(t::Number, q::AbstractVector, params::NamedTuple, k::Int)
+    function ϑ(t, q::AbstractVector, params::NamedTuple, k::Int)
         if k == 1
             ϑ₁(t, q, params)
         elseif k == 2
