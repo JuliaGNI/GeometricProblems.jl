@@ -14,7 +14,7 @@ jobs:
       statuses: write
     steps:
       - uses: actions/checkout@v3
-      - uses: julia-actions/setup-julia@latest
+      - uses: julia-actions/setup-julia@v3
       - name: Install imagemagick, poppler-utils and texlive
         run: |
           sudo apt-get install imagemagick
