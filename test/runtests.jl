@@ -40,6 +40,9 @@ end
 @safetestset "Lotka-Volterra 4D (Lagrangian)                                                  " begin
     include("lotka_volterra_4d_lagrangian_tests.jl")
 end
+@safetestset "Pendulum                                                                        " begin
+    include("pendulum_tests.jl")
+end
 @safetestset "Point Vortices                                                                  " begin
     include("point_vortices_tests.jl")
 end
