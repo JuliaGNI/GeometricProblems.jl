@@ -11,21 +11,10 @@ const h = 2π / ω / n  # Time step for visualization
 const A = 1.0        # Amplitude
 
 # Spring geometry
-function xpos(i)
-    sin(r*h*i)
-end
-
-function ypos(i)
-    sin(r*h*i)
-end
-
-function zpos(i)
-    A*cos(ω*h*i)
-end
-
-function ϑ(i)
-    -ω*A*sin(ω*h*i)
-end
+xpos(i) = sin(r*h*i)
+ypos(i) = sin(r*h*i)
+zpos(i) = A*cos(ω*h*i)
+ϑ(i) = -ω*A*sin(ω*h*i)
 
 # Spring dimensions
 const rod = 0.15        # Length of rigid rods at spring ends

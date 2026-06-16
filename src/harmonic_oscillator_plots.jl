@@ -40,17 +40,6 @@ module HarmonicOscillatorPlots
         odeproblem(cfg.q₀; timespan=cfg.timespan, timestep=cfg.timestep)
     end
 
-    """
-    Convenience function to generate spherical coordinates for the spring animation.
-    This is used internally by the animation functions.
-    """
-    function spherical_coordinates(φ, r=0.1)
-        x = r * cos(φ)
-        y = r * sin(φ)
-        z = 0.0
-        return (x, y, z)
-    end
-
 end  # module HarmonicOscillatorPlots
 
 # Requires.jl functionality for optional CairoMakie dependency
