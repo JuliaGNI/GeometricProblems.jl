@@ -12,8 +12,7 @@ Pkg.add("CairoMakie")
 """
 module HarmonicOscillatorPlots
 
-    using ..HarmonicOscillator: harmonic_oscillator_ode, default_parameters
-    using Requires
+    using Requires: @require
 
     """
     Create a harmonic oscillator ODE problem with visualization-friendly parameters.
@@ -30,14 +29,26 @@ module HarmonicOscillatorPlots
     - A GeometricIntegrators.ODEProblem configured for visualization
     """
     function visualization_problem(cfg::NamedTuple)
+        # Import here to avoid circular dependencies
+        using ..HarmonicOscillator: odeproblem
+
         # Extract configuration with defaults
         cfg = merge((q₀=[1.0, 0.0], timespan=(0.0, 10.0), timestep=0.01), cfg)
 
-        # Use parameters that match animation parameters from the plot module
-        # k = 0.5, m = 1.0 from the original animation script
-        params = (m=1.0, k=0.5, ω=sqrt(0.5))
+        # Create problem using the standard interface
+        # Note: The harmonic oscillator module uses k=0.5, m=1.0 by default
+        odeproblem(cfg.q₀; timespan=cfg.timespan, timestep=cfg.timestep)
+    end
 
-        harmonic_oscillator_ode(cfg.q₀; cfg.timespan, timestep=cfg.timestep, parameters=params)
+    """
+    Convenience function to generate spherical coordinates for the spring animation.
+    This is used internally by the animation functions.
+    """
+    function spherical_coordinates(φ, r=0.1)
+        x = r * cos(φ)
+        y = r * sin(φ)
+        z = 0.0
+        return (x, y, z)
     end
 
 end  # module HarmonicOscillatorPlots
@@ -45,10 +56,10 @@ end  # module HarmonicOscillatorPlots
 # Requires.jl functionality for optional CairoMakie dependency
 function __init__()
     @require CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf8484" begin
-        # Include all the plotting functions that depend on CairoMakie
+        # Import plotting functions from implementation file
         include("harmonic_oscillator_plots_implementation.jl")
 
-        # Export the functions from the implementation
+        # Export all the plotting functionality
         for sym in names(@__MODULE__(), all=true)
             if startswith(string(sym), "plot_") || sym in [:spring, :xpos, :ypos, :zpos, :ϑ]
                 @eval export $sym
