@@ -12,7 +12,6 @@ Pkg.add("CairoMakie")
 """
 module HarmonicOscillatorPlots
 
-    using GeometricIntegrators
     using ..HarmonicOscillator: harmonic_oscillator_ode, default_parameters
     using Requires
 

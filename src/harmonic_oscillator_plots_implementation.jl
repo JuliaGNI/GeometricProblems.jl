@@ -97,13 +97,16 @@ Arguments:
 Returns:
 - The figure with the plot
 """
-function plot_harmonic_oscillator(sol::GeometricSolution; ntime = length(sol.t))
+function plot_harmonic_oscillator(sol; ntime = hasproperty(sol, :t) ? length(sol.t) : length(sol.q))
     fig = Figure(size = (600, 400))
     ax = Axis(fig[1,1], xlabel = "Position q", ylabel = "Velocity v", title = "Harmonic Oscillator Phase Space")
 
-    lines!(ax, sol.q[1:ntime], sol.v[1:ntime], color = :blue, linewidth = 2)
-    scatter!(ax, sol.q[1], sol.v[1], color = :red, markersize = 15, marker = :circle)
-    scatter!(ax, sol.q[ntime], sol.v[ntime], color = :green, markersize = 15, marker = :circle)
+    q_data = hasproperty(sol, :q) ? sol.q : sol.q_values
+    v_data = hasproperty(sol, :v) ? sol.v : sol.v_values
+
+    lines!(ax, q_data[1:ntime], v_data[1:ntime], color = :blue, linewidth = 2)
+    scatter!(ax, q_data[1], v_data[1], color = :red, markersize = 15, marker = :circle)
+    scatter!(ax, q_data[ntime], v_data[ntime], color = :green, markersize = 15, marker = :circle)
 
     return fig
 end
@@ -144,24 +147,51 @@ Arguments:
 Returns:
 - Nothing, but saves PNG files for each frame
 """
-function plot_harmonic_oscillator_animation(sol::GeometricSolution; frames_to_plot = 1:10:length(sol.t), output_dir = "harmonic-oscillator-sol", create_dir = true)
+function plot_harmonic_oscillator_animation(sol; frames_to_plot = nothing, output_dir = "harmonic-oscillator-sol", create_dir = true)
     # Create output directory if it doesn't exist
     if create_dir && !isdir(output_dir)
         mkdir(output_dir)
     end
 
+    # Handle different solution types
+    if hasproperty(sol, :t)
+        t_data = sol.t
+    else
+        t_data = getproperty(sol, :time_values, 1:length(getproperty(sol, :q_values, [1.0])))
+    end
+
+    if hasproperty(sol, :q)
+        q_data = sol.q
+    else
+        q_data = getproperty(sol, :q_values, zeros(length(t_data)))
+    end
+
+    # Default frames: every 10th point if not specified
+    if isnothing(frames_to_plot)
+        frames_to_plot = 1:10:length(t_data)
+    elseif frames_to_plot isa UnitRange{Int}
+        # If it's a range of indices, use as-is
+    else
+        # Assume it's a range of times, find nearest indices
+        frames_to_plot = map(frames_to_plot) do time_val
+            argmin(abs.(t_data .- time_val))
+        end
+    end
+
     # Get scale factor for visualization
-    max_amplitude = maximum(abs, sol.q)
+    max_amplitude = maximum(abs, q_data)
     scale_factor = 1.0  # Could be parameterized
 
     # Generate and save each frame
     for (frame_idx, time_idx) in enumerate(frames_to_plot)
-        q_raw = sol.q[time_idx]
-        # Scale the position appropriately for visualization
-        q_scaled = q_raw * scale_factor
+        if time_idx <= length(q_data) && time_idx >= 1
+            q_raw = q_data[time_idx]
+            # Scale the position appropriately for visualization
+            q_scaled = q_raw * scale_factor
 
-        fig = plot_spring(frame_idx, q_scaled)
-        save(joinpath(output_dir, "harmonic-oscillator-sol-$(string(frame_idx, pad = 3)).png"), fig)
-        destroy!(fig)  # Free memory
+            fig = plot_spring(frame_idx, q_scaled)
+            save(joinpath(output_dir, "harmonic-oscillator-sol-$(string(frame_idx, pad = 3)).png"), fig)
+            destroy!(fig)  # Free memory
+        end
     end
 end
