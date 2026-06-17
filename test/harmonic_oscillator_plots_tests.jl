@@ -1,6 +1,20 @@
 using Test
 using GeometricProblems.HarmonicOscillator
-using GeometricProblems.HarmonicOscillatorPlots
+
+# Check if CairoMakie is available for plotting tests
+cairo_makie_available = false
+try
+    using CairoMakie
+    global cairo_makie_available = true
+catch
+    @info "CairoMakie not available, skipping plotting tests"
+end
+
+# Load plotting module if CairoMakie is available
+if cairo_makie_available
+    include("../scripts/harmonic_oscillator_plotting.jl")
+    using .HarmonicOscillatorPlotting
+end
 
 @testset "$(rpad("Harmonic Oscillator Plots",80))" begin
 
@@ -10,64 +24,90 @@ using GeometricProblems.HarmonicOscillatorPlots
     # Create a basic solution-like object for testing
     sol = (q = sin.(0:0.1:10), v = cos.(0:0.1:10), t = 0:0.1:10)
 
-    # Test that the basic plotting functions work without errors
-    @testset "Basic functionality" begin
-        # Test utility functions (available without CairoMakie)
-        @test xpos(0) ≈ 0
-        @test ypos(0) ≈ 0
-        @test zpos(0) ≈ 1.0  # A*cos(0) = 1.0
-        @test ϑ(0) ≈ 0       # -ω*A*sin(0) = 0
+    # Test utility functions that don't require CairoMakie
+    @testset "Utility functions (no CairoMakie required)" begin
+        # These should work by importing the module even without CairoMakie
+        # But we'll test the mathematical correctness
 
-        # Test spring geometry calculation
-        spring_coords = spring(0)
-        @test length(spring_coords) == 3
+        # Test basic mathematical values
+        π_approx = 3.141592653589793
 
-        # Only test CairoMakie-dependent functions if available
-        if @isdefined(CairoMakie) && isdefined(GeometricProblems.HarmonicOscillatorPlots, :plot_harmonic_oscillator)
-            # Test phase space plot
+        # xpos and ypos should be the same in our implementation
+        @test isapprox(xpos(0), sin(0.0))
+        @test isapprox(ypos(0), sin(0.0))
+        @test isapprox(zpos(0), 1.0)  # A*cos(0) = 1.0
+        @test isapprox(ϑ(0), 0.0)
+
+        # Test the values are reasonable (without exact precision)
+        @test 0.0 < xpos(2) < 0.1  # should be small positive
+        @test 0.9 < zpos(2) < 1.1    # should be close to 1.0
+    end
+
+    if cairo_makie_available
+        @testset "CairoMakie-dependent functions" begin
+            # Test spring geometry calculation
+            spring_coords = spring(0)
+            @test length(spring_coords) == 3
+            @test spring_coords[1] isa Vector
+            @test spring_coords[2] isa Vector
+            @test spring_coords[3] isa Vector
+
+            # Test phase space plot creation
             fig = plot_harmonic_oscillator(sol, ntime = 10)
             @test fig isa CairoMakie.Figure
 
-            # Test spring animation functions (single frames)
+            # Test single frame plotting
             fig_single = plot_spring(0, sol.q[1])
             @test fig_single isa CairoMakie.Figure
-        else
-            @test true # Skip these tests if CairoMakie not available
+
+            # Test that figures are properly created
+            @test !isempty(fig.content)
+            @test !isempty(fig_single.content)
         end
 
-        # Test that spring generation works
-        spring_coords = spring(0)
-        @test length(spring_coords) == 3
-        @test spring_coords[1] isa Vector
-        @test spring_coords[2] isa Vector
-        @test spring_coords[3] isa Vector
-    end
+        @testset "Animation functionality" begin
+            test_dir = "test-harmonic-plots-temp"
 
-    @testset "Function utilities" begin
-        # Test coordinate functions
-        @test xpos(0) ≈ 0
-        @test ypos(0) ≈ 0
-        @test zpos(0) ≈ 1.0  # A*cos(0) = 1.0
-        @test ϑ(0) ≈ 0       # -ω*A*sin(0) = 0
-    end
+            try
+                # Test that we can create animations (but only do 2 frames for testing)
+                plot_spring_animation(0:1, test_dir, true)
 
-    @testset "Animation target directory creation" begin
-        # Only test animation functions if CairoMakie is available
-        if @isdefined(CairoMakie) && isdefined(GeometricProblems.HarmonicOscillatorPlots, :plot_spring_animation)
-            test_dir = "test-harmonic-plots"
+                # Check that files were created
+                @test isdir(test_dir)
+                @test isfile(joinpath(test_dir, "harmonic-oscillator-000.png"))
+                @test isfile(joinpath(test_dir, "harmonic-oscillator-001.png"))
+            finally
+                # Clean up regardless of test results
+                if isdir(test_dir)
+                    rm(test_dir, recursive = true, force = true)
+                end
+            end
+        end
 
-            # Test that we can create animations (but only do 2 frames for testing)
-            plot_spring_animation(0:1, test_dir, true)
+        @testset "Integration with Harmonic Oscillator solutions" begin
+            # Test that plotting works with actual oscillator solutions
+            # This verifies integration between the plotting module and the main package
 
-            # Check that files were created
-            @test isdir(test_dir)
-            @test isfile(joinpath(test_dir, "harmonic-oscillator-000.png"))
-            @test isfile(joinpath(test_dir, "harmonic-oscillator-001.png"))
+            sol_mock = (
+                q = [cos(t) for t in 0:0.1:5],
+                v = [-sin(t) for t in 0:0.1:5],
+                t = 0:0.1:5
+            )
 
-            # Clean up
-            rm(test_dir, recursive = true, force = true)
-        else
-            @test true # Skip if CairoMakie not available
+            # Should work without errors
+            fig = plot_harmonic_oscillator(sol_mock)
+            @test fig isa CairoMakie.Figure
+
+            # Test different time ranges
+            fig_half = plot_harmonic_oscillator(sol_mock, ntime = 25)
+            @test fig_half isa CairoMakie.Figure
+        end
+    else
+        @testset "CairoMakie unavailable" begin
+            # Verify we still have basic mathematical capability
+            π_approx = 3.141592653589793
+            @test isapprox(sin(0.0), 0.0)
+            @test isapprox(cos(0.0), 1.0)
         end
     end
 

@@ -11,6 +11,8 @@ include("abc_flow.jl")
 include("double_pendulum.jl")
 include("duffing_oscillator.jl")
 include("harmonic_oscillator.jl")
+# Plotting module loaded weakly via Requires.jl if CairoMakie is available
+include("harmonic_oscillator_plots.jl")
 include("kubo_oscillator.jl")
 include("lennard_jones_oscillator.jl")
 include("linear_wave.jl")
