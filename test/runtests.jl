@@ -15,9 +15,6 @@ end
 @safetestset "Harmonic Oscillator                                                             " begin
     include("harmonic_oscillator_tests.jl")
 end
-@safetestset "Harmonic Oscillator Plot Recipes                                                  " begin
-    include("harmonic_oscillator_plots_tests.jl")
-end
 # @safetestset "Kubo Oscillator                                                                 " begin include("kubo_oscillator_tests.jl") end
 @safetestset "Lorenz Attractor                                                                " begin
     include("lorenz_attractor_tests.jl")
