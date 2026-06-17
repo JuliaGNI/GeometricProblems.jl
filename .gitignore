@@ -45,3 +45,9 @@ notebooks/*/*.png
 notebooks/*/*/*.png
 prototyping/*.pdf
 prototyping/*.png
+
+# Plotting demo outputs
+scripts/plotting_demo_output/
+standalone_demo/
+*.png
+!*.png.in
