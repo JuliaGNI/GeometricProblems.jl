@@ -19,6 +19,11 @@ export hamiltonian, lagrangian
 
 export compute_energy_error, exact_solution
 
+export default_parameters
+
+export plot_solution, plot_spring
+export labels_ode, labels_hamiltonian
+
 
 const t₀ = 0.0
 const Δt = 0.1
@@ -544,5 +549,12 @@ function compute_energy_error(t, q::DataSeries{T}, params) where {T}
 
     (h, e)
 end
+
+
+const labels_ode = (t = "t", q = "x", p = "ẋ", h = "E")
+const labels_hamiltonian = (t = "t", q = "q", p = "p", h = "H")
+
+function plot_spring end
+function plot_solution end
 
 end
