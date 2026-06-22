@@ -29,6 +29,7 @@ module Pendulum
 
 
     hamiltonian(t, q::Number, p::Number) = p^2 / 2 + cos(q)
+    hamiltonian(t, x::AbstractArray) = hamiltonian(t, x[1], x[2])
     hamiltonian(t, q::AbstractArray, p::AbstractArray) = hamiltonian(t, q[1], p[1])
 
     const labels_ode = (t = "t", q = "θ", p = "θ̇", h = "E")
