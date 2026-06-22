@@ -8,6 +8,11 @@ module Pendulum
 
     export odeproblem, podeproblem, iodeproblem, idaeproblem
 
+    export hamiltonian
+
+    export plot_pendulum, plot_solution
+    export labels_ode, labels_hamiltonian
+
 
     const t₀ = 0.0
     const Δt = 0.1
@@ -21,6 +26,17 @@ module Pendulum
     const p₀ = [0.0]
     const x₀ = [q₀[1], p₀[1]]
     const p₀_iode = [0.0, 0.0]
+
+
+    hamiltonian(t, q::Number, p::Number) = p^2 / 2 + cos(q)
+    hamiltonian(t, x::AbstractArray) = hamiltonian(t, x[1], x[2])
+    hamiltonian(t, q::AbstractArray, p::AbstractArray) = hamiltonian(t, q[1], p[1])
+
+    const labels_ode = (t = "t", q = "θ", p = "θ̇", h = "E")
+    const labels_hamiltonian = (t = "t", q = "θ", p = "p", h = "H")
+
+    function plot_pendulum end
+    function plot_solution end
 
 
     function pendulum_ode_v(v, t, q, params)
