@@ -4,7 +4,7 @@ using Makie
 import GeometricProblems.Pendulum
 
 """
-    plot_pendulum(t, x[, fig, axfig])
+    plot_pendulum(t, q[, fig, axfig])
 
 Plot a pendulum visualization at angle `q`. When called with only `t` and `q`,
 creates a new standalone figure. When `fig` and `axfig` are provided the pendulum
