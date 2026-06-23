@@ -20,7 +20,9 @@ module Pendulum
     using GeometricEquations
     using Parameters
 
-    export odeproblem, podeproblem, iodeproblem, idaeproblem
+    export odeproblem, podeproblem, hodeproblem, iodeproblem, idaeproblem
+
+    export hodeensemble
 
     export hamiltonian
 
@@ -51,6 +53,28 @@ module Pendulum
     const p₀ = [0.0]
     const x₀ = [q₀[1], p₀[1]]
     const p₀_iode = [0.0, 0.0]
+
+    const qmin = [0.0]
+    const qmax = [2π]
+    const pmin = [-2.0]
+    const pmax = [+2.0]
+    const qsamples = [10]
+    const psamples = [10]
+
+
+    function _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)
+        qs = [range(qmin[i], qmax[i]; length=qsamples[i]) for i in eachindex(qmin, qmax, qsamples)]
+        ps = [range(pmin[i], pmax[i]; length=psamples[i]) for i in eachindex(pmin, pmax, psamples)]
+
+        qsamples = vec(collect.(collect(Base.Iterators.product(qs...))))
+        psamples = vec(collect.(collect(Base.Iterators.product(ps...))))
+        zsamples = Base.Iterators.product(qsamples, psamples)
+
+        return (
+            q=vec([zs[1] for zs in zsamples]),
+            p=vec([zs[2] for zs in zsamples]),
+        )
+    end
 
 
     function hamiltonian(t, q::Number, p::Number, params)
@@ -106,6 +130,36 @@ module Pendulum
     end
 
     podeproblem(::Type{T}, args...; kwargs...) where {T} = podeproblem(q₀, p₀, T, args...; kwargs...)
+
+
+    function hodeproblem(q₀::AbstractArray{DT}=q₀, p₀::AbstractArray{DT}=p₀, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+        @assert length(q₀) == length(p₀) == 1
+        HODEProblem(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, T.(q₀), T.(p₀); parameters=parameters)
+    end
+
+    hodeproblem(::Type{T}, args...; kwargs...) where {T} = hodeproblem(q₀, p₀, T, args...; kwargs...)
+
+    # Ensemble over a grid of initial conditions (and optionally a vector of parameter sets).
+    function hodeensemble(
+        qmin::AbstractArray{DT}=qmin,
+        qmax::AbstractArray{DT}=qmax,
+        pmin::AbstractArray{DT}=pmin,
+        pmax::AbstractArray{DT}=pmax,
+        qsamples=qsamples,
+        psamples=psamples,
+        ::Type{T}=DT;
+        parameters=default_parameters(T),
+        timespan=timespan(T),
+        timestep=timestep(T)) where {DT,T}
+        samples = _pode_samples(T.(qmin), T.(qmax), T.(pmin), T.(pmax), qsamples, psamples)
+        HODEEnsemble(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, samples.q, samples.p; parameters=parameters)
+    end
+
+    # Ensemble over a vector of parameter sets sharing a single initial condition (q₀, p₀).
+    function hodeensemble(q₀::AbstractArray{DT}, p₀::AbstractArray{DT}, parameters::AbstractVector{<:NamedTuple}, ::Type{T}=DT; timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+        @assert length(q₀) == length(p₀) == 1
+        HODEEnsemble(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, T.(q₀), T.(p₀); parameters=parameters)
+    end
 
 
     function pendulum_iode_ϑ(p, t, q, v, params)
