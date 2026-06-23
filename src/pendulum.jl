@@ -1,14 +1,30 @@
 @doc raw"""
 # Mathematical Pendulum
 
+The mathematical pendulum with Hamiltonian
+```math
+H(q, p) = \frac{p^2}{2 m l^2} + m g l \cos(q) ,
+```
+where `q` is the angle and `p` the conjugate momentum.
+
+System parameters:
+* `l`: length of the pendulum
+* `m`: mass of the pendulum
+* `g`: gravitational acceleration
+
+The default parameters `l = m = g = 1` reduce this to the normalised
+Hamiltonian ``H(q, p) = p^2 / 2 + \cos(q)``.
 """
 module Pendulum
 
     using GeometricEquations
+    using Parameters
 
     export odeproblem, podeproblem, iodeproblem, idaeproblem
 
     export hamiltonian
+
+    export default_parameters
 
     export plot_pendulum, plot_solution
     export labels_ode, labels_hamiltonian
@@ -22,15 +38,33 @@ module Pendulum
     timespan(::Type{T}=Float64, t₀=t₀, t₁=Δt * nt) where {T} = (T(t₀), T(t₁))
 
 
+    # Physical parameters of the mathematical pendulum.
+    # The defaults l = m = g = 1 reproduce the normalised Hamiltonian H = p²/2 + cos(q).
+    const l = 1.0   # length of the pendulum
+    const m = 1.0   # mass of the pendulum
+    const g = 1.0   # gravitational acceleration
+
+    default_parameters(::Type{T}=Float64) where {T} = (l = T(l), m = T(m), g = T(g))
+
+
     const q₀ = [acos(0.4)]
     const p₀ = [0.0]
     const x₀ = [q₀[1], p₀[1]]
     const p₀_iode = [0.0, 0.0]
 
 
-    hamiltonian(t, q::Number, p::Number) = p^2 / 2 + cos(q)
-    hamiltonian(t, x::AbstractArray) = hamiltonian(t, x[1], x[2])
-    hamiltonian(t, q::AbstractArray, p::AbstractArray) = hamiltonian(t, q[1], p[1])
+    function hamiltonian(t, q::Number, p::Number, params)
+        @unpack l, m, g = params
+        p^2 / (2 * m * l^2) + m * g * l * cos(q)
+    end
+
+    hamiltonian(t, x::AbstractArray, params) = hamiltonian(t, x[1], x[2], params)
+    hamiltonian(t, q::AbstractArray, p::AbstractArray, params) = hamiltonian(t, q[1], p[1], params)
+
+    # parameter-free convenience methods using the default parameters
+    hamiltonian(t, q::Number, p::Number) = hamiltonian(t, q, p, default_parameters())
+    hamiltonian(t, x::AbstractArray) = hamiltonian(t, x[1], x[2], default_parameters())
+    hamiltonian(t, q::AbstractArray, p::AbstractArray) = hamiltonian(t, q[1], p[1], default_parameters())
 
     const labels_ode = (t = "t", q = "θ", p = "θ̇", h = "E")
     const labels_hamiltonian = (t = "t", q = "θ", p = "p", h = "H")
@@ -40,46 +74,51 @@ module Pendulum
 
 
     function pendulum_ode_v(v, t, q, params)
+        @unpack l, g = params
         v[1] = q[2]
-        v[2] = sin(q[1])
+        v[2] = (g / l) * sin(q[1])
         nothing
     end
 
-    function odeproblem(x₀::AbstractArray{DT}=x₀, ::Type{T}=DT; timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function odeproblem(x₀::AbstractArray{DT}=x₀, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
         @assert length(x₀) == 2
-        ODEProblem(pendulum_ode_v, timespan, timestep, T.(x₀))
+        ODEProblem(pendulum_ode_v, timespan, timestep, T.(x₀); parameters=parameters)
     end
 
     odeproblem(::Type{T}, args...; kwargs...) where {T} = odeproblem(x₀, T, args...; kwargs...)
 
 
     function pendulum_pode_v(v, t, q, p, params)
-        v[1] = p[1]
+        @unpack l, m = params
+        v[1] = p[1] / (m * l^2)
         nothing
     end
 
     function pendulum_pode_f(f, t, q, p, params)
-        f[1] = sin(q[1])
+        @unpack l, m, g = params
+        f[1] = m * g * l * sin(q[1])
         nothing
     end
 
-    function podeproblem(q₀::AbstractArray{DT}=q₀, p₀::AbstractArray{DT}=p₀, ::Type{T}=DT; timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function podeproblem(q₀::AbstractArray{DT}=q₀, p₀::AbstractArray{DT}=p₀, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
         @assert length(q₀) == length(p₀) == 1
-        PODEProblem(pendulum_pode_v, pendulum_pode_f, timespan, timestep, T.(q₀), T.(p₀))
+        PODEProblem(pendulum_pode_v, pendulum_pode_f, timespan, timestep, T.(q₀), T.(p₀); parameters=parameters)
     end
 
     podeproblem(::Type{T}, args...; kwargs...) where {T} = podeproblem(q₀, p₀, T, args...; kwargs...)
 
 
     function pendulum_iode_ϑ(p, t, q, v, params)
-        p[1] = q[2]
+        @unpack l, m = params
+        p[1] = m * l^2 * q[2]
         p[2] = 0
         nothing
     end
 
     function pendulum_iode_f(f, t, q, v, params)
-        f[1] = sin(q[1])
-        f[2] = v[1] - q[2]
+        @unpack l, m, g = params
+        f[1] = m * g * l * sin(q[1])
+        f[2] = m * l^2 * (v[1] - q[2])
         nothing
     end
 
@@ -90,16 +129,17 @@ module Pendulum
     end
 
     function pendulum_iode_v(v, t, q, p, params)
+        @unpack l, g = params
         v[1] = q[2]
-        v[2] = sin(q[1])
+        v[2] = (g / l) * sin(q[1])
         nothing
     end
 
-    function iodeproblem(q₀::AbstractArray{DT}=x₀, p₀::AbstractArray{DT}=p₀_iode, ::Type{T}=DT; timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function iodeproblem(q₀::AbstractArray{DT}=x₀, p₀::AbstractArray{DT}=p₀_iode, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
         @assert length(q₀) == length(p₀) == 2
         IODEProblem(pendulum_iode_ϑ, pendulum_iode_f,
             pendulum_iode_g, timespan, timestep, T.(q₀), T.(p₀);
-            v̄=pendulum_iode_v)
+            parameters=parameters, v̄=pendulum_iode_v)
     end
 
     iodeproblem(::Type{T}, args...; kwargs...) where {T} = iodeproblem(x₀, p₀_iode, T, args...; kwargs...)
@@ -118,17 +158,18 @@ module Pendulum
     end
 
     function pendulum_idae_ϕ(ϕ, t, q, v, p, params)
-        ϕ[1] = p[1] - q[2]
+        @unpack l, m = params
+        ϕ[1] = p[1] - m * l^2 * q[2]
         ϕ[2] = p[2]
         nothing
     end
 
-    function idaeproblem(q₀::AbstractArray{DT}=x₀, p₀::AbstractArray{DT}=p₀_iode, λ₀::AbstractArray{DT}=zero(q₀), ::Type{T}=DT; timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function idaeproblem(q₀::AbstractArray{DT}=x₀, p₀::AbstractArray{DT}=p₀_iode, λ₀::AbstractArray{DT}=zero(q₀), ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
         @assert length(q₀) == length(p₀) == length(λ₀) == 2
         IDAEProblem(pendulum_iode_ϑ, pendulum_iode_f,
             pendulum_idae_u, pendulum_idae_g, pendulum_idae_ϕ,
             timespan, timestep, T.(q₀), T.(p₀), T.(λ₀);
-            v̄=pendulum_iode_v)
+            parameters=parameters, v̄=pendulum_iode_v)
     end
 
     idaeproblem(::Type{T}, args...; kwargs...) where {T} = idaeproblem(x₀, p₀_iode, zero(x₀), T, args...; kwargs...)
