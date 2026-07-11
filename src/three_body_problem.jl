@@ -61,8 +61,22 @@ module ThreeBody
     end
 
 
+    # kinetic energy in terms of the velocities, T = Σ mᵢ q̇ᵢ² / 2 (not the momentum form T(p))
     function lagrangian(t, q, q̇, params)
-        T(q̇, params) - V(q, params)
+        ( params.m₁ * (q̇[1] ^ 2 + q̇[2] ^ 2)
+        + params.m₂ * (q̇[3] ^ 2 + q̇[4] ^ 2)
+        + params.m₃ * (q̇[5] ^ 2 + q̇[6] ^ 2) ) / 2 - V(q, params)
+    end
+
+    # initial guess for the velocity given the momentum, q̇ = M⁻¹ p
+    function v̄(v, t, q, p, params)
+        v[1] = p[1] / params.m₁
+        v[2] = p[2] / params.m₁
+        v[3] = p[3] / params.m₂
+        v[4] = p[4] / params.m₂
+        v[5] = p[5] / params.m₃
+        v[6] = p[6] / params.m₃
+        nothing
     end
 
 
@@ -109,7 +123,7 @@ module ThreeBody
         t, x, v = lagrangian_variables(6)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; parameters = parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
 end

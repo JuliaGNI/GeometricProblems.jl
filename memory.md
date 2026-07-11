@@ -32,9 +32,15 @@ Branch: `fix/correctness-audit`. Started 2026-07-11 22:30 CEST.
 - ✅ P14 docs — filled empty module docstrings (lorenz, lv4d, point_vortices); added content to orphan pages (kepler, henon_heiles, inner/outer_solar_system, diagnostics) marked not-yet-implemented; linear_wave.md fixed in P12; three_body docstring params in P2. MINOR REMAINING (not done): harmonic_oscillator.md empty "Lagrangian/Dynamics" sections; rigid_body.md example IC sin/cos swap; no nav pages for kubo/point_vortices_linear.
 - ✅ P15 tests — added nonlinear_oscillators_tests (HODE↔LODE), three_body_tests (HODE↔LODE), massless_charged_particle_tests (Ω·v=−∇H, i.e. ODE↔variational sign), linear_wave_tests (constructor regression). Re-calibrated LV-3D tolerances. KUBO RE-DISABLED: re-enabling surfaced a pre-existing GeometricEquations SDE-API incompatibility (old `SDEProblem(m,n,v,B,…)` → new `noise`-object API); model is correct, migration tracked as follow-up.
 
-## Known follow-ups (out of audit scope)
-- Kubo SDE/PSDE/SPSDE constructors need migration to the new GeometricEquations noise-object API, then re-enable test/runtests.jl block.
-- Minor doc polish: harmonic_oscillator.md empty sections; rigid_body.md example ICs; add nav pages for kubo & point_vortices_linear.
+## Follow-up round (second user request)
+- ✅ Kubo SDE noise-API migration: added `KuboNoise <: AbstractStochasticProcess`; `SDEProblem(v,B,noise,…)`, `PSDEProblem(…,G,noise,…)`, `SPSDEProblem(…,G2,noise,…)`. `_3` (multi-IC) variants now build ensembles via `EnsembleProblem(SDE(…; parameters=parameter_types(p)), tspan, tstep, [(q=StateVariable(x),)…], p)`. Test rewritten (functions(prob) is NOT params-baked → pass params) + re-enabled. Verified in isolation (18 tests pass).
+- ✅ harmonic_oscillator.md Lagrangian + Dynamics sections (Dynamics has a CairoMakie phase-space sim).
+- ✅ rigid_body.md: explained ICs are unit vectors on the Casimir sphere; sin/cos swap = different orientation, not a bug.
+- ✅ Default-case CairoMakie sims added to: double_pendulum, lorenz_attractor, lotka_volterra_3d, lotka_volterra_4d, point_vortices, toda_lattice, nonlinear_oscillators (2×2). harmonic covered by its Dynamics section.
+- Verification: full suite + docs build launched (pending).
+
+## Remaining follow-ups (still open)
+- Add nav pages for kubo & point_vortices_linear (no doc page yet).
 - ✅ P16 lotka_volterra_3d_lagrangian quarantined (B14) — renamed module LotkaVolterra3d→LotkaVolterra3dLagrangian (removes name collision), added warning docstring; still unregistered. Not repaired (ill-posed: 3D LV has no non-degenerate Lagrangian). No delete.
 - ✅ P17 .gitignore — appended `*-prev.jl`, `/references/`, `/harmonic-oscillator-plots/`. No files deleted.
 

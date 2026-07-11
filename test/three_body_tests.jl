@@ -1,4 +1,4 @@
-using GeometricIntegrators: Gauss, integrate
+using GeometricIntegrators: Gauss, integrate, relative_maximum_error
 using GeometricProblems.ThreeBody
 using Test
 
@@ -35,4 +35,12 @@ using Test
 
     @test all(isfinite, hsol.q[end])
     @test all(isfinite, lsol.q[end])
+
+    # Hamiltonian and Lagrangian formulations must agree for non-unit masses too. Over a very short
+    # window the two order-4 integrators differ only negligibly, so a mass-scaling error in the
+    # Lagrangian kinetic term (∝ q̇²/m instead of m·q̇²) would show up as an O(1) discrepancy.
+    mparams = (m₁ = 1.0, m₂ = 2.0, m₃ = 3.0, G = 1.0)
+    h = integrate(hodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
+    l = integrate(lodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
+    @test relative_maximum_error(h.q, l.q) < 1E-6
 end

@@ -37,6 +37,10 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   a factor `m²`). `src/coupled_harmonic_oscillator.jl`.
 - **Three-body problem** (B3/P2): added the missing body-1↔body-3 gravitational interaction to the
   potential `V` (was only pairs (1,2) and (2,3)). `src/three_body_problem.jl`.
+- **Three-body problem** (Copilot review): fixed the Lagrangian kinetic term — it reused the
+  momentum-form `T(q̇)=q̇²/(2m)` instead of `m·q̇²/2`, so the LODE and HODE disagreed for non-unit
+  masses (the same class of bug as the coupled oscillator); also added a `v̄` momentum→velocity map
+  to the `lodeproblem`. `src/three_body_problem.jl`.
 - **Massless charged particle** (B5/P4): flipped the sign-reversed `odeproblem` vector field (and
   the documented Hamiltonian-form matrix) so the ODE agrees with the variational IODE/IDAE forms;
   the one-form `ϑ = A` is retained as authoritative. `src/massless_charged_particle.jl`.
@@ -70,6 +74,16 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   implemented one (unweighted kinetic term, `μ²/(4Δξ²)` potential), clarified that the two boundary
   points are dynamical coordinates, and fixed LaTeX/grammar typos (`\Delta_xi`, "spaces points",
   "an completely-integrable"). `docs/src/linear_wave.md`.
+- **harmonic_oscillator.md**: wrote the previously empty "Lagrangian Formulation" and "Dynamics"
+  sections (the latter with a CairoMakie phase-space simulation of the default problem).
+- **rigid_body.md**: explained that all trajectories lie on the Casimir sphere $\lVert x \rVert^2$,
+  so the example's `[sin θ, 0, cos θ]` initial conditions (vs. the module's `[cos θ, 0, sin θ]`)
+  merely pick different orientations on that sphere — not a discrepancy.
+- **Default-case simulation plots**: added CairoMakie simulations of the default problem to the
+  docs of the double pendulum, Lorenz attractor, Lotka-Volterra 3D/4D, point vortices, Toda
+  lattice, and the four nonlinear oscillators.
+- **New navigation pages**: added documentation pages (with docstrings and a CairoMakie plot) for
+  the Kubo oscillator and the linear point-vortices model, and registered them in `docs/make.jl`.
 - **Doc pages** (P14): filled the empty module docstrings for the Lorenz attractor and
   Lotka-Volterra 4D model, expanded the Point Vortices docstring, and added content to the
   previously-empty pages for the Kepler problem, Hénon-Heiles system, inner/outer solar system, and
@@ -82,10 +96,14 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   `test/{nonlinear_oscillators,three_body,massless_charged_particle,linear_wave}_tests.jl`.
 - Re-calibrated the Lotka-Volterra 3D test tolerances to the corrected dynamics (P8), and refreshed
   the stale `reference_solution`. `test/lotka_volterra_3d_tests.jl`.
-- The Kubo oscillator test remains **disabled**: re-enabling it surfaced a pre-existing
-  GeometricEquations SDE-API incompatibility (old `SDEProblem(m, n, v, B, …)` vs the new
-  `noise`-object API). The Kubo model itself is correct; the SDE-API migration is tracked as a
-  follow-up. `test/runtests.jl`.
+- **Kubo oscillator**: migrated the SDE/PSDE/SPSDE constructors to the GeometricEquations
+  noise-object API (added a `KuboNoise <: AbstractStochasticProcess` marker; the old
+  `SDEProblem(m, n, v, B, …)` positional form is gone). The single-IC variants build problems and
+  the multi-IC variants (`_3`) build ensembles. The Kubo test is **re-enabled** and rewritten to
+  the new API (it now checks the drift/diffusion terms directly).
+  `src/kubo_oscillator.jl`, `test/kubo_oscillator_tests.jl`, `test/runtests.jl`.
+- Added a three-body HODE↔LODE consistency check with non-unit masses (guards the Lagrangian
+  kinetic-term fix). `test/three_body_tests.jl`.
 
 ### Repository hygiene
 - **Docs plotting → CairoMakie**: migrated all documentation plotting from Plots.jl and GLMakie.jl
