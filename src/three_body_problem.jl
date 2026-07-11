@@ -4,6 +4,8 @@
 System parameters:
 * `m₁`: mass of body 1
 * `m₂`: mass of body 2
+* `m₃`: mass of body 3
+* `G`: gravitational constant
 """
 module ThreeBody
 
@@ -52,7 +54,7 @@ module ThreeBody
     )
 
     T(p::AbstractVector, params::NamedTuple) = (p[1] ^ 2 + p[2] ^ 2) / (2 * params.m₁) + (p[3] ^ 2 + p[4] ^ 2) / (2 * params.m₂) + (p[5] ^ 2 + p[6] ^ 2) / (2 * params.m₃)
-    V(q::AbstractVector, params::NamedTuple) = -params.G * params.m₁ * params.m₂ / √((q[1] - q[3]) ^ 2 + (q[2] - q[4]) ^ 2) - params.G * params.m₂ * params.m₃ / √((q[3] - q[5]) ^ 2 + (q[4] - q[6]) ^ 2)
+    V(q::AbstractVector, params::NamedTuple) = -params.G * params.m₁ * params.m₂ / √((q[1] - q[3]) ^ 2 + (q[2] - q[4]) ^ 2) - params.G * params.m₂ * params.m₃ / √((q[3] - q[5]) ^ 2 + (q[4] - q[6]) ^ 2) - params.G * params.m₁ * params.m₃ / √((q[1] - q[5]) ^ 2 + (q[2] - q[6]) ^ 2)
 
     function hamiltonian(t, q, p, params)
         T(p, params) + V(q, params)
@@ -103,11 +105,11 @@ module ThreeBody
     )
     ```
     """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
-        t, x, v = lagrangian_variables(2)
+    function lodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = timespan, timestep = timestep, parameters = default_parameters)
+        t, x, v = lagrangian_variables(6)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
 end

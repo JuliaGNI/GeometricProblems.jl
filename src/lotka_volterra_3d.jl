@@ -57,22 +57,22 @@ const nt = 1000
 const timespan = (0.0, Δt * nt)
 
 const default_parameters = (A1=1.0, A2=1.0, A3=1.0, B1=0.0, B2=1.0, B3=1.0)
-const reference_solution = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
+const reference_solution = [1.2429313310230237, 2.263720576035246, 0.7108206593932]
 
 
 function v₁(t, q, params)
     @unpack A1, A2, A3, B1, B2, B3 = params
-    q[1] * (-A2 * q[2] + A3 * q[3] + B2 - B3)
+    q[1] * (-A2 * q[2] + A3 * q[3] - B2 + B3)
 end
 
 function v₂(t, q, params)
     @unpack A1, A2, A3, B1, B2, B3 = params
-    q[2] * (+A1 * q[1] - A3 * q[3] - B1 + B3)
+    q[2] * (+A1 * q[1] - A3 * q[3] + B1 - B3)
 end
 
 function v₃(t, q, params)
     @unpack A1, A2, A3, B1, B2, B3 = params
-    q[3] * (-A1 * q[1] + A2 * q[2] + B1 - B2)
+    q[3] * (-A1 * q[1] + A2 * q[2] - B1 + B2)
 end
 
 
@@ -85,7 +85,7 @@ const v₀ = [v₁(0, q₀, default_parameters), v₂(0, q₀, default_parameter
 
 function hamiltonian(t, q, params)
     @unpack A1, A2, A3, B1, B2, B3 = params
-    A1 * q[1] + A2 * q[2] + A3 * q[3] - B1 * log(q[1]) - B2 * log(q[2]) - B3 * log(q[3])
+    A1 * q[1] + A2 * q[2] + A3 * q[3] + B1 * log(q[1]) + B2 * log(q[2]) + B3 * log(q[3])
 end
 
 hamiltonian_iode(v, t, q, params) = hamiltonian(t, q, params)

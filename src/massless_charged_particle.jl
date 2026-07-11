@@ -27,8 +27,8 @@ E(x) &= - \nabla \phi(x) = E_0 \, \big( \sin x_1, \, - \cos x_2 \big)^T .
 The Hamiltonian form of the equations of motion reads
 ```math
 \dot{x} = \frac{1}{B(x)} \begin{pmatrix}
-\hphantom{-} 0 & + 1 \\
-- 1 & \hphantom{+} 0 \\
+\hphantom{-} 0 & - 1 \\
++ 1 & \hphantom{+} 0 \\
 \end{pmatrix} \nabla \phi (x) .
 ```
 
@@ -75,8 +75,8 @@ module MasslessChargedParticle
     E(q, params) = [E₁(q, params), E₂(q, params)]
 
     # components of the velocity
-    v₁(t, q, params) = - E₂(q, params) / B(q, params)
-    v₂(t, q, params) = + E₁(q, params) / B(q, params)
+    v₁(t, q, params) = + E₂(q, params) / B(q, params)
+    v₂(t, q, params) = - E₁(q, params) / B(q, params)
 
     # components of the one-form (symplectic potential)
     ϑ₁(t, q, params) = A₁(q, params)
@@ -173,8 +173,8 @@ module MasslessChargedParticle
     end
 
     function massless_charged_particle_ψ(ψ, t, q, p, v, f, params)
-        ψ[1] = f[1] - g₁(t,q,v,params)
-        ψ[2] = f[2] - g₂(t,q,v,params)
+        ψ[1] = f[1] - g₁(v,t,q,params)
+        ψ[2] = f[2] - g₂(v,t,q,params)
         nothing
     end
 

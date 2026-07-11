@@ -52,3 +52,8 @@ notebooks/*/*.png
 notebooks/*/*/*.png
 prototyping/*.pdf
 prototyping/*.png
+
+# Backup and scratch files (kept locally; not part of the package) — see bugs.md §6
+*-prev.jl
+/references/
+/harmonic-oscillator-plots/

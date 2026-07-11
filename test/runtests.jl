@@ -15,7 +15,26 @@ end
 @safetestset "Harmonic Oscillator                                                             " begin
     include("harmonic_oscillator_tests.jl")
 end
-# @safetestset "Kubo Oscillator                                                                 " begin include("kubo_oscillator_tests.jl") end
+# The Kubo oscillator model is correct, but its test constructs SDE/PSDE/SPSDE problems using the
+# old `SDEProblem(m, n, v, B, …)` positional signature, which GeometricEquations has since replaced
+# with a `noise`-object API (`SDEProblem(v, B, noise, …)`). Re-enabling the test therefore requires
+# migrating the Kubo SDE constructors to the new noise API — tracked separately; keep it disabled
+# until then so the suite stays green.
+# @safetestset "Kubo Oscillator                                                                 " begin
+#     include("kubo_oscillator_tests.jl")
+# end
+@safetestset "Nonlinear Oscillators                                                           " begin
+    include("nonlinear_oscillators_tests.jl")
+end
+@safetestset "Linear Wave                                                                     " begin
+    include("linear_wave_tests.jl")
+end
+@safetestset "Massless Charged Particle                                                       " begin
+    include("massless_charged_particle_tests.jl")
+end
+@safetestset "Three-Body Problem                                                              " begin
+    include("three_body_tests.jl")
+end
 @safetestset "Lorenz Attractor                                                                " begin
     include("lorenz_attractor_tests.jl")
 end

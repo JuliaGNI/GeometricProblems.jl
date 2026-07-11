@@ -1,5 +1,19 @@
 @doc raw"""
+# Lotka-Volterra Model in 4D
 
+A four-dimensional Lotka-Volterra system written as a degenerate variational / non-canonical
+Hamiltonian system. It is governed by the Hamiltonian
+```math
+H(q) = \sum_{i=1}^{4} \big( a_i \, q_i + b_i \, \log q_i \big) ,
+```
+together with a one-form ``\vartheta(q)`` (`ϑ`) whose exterior derivative provides the symplectic
+matrix ``\omega`` (`ω`). Explicit (`odeproblem`), partitioned (`podeproblem`), implicit/variational
+(`iodeproblem`, `lodeproblem`) and differential-algebraic forms are provided; the energy
+`hamiltonian` is conserved along the flow.
+
+System parameters: the linear and logarithmic coefficients ``a_i`` and ``b_i`` of ``H``.
+
+A symbolically generated Lagrangian variant is available in the `LotkaVolterra4dLagrangian` module.
 """
 module LotkaVolterra4d
 

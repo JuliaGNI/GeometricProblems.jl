@@ -5,6 +5,8 @@ module LotkaVolterra3dPlots
     using Measures: mm
     using RecipesBase
 
+    using ..LotkaVolterra3d: hamiltonian
+
     # export compute_energy_error, compute_momentum_error
 
 

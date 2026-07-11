@@ -35,7 +35,7 @@ function s(ξ::AbstractVector{T}, μ::T) where T <: Real
 end
 
 function ∂s(ξ::AbstractVector{T}, μ::T) where T <: Real
-    ∂s_closure(ξ_scalar) = s(ξ_scalar, μ)
+    ∂s_closure(ξ_scalar) = ∂s(ξ_scalar, μ)
     ∂s_closure.(ξ)
 end
 
