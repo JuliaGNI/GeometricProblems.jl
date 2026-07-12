@@ -17,10 +17,10 @@ using GeometricIntegrators: integrate, ImplicitMidpoint
 using GeometricProblems.CoupledHarmonicOscillator: hodeensemble, default_parameters
 using CairoMakie
  
-const m₁ = default_parameters.m₁  
-const m₂ = default_parameters.m₂ 
-const k₁ = default_parameters.k₁ 
-const k₂ = default_parameters.k₂ 
+const m₁ = default_parameters().m₁  
+const m₂ = default_parameters().m₂ 
+const k₁ = default_parameters().k₁ 
+const k₂ = default_parameters().k₂ 
 const k = [0.0, 0.5, 0.75, 1.0, 2.0, 3.0, 4.0] 
  
 params_collection = [(m₁ = m₁, m₂ = m₂, k₁ = k₁, k₂ = k₂, k = k_val) for k_val in k] 

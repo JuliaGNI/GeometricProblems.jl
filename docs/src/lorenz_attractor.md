@@ -7,7 +7,7 @@ using GeometricProblems.LorenzAttractor
 using GeometricIntegrators: integrate, ImplicitMidpoint
 using CairoMakie
 
-sol = integrate(lorenz_attractor_ode(), ImplicitMidpoint())
+sol = integrate(odeproblem(), ImplicitMidpoint())
 
 fig = Figure(size = (600, 600))
 ax = Axis3(fig[1, 1]; xlabel = "x", ylabel = "y", zlabel = "z", title = "Lorenz attractor")

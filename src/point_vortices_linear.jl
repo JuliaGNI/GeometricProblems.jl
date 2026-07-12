@@ -12,36 +12,49 @@ module PointVorticesLinear
     using GeometricEquations
 
     export odeproblem, iodeproblem, iodeproblem_dg, lodeproblem_formal_lagrangian,
-           hamiltonian, angular_momentum, ϑ1, ϑ2, ϑ3, ϑ4,
+           hamiltonian, angular_momentum, ϑ₁, ϑ₂, ϑ₃, ϑ₄,
            compute_energy, compute_energy_error, compute_angular_momentum_error,
            compute_momentum_error, compute_one_form
 
     const Δt = 0.01
     const nt = 1000
     const DEFAULT_TIMESPAN = (0.0, Δt*nt)
-    
+    const DEFAULT_TIMESTEP = Δt
+
     const γ₁ = 4.0
     const γ₂ = 2.0
     const d  = 1.0
     const q₀ = [γ₂*d/(γ₁+γ₂), 0.0, -γ₁*d/(γ₁+γ₂), 0.0]
 
+    # The vortex circulations γ₁, γ₂ (and spacing d) are fixed structural constants of this
+    # model instance, so there are no tunable parameters and default_parameters returns an empty NamedTuple.
+    default_parameters(::Type{T}=Float64) where {T} = NamedTuple()
 
-    function hamiltonian(t,q)
+
+    function hamiltonian(t, q, params)
         γ₁ * γ₂ * log( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (4π)
     end
+    # H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+    hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
-    ϑ1(q) = - γ₁ * q[2] / 2
-    ϑ2(q) = + γ₁ * q[1] / 2
-    ϑ3(q) = - γ₂ * q[4] / 2
-    ϑ4(q) = + γ₂ * q[3] / 2
+    ϑ₁(q) = - γ₁ * q[2] / 2
+    ϑ₂(q) = + γ₁ * q[1] / 2
+    ϑ₃(q) = - γ₂ * q[4] / 2
+    ϑ₄(q) = + γ₂ * q[3] / 2
 
-    ϑ(q) = [ϑ1(q), ϑ2(q), ϑ3(q), ϑ4(q)]
+    ϑ(q) = [ϑ₁(q), ϑ₂(q), ϑ₃(q), ϑ₄(q)]
 
-    function angular_momentum(t,q)
+    function angular_momentum(t, q, params)
         # γ₁ * (q[1]^2 + q[2]^2) * S(q[1],q[2]) +
         # γ₂ * (q[3]^2 + q[4]^2) * S(q[3],q[4])
-        q[1] * ϑ2(q) - q[2] * ϑ1(q) +
-        q[3] * ϑ4(q) - q[4] * ϑ3(q)
+        q[1] * ϑ₂(q) - q[2] * ϑ₁(q) +
+        q[3] * ϑ₄(q) - q[4] * ϑ₃(q)
+    end
+
+    # Formal (phase-space) Lagrangian L = ϑ(q)·v - H(q) for the non-canonical system.
+    # Its Euler–Lagrange equations reproduce the linearised point-vortex dynamics.
+    function lagrangian(t, q, v, params)
+        ϑ₁(q) * v[1] + ϑ₂(q) * v[2] + ϑ₃(q) * v[3] + ϑ₄(q) * v[4] - hamiltonian(t, q, params)
     end
 
 
@@ -64,10 +77,10 @@ module PointVorticesLinear
 
 
     function ϑ(p, t, q)
-        p[1] = ϑ1(q)
-        p[2] = ϑ2(q)
-        p[3] = ϑ3(q)
-        p[4] = ϑ4(q)
+        p[1] = ϑ₁(q)
+        p[2] = ϑ₂(q)
+        p[3] = ϑ₃(q)
+        p[4] = ϑ₄(q)
     end
 
     function ω(Ω, t, q)
@@ -93,6 +106,9 @@ module PointVorticesLinear
 
         nothing
     end
+
+    # LODE calls the symplectic matrix with an extra velocity slot; ω depends only on q.
+    ω(Ω, t, q, v, params) = ω(Ω, t, q)
 
 
     f1(t, q, v) = + γ₁ * v[2] / 2
@@ -123,16 +139,16 @@ module PointVorticesLinear
         nothing
     end
 
-    function odeproblem(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = Δt)
-        ODEProblem(point_vortices_v, timespan, timestep, q₀)
+    function odeproblem(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        ODEProblem(point_vortices_v, timespan, timestep, q₀; parameters=parameters)
     end
 
 
     function point_vortices_ϑ(p, t, q, v, params)
-        p[1] = ϑ1(q)
-        p[2] = ϑ2(q)
-        p[3] = ϑ3(q)
-        p[4] = ϑ4(q)
+        p[1] = ϑ₁(q)
+        p[2] = ϑ₂(q)
+        p[3] = ϑ₃(q)
+        p[4] = ϑ₄(q)
         nothing
     end
 
@@ -159,44 +175,44 @@ module PointVorticesLinear
         point_vortices_v(v, t, q, params)
     end
 
-    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = Δt)
+    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         IODEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_g, timespan, timestep, q₀, p₀;
-                    v̄=point_vortices_v)
+                    v̄=point_vortices_v, parameters=parameters)
     end
 
-    function iodeproblem_dg(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = Δt)
+    function iodeproblem_dg(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         IODEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_g, timespan, timestep, q₀, q₀;
-                    v=point_vortices_v)
+                    v̄=point_vortices_v, parameters=parameters)
     end
 
-    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = Δt)
-        LODEProblem(ϑ, point_vortices_f, point_vortices_g, timespan, timestep, q₀, p₀;
-                    v̄=point_vortices_v, Ω=ω, ∇H=dH)
+    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        LODEProblem(point_vortices_ϑ, point_vortices_f, point_vortices_g, ω, lagrangian,
+                    timespan, timestep, q₀, p₀; v̄=point_vortices_v, parameters=parameters)
     end
 
 
-    function compute_energy(t, q)
+    function compute_energy(t, q, params)
         h = zeros(q.nt+1)
         for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i])
+            h[i] = hamiltonian(t.t[i], q.d[:,i], params)
         end
         return h
     end
 
-    function compute_energy_error(t, q)
+    function compute_energy_error(t, q, params)
         h = zeros(q.nt+1)
         for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i])
+            h[i] = hamiltonian(t.t[i], q.d[:,i], params)
         end
         h_error = (h .- h[1]) / h[1]
     end
 
-    function compute_angular_momentum_error(t, q)
+    function compute_angular_momentum_error(t, q, params)
         P = zeros(q.nt+1)
         for i in 1:(q.nt+1)
-            P[i] = angular_momentum(t.t[i], q.d[:,i])
+            P[i] = angular_momentum(t.t[i], q.d[:,i], params)
         end
         P_error = (P .- P[1]) / P[1]
     end
@@ -208,10 +224,10 @@ module PointVorticesLinear
         p4_error = zeros(q.nt+1)
 
         for i in 1:(q.nt+1)
-            p1_error[i] = p.d[1,i] - ϑ1(q.d[:,i])
-            p2_error[i] = p.d[2,i] - ϑ2(q.d[:,i])
-            p3_error[i] = p.d[3,i] - ϑ3(q.d[:,i])
-            p4_error[i] = p.d[4,i] - ϑ4(q.d[:,i])
+            p1_error[i] = p.d[1,i] - ϑ₁(q.d[:,i])
+            p2_error[i] = p.d[2,i] - ϑ₂(q.d[:,i])
+            p3_error[i] = p.d[3,i] - ϑ₃(q.d[:,i])
+            p4_error[i] = p.d[4,i] - ϑ₄(q.d[:,i])
         end
 
         (p1_error, p2_error, p3_error, p4_error)
@@ -224,10 +240,10 @@ module PointVorticesLinear
         p4 = zeros(q.nt+1)
 
         for i in 1:(q.nt+1)
-            p1[i] = ϑ1(q.d[:,i])
-            p2[i] = ϑ2(q.d[:,i])
-            p3[i] = ϑ3(q.d[:,i])
-            p4[i] = ϑ4(q.d[:,i])
+            p1[i] = ϑ₁(q.d[:,i])
+            p2[i] = ϑ₂(q.d[:,i])
+            p3[i] = ϑ₃(q.d[:,i])
+            p4[i] = ϑ₄(q.d[:,i])
         end
 
         (p1, p2, p3, p4)

@@ -69,7 +69,8 @@ function Pendulum.plot_solution(
     np = 600
     qs = range(0.0, 2π, nq)
     ps = range(-3.0, 3.0, np)
-    hs = [Pendulum.hamiltonian(0, _q, _p) for _q in qs, _p in ps]
+    params = Pendulum.default_parameters()
+    hs = [Pendulum.hamiltonian(0, _q, _p, params) for _q in qs, _p in ps]
 
     if hmod !== nothing
         hmods = [hmod(_q, _p) for _q in qs, _p in ps]

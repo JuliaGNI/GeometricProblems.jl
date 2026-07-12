@@ -10,7 +10,7 @@ using Test
 # initial conditions is sensitive/chaotic, so two distinct order-4 integrators diverge quickly.
 
 @testset "$(rpad("Three-Body Problem",80))" begin
-    params = ThreeBody.default_parameters
+    params = ThreeBody.default_parameters()
 
     G  = params.G
     m₁ = params.m₁

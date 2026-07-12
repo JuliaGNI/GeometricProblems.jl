@@ -12,7 +12,7 @@ using GeometricProblems.KuboOscillator
 using GeometricIntegrators: integrate, ImplicitMidpoint
 using CairoMakie
 
-sol = integrate(kubo_oscillator_ode(; timespan = (0.0, 2π)), ImplicitMidpoint())
+sol = integrate(odeproblem(; timespan = (0.0, 2π)), ImplicitMidpoint())
 
 fig = Figure()
 ax = Axis(fig[1, 1]; xlabel = "q₁", ylabel = "q₂", aspect = DataAspect(), title = "Kubo oscillator (deterministic drift)")

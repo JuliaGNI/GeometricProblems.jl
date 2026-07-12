@@ -36,12 +36,12 @@ module CoupledHarmonicOscillator
     const DEFAULT_TIMESPAN = (0.0, 100.0)
     const DEFAULT_TIMESTEP = 0.4
 
-    const default_parameters = (
-        m₁ = 2.,
-        m₂ = 1.,
-        k₁ = 1.5,
-        k₂ = 0.3,
-        k = 1.0
+    default_parameters(::Type{DT}=Float64) where {DT} = (
+        m₁ = DT(2.),
+        m₂ = DT(1.),
+        k₁ = DT(1.5),
+        k₂ = DT(0.3),
+        k = DT(1.0)
     )
 
     const q₀ = [1., 0.]
@@ -96,15 +96,15 @@ module CoupledHarmonicOscillator
         p₀ = $(p₀);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        parameters = $(default_parameters)
+        parameters = $(default_parameters())
     )
     ```
     """
-    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
-    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         eqs = functions(hamiltonian_system(_parameters(parameters)))
         HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
@@ -119,11 +119,11 @@ module CoupledHarmonicOscillator
         p₀ = $(p₀);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        parameters = $(default_parameters)
+        parameters = $(default_parameters())
     )
     ```
     """
-    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 

@@ -4,10 +4,11 @@
 The Kubo oscillator is a unit-frequency harmonic oscillator, $\dot{q}_1 = q_2$, $\dot{q}_2 = -q_1$,
 driven by multiplicative (Stratonovich) noise. It is a standard test problem for stochastic
 geometric integrators. The module provides it as a stochastic differential equation
-(`kubo_oscillator_sde_*`), a partitioned SDE (`kubo_oscillator_psde_*`), a split partitioned SDE
-(`kubo_oscillator_spsde_*`), and the underlying deterministic ODE (`kubo_oscillator_ode`). The
-`_1`/`_2` variants build single problems and the `_3` variants build ensembles of initial
-conditions. The noise process is represented by [`KuboNoise`](@ref).
+(`sdeproblem`), a partitioned SDE (`psdeproblem`), a split partitioned SDE (`spsdeproblem`), and
+the underlying deterministic ODE (`odeproblem`). The `*problem` builders create a single problem
+from one initial condition; the `*ensemble` builders (`sdeensemble`, `psdeensemble`,
+`spsdeensemble`) build an ensemble from several initial conditions. The noise process is
+represented by [`KuboNoise`](@ref).
 
 System parameter: `ν` — the noise intensity.
 """
@@ -18,10 +19,9 @@ module KuboOscillator
 
     import GeometricBase: AbstractStochasticProcess
 
-    export kubo_oscillator_sde_1, kubo_oscillator_psde_1, kubo_oscillator_spsde_1
-    export kubo_oscillator_sde_2, kubo_oscillator_psde_2, kubo_oscillator_spsde_2
-    export kubo_oscillator_sde_3, kubo_oscillator_psde_3, kubo_oscillator_spsde_3
-    export kubo_oscillator_ode
+    export sdeproblem, psdeproblem, spsdeproblem
+    export sdeensemble, psdeensemble, spsdeensemble
+    export odeproblem
     export KuboNoise
 
     """
@@ -34,18 +34,19 @@ module KuboOscillator
     """
     struct KuboNoise <: AbstractStochasticProcess end
 
-    q_init_A=[0.5, 0.0]
-    q_init_B=[[ 0.5, 0.0],
-              [ 0.0, 0.5],
-              [-0.5, 0.0]]
+    const q_init_A=[0.5, 0.0]
+    const q_init_B=[[ 0.5, 0.0],
+                    [ 0.0, 0.5],
+                    [-0.5, 0.0]]
 
     const noise_intensity = 0.1
 
     const Δt = 0.01
     const nt = 10
     const DEFAULT_TIMESPAN = (0.0, Δt*nt)
+    const DEFAULT_TIMESTEP = Δt
 
-    const default_parameters = (ν = noise_intensity,)
+    default_parameters(::Type{T}=Float64) where {T} = (ν = T(noise_intensity),)
 
 
     function kubo_oscillator_sde_v(v, t, q, params)
@@ -69,20 +70,13 @@ module KuboOscillator
     end
 
 
-    function kubo_oscillator_sde_1(q₀=q_init_A; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
-        # q_init_A - interpreted as one random initial conditions with one sample path
+    function sdeproblem(q₀=q_init_A; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        # single initial condition (q_init_A); the number of sample paths is chosen by the integrator
         # 1-dimensional noise
         SDEProblem(kubo_oscillator_sde_v, kubo_oscillator_sde_B, KuboNoise(), timespan, timestep, q₀; parameters = parameters)
     end
 
-    function kubo_oscillator_sde_2(q₀=q_init_A; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
-        # q_init_A - single deterministic initial condition
-        # Generating 3 sample paths
-        # 1-dimensional noise
-        SDEProblem(kubo_oscillator_sde_v, kubo_oscillator_sde_B, KuboNoise(), timespan, timestep, q₀; parameters = parameters)
-    end
-
-    function kubo_oscillator_sde_3(q₀=q_init_B; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
+    function sdeensemble(q₀=q_init_B; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         # q_init_B holds several initial conditions -> ensemble problem
         equ = SDE(kubo_oscillator_sde_v, kubo_oscillator_sde_B, KuboNoise();
                   parameters = GeometricEquations.parameter_types(parameters))
@@ -93,18 +87,18 @@ module KuboOscillator
 
     # ODE
 
-    function kubo_oscillator_ode(q₀=q_init_A; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
+    function odeproblem(q₀=q_init_A; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         ODEProblem(kubo_oscillator_sde_v, timespan, timestep, q₀; parameters = parameters)
     end
 
 
     # PSDE
 
-    q_init_C=[0.5]
-    p_init_C=[0.0]
+    const q_init_C=[0.5]
+    const p_init_C=[0.0]
 
-    q_init_D=[[0.5], [0.0], [-0.5]]
-    p_init_D=[[0.0], [0.5], [ 0.0]]
+    const q_init_D=[[0.5], [0.0], [-0.5]]
+    const p_init_D=[[0.0], [0.5], [ 0.0]]
 
 
     function kubo_oscillator_psde_v(v, t, q, p, params)
@@ -126,24 +120,15 @@ module KuboOscillator
     end
 
 
-    function kubo_oscillator_psde_1(q₀=q_init_C, p₀=p_init_C; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
-        # q_init_C - interpreted as a single random initial condition with one sample path
+    function psdeproblem(q₀=q_init_C, p₀=p_init_C; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        # single initial condition (q_init_C, p_init_C); the number of sample paths is chosen by the integrator
         # 1-dimensional noise
         PSDEProblem(kubo_oscillator_psde_v, kubo_oscillator_psde_f,
                     kubo_oscillator_psde_B, kubo_oscillator_psde_G, KuboNoise(),
                     timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
-    function kubo_oscillator_psde_2(q₀=q_init_C, p₀=p_init_C; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
-        # q_init_C - single deterministic initial condition
-        # Generating 3 sample paths
-        # 1-dimensional noise
-        PSDEProblem(kubo_oscillator_psde_v, kubo_oscillator_psde_f,
-                    kubo_oscillator_psde_B, kubo_oscillator_psde_G, KuboNoise(),
-                    timespan, timestep, q₀, p₀; parameters = parameters)
-    end
-
-    function kubo_oscillator_psde_3(q₀=q_init_D, p₀=p_init_D; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
+    function psdeensemble(q₀=q_init_D, p₀=p_init_D; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         # q_init_D / p_init_D hold several initial conditions -> ensemble problem
         equ = PSDE(kubo_oscillator_psde_v, kubo_oscillator_psde_f,
                    kubo_oscillator_psde_B, kubo_oscillator_psde_G, KuboNoise();
@@ -182,24 +167,15 @@ module KuboOscillator
     end
 
 
-    function kubo_oscillator_spsde_1(q₀ = q_init_C, p₀ = p_init_C; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
-        # q_init_C - interpreted as a single random initial condition with one sample path
+    function spsdeproblem(q₀ = q_init_C, p₀ = p_init_C; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        # single initial condition (q_init_C, p_init_C); the number of sample paths is chosen by the integrator
         # 1-dimensional noise
         SPSDEProblem(kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
                      kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2, KuboNoise(),
                      timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
-    function kubo_oscillator_spsde_2(q₀ = q_init_C, p₀ = p_init_C; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
-        # q_init_C - single deterministic initial condition
-        # Generating 3 sample paths
-        # 1-dimensional noise
-        SPSDEProblem(kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
-                     kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2, KuboNoise(),
-                     timespan, timestep, q₀, p₀; parameters = parameters)
-    end
-
-    function kubo_oscillator_spsde_3(q₀ = q_init_D, p₀ = p_init_D; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
+    function spsdeensemble(q₀ = q_init_D, p₀ = p_init_D; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         # q_init_D / p_init_D hold several initial conditions -> ensemble problem
         equ = SPSDE(kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_spsde_f2,
                     kubo_oscillator_spsde_B, kubo_oscillator_spsde_G1, kubo_oscillator_spsde_G2, KuboNoise();

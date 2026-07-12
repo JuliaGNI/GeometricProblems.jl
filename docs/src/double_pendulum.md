@@ -73,8 +73,8 @@ using CairoMakie
 
 sol = integrate(hodeproblem(), Gauss(1))
 
-l₁ = DoublePendulum.default_parameters.l₁
-l₂ = DoublePendulum.default_parameters.l₂
+l₁ = DoublePendulum.default_parameters().l₁
+l₂ = DoublePendulum.default_parameters().l₂
 θ₁ = collect(sol.q[:, 1])
 θ₂ = collect(sol.q[:, 2])
 x₂ = l₁ .* sin.(θ₁) .+ l₂ .* sin.(θ₂)
