@@ -25,9 +25,12 @@ module DoublePendulum
     using EulerLagrange
     using LinearAlgebra
     using Parameters
+    using GeometricEquations: HODEEnsemble, LODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
+    export hodeensemble, lodeensemble
+    export hamiltonian_system, lagrangian_system
 
 
     ϑ₁(t, q, q̇, params) = (params.m₁ + params.m₂) * params.l₁^2 * q̇[1] + 
@@ -62,8 +65,8 @@ module DoublePendulum
     end
 
 
-    const timestep = 0.01
-    const timespan = (0.0, 10.0)
+    const DEFAULT_TIMESTEP = 0.01
+    const DEFAULT_TIMESPAN = (0.0, 10.0)
 
     const default_parameters = (
         l₁ = 2.0,
@@ -75,7 +78,7 @@ module DoublePendulum
 
     const θ₀ = [π/4, π/2]
     const ω₀ = [0.0, π/8]
-    const p₀ = ϑ(timespan[begin], θ₀, ω₀, default_parameters)
+    const p₀ = ϑ(DEFAULT_TIMESPAN[begin], θ₀, ω₀, default_parameters)
 
 
     function hamiltonian(t, q, p, params)
@@ -101,6 +104,23 @@ module DoublePendulum
               m₂  * l₂ * g * cos(q[2])
     end
 
+    function hamiltonian_system(parameters::NamedTuple)
+        t, q, p = hamiltonian_variables(2)
+        sparams = symbolize(parameters)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
+    end
+
+    function lagrangian_system(parameters::NamedTuple)
+        t, x, v = lagrangian_variables(2)
+        sparams = symbolize(parameters)
+        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+    end
+
+    # Build the symbolic system from a single parameter set, while a vector of parameter
+    # sets is passed on to the ensemble unchanged (see issue #64).
+    _parameters(p::NamedTuple) = p
+    _parameters(p::AbstractVector) = p[begin]
+
 
     """
         Hamiltonian problem for the double pendulum
@@ -110,17 +130,20 @@ module DoublePendulum
     hodeproblem(
         q₀ = [π/4, π/2],
         p₀ = $(p₀);
-        timespan = $(timespan),
-        timestep = $(timestep),
-        params = $(default_parameters)
+        timespan = $(DEFAULT_TIMESPAN),
+        timestep = $(DEFAULT_TIMESTEP),
+        parameters = $(default_parameters)
     )
     ```
     """
-    function hodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
-        t, q, p = hamiltonian_variables(2)
-        sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
+    function hodeproblem(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
+    end
+
+    "Hamiltonian ensemble for the double pendulum (varying initial conditions and/or parameters)."
+    function hodeensemble(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        eqs = functions(hamiltonian_system(_parameters(parameters)))
+        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     """
@@ -131,17 +154,20 @@ module DoublePendulum
     lodeproblem(
         q₀ = [π/4, π/2],
         p₀ = $(p₀);
-        timespan = $(timespan),
-        timestep = $(timestep),
-        params = $(default_parameters)
+        timespan = $(DEFAULT_TIMESPAN),
+        timestep = $(DEFAULT_TIMESTEP),
+        parameters = $(default_parameters)
     )
     ```
     """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
-        t, x, v = lagrangian_variables(2)
-        sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+    end
+
+    "Lagrangian ensemble for the double pendulum (varying initial conditions and/or parameters)."
+    function lodeensemble(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        eqs = functions(lagrangian_system(_parameters(parameters)))
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
     end
 
 end

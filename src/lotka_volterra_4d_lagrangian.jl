@@ -29,7 +29,7 @@ export lotka_volterra_4d_ode,
 
 const Δt = 0.01
 const nt = 1000
-const timespan = (0.0, Δt * nt)
+const DEFAULT_TIMESPAN = (0.0, Δt * nt)
 
 const q₀ = [2.0, 1.0, 1.0, 1.0]
 
@@ -107,18 +107,18 @@ function initial_momentum(lag_sys, t₀, q₀, params)
 end
 
 
-function odeproblem(q₀=q₀, A=A_default, B=B_default; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function odeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     lag_sys = lagrangian_system(A, B, parameters)
     ODEProblem(lag_sys, timespan, timestep, q₀; parameters=parameters)
 end
 
-function lodeproblem(q₀=q₀, A=A_default, B=B_default; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function lodeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     lag_sys = lagrangian_system(A, B, parameters)
     p₀ = initial_momentum(lag_sys, timespan[begin], q₀, parameters)
     LODEProblem(lag_sys, timespan, timestep, q₀, p₀; parameters=parameters)
 end
 
-function ldaeproblem(q₀=q₀, A=A_default, B=B_default; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function ldaeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     lag_sys = lagrangian_system(A, B, parameters)
     p₀ = initial_momentum(lag_sys, timespan[begin], q₀, parameters)
     LDAEProblem(lag_sys, timespan, timestep, q₀, p₀, zero(q₀); parameters=parameters)

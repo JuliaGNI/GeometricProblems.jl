@@ -29,7 +29,7 @@ module LorenzAttractor
 
     const Δt = 0.01
     const nt = 1000
-    const timespan = (0.0, Δt*nt)
+    const DEFAULT_TIMESPAN = (0.0, Δt*nt)
 
     const q₀ = [1., 1., 1.]
 
@@ -45,7 +45,7 @@ module LorenzAttractor
     end
 
 
-    function lorenz_attractor_ode(q₀=q₀; timespan = timespan, timestep = Δt, parameters = default_parameters)
+    function lorenz_attractor_ode(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = Δt, parameters = default_parameters)
         ODEProblem(lorenz_attractor_v, timespan, timestep, q₀; parameters = parameters)
     end
 
