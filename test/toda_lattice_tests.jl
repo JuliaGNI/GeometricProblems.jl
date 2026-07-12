@@ -9,7 +9,7 @@ N = 20
 μ = TodaLattice.μ
 q₀ = TodaLattice.compute_initial_q(μ, N)
 p₀ = zero(q₀)
-params = TodaLattice.default_parameters
+params = TodaLattice.default_parameters()
 
 
 # Ensemble initial conditions and parameters

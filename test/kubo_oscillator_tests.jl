@@ -9,11 +9,11 @@ using Test
 # parameters explicitly.
 
 @testset "$(rpad("Kubo Oscillator",80))" begin
-    params = KuboOscillator.default_parameters
+    params = KuboOscillator.default_parameters()
     ν = params.ν
 
     # --- SDE ---
-    sde = kubo_oscillator_sde_1()
+    sde = sdeproblem()
     @test sde isa SDEProblem
     f = functions(sde)
 
@@ -23,14 +23,13 @@ using Test
     B = zeros(eltype(q), 2, 1); f.B(B, 0.0, q, params)
     @test B ≈ reshape([ν * q[2], -ν * q[1]], 2, 1)   # multiplicative diffusion
 
-    # single-IC variants are problems; the multi-IC variants build ensembles
-    @test kubo_oscillator_sde_2() isa SDEProblem
-    @test kubo_oscillator_sde_3() isa GeometricEquations.EnsembleProblem
-    @test kubo_oscillator_psde_3() isa GeometricEquations.EnsembleProblem
-    @test kubo_oscillator_spsde_3() isa GeometricEquations.EnsembleProblem
+    # single-IC builders are problems; the multi-IC builders create ensembles
+    @test sdeensemble() isa GeometricEquations.EnsembleProblem
+    @test psdeensemble() isa GeometricEquations.EnsembleProblem
+    @test spsdeensemble() isa GeometricEquations.EnsembleProblem
 
     # --- PSDE ---
-    psde = kubo_oscillator_psde_1()
+    psde = psdeproblem()
     @test psde isa PSDEProblem
     fp = functions(psde)
 
@@ -41,7 +40,7 @@ using Test
     G = zeros(1, 1); fp.G(G, 0.0, qq, pp, params); @test G ≈ reshape([-ν * qq[1]], 1, 1)
 
     # --- SPSDE ---
-    spsde = kubo_oscillator_spsde_1()
+    spsde = spsdeproblem()
     @test spsde isa SPSDEProblem
     fs = functions(spsde)
 
@@ -53,5 +52,5 @@ using Test
     G2 = zeros(1, 1); fs.G2(G2, 0.0, qq, pp, params); @test G2 ≈ reshape([0.0], 1, 1)
 
     # ODE (deterministic drift only)
-    @test kubo_oscillator_ode() isa ODEProblem
+    @test odeproblem() isa ODEProblem
 end

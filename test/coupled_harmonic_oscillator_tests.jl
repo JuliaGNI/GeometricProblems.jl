@@ -16,7 +16,7 @@ esol = integrate(epr, ImplicitMidpoint())
 
 
 function _params(i)
-    NamedTuple{keys(cho.default_parameters)}(values(cho.default_parameters) .+ i)
+    NamedTuple{keys(cho.default_parameters())}(values(cho.default_parameters()) .+ i)
 end
 
 # ensemble problem

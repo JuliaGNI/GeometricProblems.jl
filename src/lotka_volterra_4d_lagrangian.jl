@@ -19,18 +19,19 @@ using Parameters
 
 # export hamiltonian, ϑ, ϑ₁, ϑ₂, ω
 
-export lotka_volterra_4d_ode,
-    lotka_volterra_4d_lode,
-    lotka_volterra_4d_ldae
+export odeproblem,
+    lodeproblem,
+    ldaeproblem
 
 
 const Δt = 0.01
 const nt = 1000
 const DEFAULT_TIMESPAN = (0.0, Δt * nt)
+const DEFAULT_TIMESTEP = Δt
 
 const q₀ = [2.0, 1.0, 1.0, 1.0]
 
-const default_parameters = (a₁=1.0, a₂=1.0, a₃=1.0, a₄=1.0, b₁=-1.0, b₂=-2.0, b₃=-1.0, b₄=-1.0)
+default_parameters(::Type{T}=Float64) where {T} = (a₁=T(1.0), a₂=T(1.0), a₃=T(1.0), a₄=T(1.0), b₁=T(-1.0), b₂=T(-2.0), b₃=T(-1.0), b₄=T(-1.0))
 const reference_solution = [0.5988695239096916, 2.068567531039674, 0.2804351458645534, 1.258449091830993]
 
 const A_antisym = 1 // 2 .* [
@@ -104,18 +105,18 @@ function initial_momentum(lag_sys, t₀, q₀, params)
 end
 
 
-function odeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
+function odeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     lag_sys = lagrangian_system(A, B, parameters)
     ODEProblem(lag_sys, timespan, timestep, q₀; parameters=parameters)
 end
 
-function lodeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
+function lodeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     lag_sys = lagrangian_system(A, B, parameters)
     p₀ = initial_momentum(lag_sys, timespan[begin], q₀, parameters)
     LODEProblem(lag_sys, timespan, timestep, q₀, p₀; parameters=parameters)
 end
 
-function ldaeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
+function ldaeproblem(q₀=q₀, A=A_default, B=B_default; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     lag_sys = lagrangian_system(A, B, parameters)
     p₀ = initial_momentum(lag_sys, timespan[begin], q₀, parameters)
     LDAEProblem(lag_sys, timespan, timestep, q₀, p₀, zero(q₀); parameters=parameters)

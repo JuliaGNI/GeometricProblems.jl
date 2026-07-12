@@ -36,8 +36,8 @@ module Pendulum
     const Δt = 0.1
     const nt = 10
 
-    timestep(::Type{T}=Float64, Δt=Δt) where {T} = T(Δt)
-    timespan(::Type{T}=Float64, t₀=t₀, t₁=Δt * nt) where {T} = (T(t₀), T(t₁))
+    const DEFAULT_TIMESPAN = (t₀, Δt * nt)
+    const DEFAULT_TIMESTEP = Δt
 
 
     # Physical parameters of the mathematical pendulum.
@@ -107,12 +107,10 @@ module Pendulum
         nothing
     end
 
-    function odeproblem(x₀::AbstractArray{DT}=x₀, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function odeproblem(x₀=x₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
         @assert length(x₀) == 2
-        ODEProblem(pendulum_ode_v, timespan, timestep, T.(x₀); parameters=parameters)
+        ODEProblem(pendulum_ode_v, timespan, timestep, x₀; parameters=parameters)
     end
-
-    odeproblem(::Type{T}, args...; kwargs...) where {T} = odeproblem(x₀, T, args...; kwargs...)
 
 
     function pendulum_pode_v(v, t, q, p, params)
@@ -127,41 +125,37 @@ module Pendulum
         nothing
     end
 
-    function podeproblem(q₀::AbstractArray{DT}=q₀, p₀::AbstractArray{DT}=p₀, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function podeproblem(q₀=q₀, p₀=p₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
         @assert length(q₀) == length(p₀) == 1
-        PODEProblem(pendulum_pode_v, pendulum_pode_f, timespan, timestep, T.(q₀), T.(p₀); parameters=parameters)
+        PODEProblem(pendulum_pode_v, pendulum_pode_f, timespan, timestep, q₀, p₀; parameters=parameters)
     end
 
-    podeproblem(::Type{T}, args...; kwargs...) where {T} = podeproblem(q₀, p₀, T, args...; kwargs...)
 
-
-    function hodeproblem(q₀::AbstractArray{DT}=q₀, p₀::AbstractArray{DT}=p₀, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function hodeproblem(q₀=q₀, p₀=p₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
         @assert length(q₀) == length(p₀) == 1
-        HODEProblem(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, T.(q₀), T.(p₀); parameters=parameters)
+        HODEProblem(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, q₀, p₀; parameters=parameters)
     end
-
-    hodeproblem(::Type{T}, args...; kwargs...) where {T} = hodeproblem(q₀, p₀, T, args...; kwargs...)
 
     # Ensemble over a grid of initial conditions (and optionally a vector of parameter sets).
     function hodeensemble(
-        qmin::AbstractArray{DT}=qmin,
-        qmax::AbstractArray{DT}=qmax,
-        pmin::AbstractArray{DT}=pmin,
-        pmax::AbstractArray{DT}=pmax,
+        qmin=qmin,
+        qmax=qmax,
+        pmin=pmin,
+        pmax=pmax,
         qsamples=qsamples,
         psamples=psamples,
-        ::Type{T}=DT;
-        parameters=default_parameters(T),
-        timespan=timespan(T),
-        timestep=timestep(T)) where {DT,T}
-        samples = _pode_samples(T.(qmin), T.(qmax), T.(pmin), T.(pmax), qsamples, psamples)
+        ;
+        timespan=DEFAULT_TIMESPAN,
+        timestep=DEFAULT_TIMESTEP,
+        parameters=default_parameters())
+        samples = _pode_samples(qmin, qmax, pmin, pmax, qsamples, psamples)
         HODEEnsemble(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, samples.q, samples.p; parameters=parameters)
     end
 
     # Ensemble over a vector of parameter sets sharing a single initial condition (q₀, p₀).
-    function hodeensemble(q₀::AbstractArray{DT}, p₀::AbstractArray{DT}, parameters::AbstractVector{<:NamedTuple}, ::Type{T}=DT; timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function hodeensemble(q₀, p₀, parameters::AbstractVector{<:NamedTuple}; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP)
         @assert length(q₀) == length(p₀) == 1
-        HODEEnsemble(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, T.(q₀), T.(p₀); parameters=parameters)
+        HODEEnsemble(pendulum_pode_v, pendulum_pode_f, hamiltonian, timespan, timestep, q₀, p₀; parameters=parameters)
     end
 
 
@@ -192,14 +186,12 @@ module Pendulum
         nothing
     end
 
-    function iodeproblem(q₀::AbstractArray{DT}=x₀, p₀::AbstractArray{DT}=p₀_iode, ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function iodeproblem(q₀=x₀, p₀=p₀_iode; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
         @assert length(q₀) == length(p₀) == 2
         IODEProblem(pendulum_iode_ϑ, pendulum_iode_f,
-            pendulum_iode_g, timespan, timestep, T.(q₀), T.(p₀);
+            pendulum_iode_g, timespan, timestep, q₀, p₀;
             parameters=parameters, v̄=pendulum_iode_v)
     end
-
-    iodeproblem(::Type{T}, args...; kwargs...) where {T} = iodeproblem(x₀, p₀_iode, T, args...; kwargs...)
 
 
     function pendulum_idae_u(u, t, q, v, p, λ, params)
@@ -221,14 +213,12 @@ module Pendulum
         nothing
     end
 
-    function idaeproblem(q₀::AbstractArray{DT}=x₀, p₀::AbstractArray{DT}=p₀_iode, λ₀::AbstractArray{DT}=zero(q₀), ::Type{T}=DT; parameters=default_parameters(T), timespan=timespan(T), timestep=timestep(T)) where {DT,T}
+    function idaeproblem(q₀=x₀, p₀=p₀_iode, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
         @assert length(q₀) == length(p₀) == length(λ₀) == 2
         IDAEProblem(pendulum_iode_ϑ, pendulum_iode_f,
             pendulum_idae_u, pendulum_idae_g, pendulum_idae_ϕ,
-            timespan, timestep, T.(q₀), T.(p₀), T.(λ₀);
+            timespan, timestep, q₀, p₀, λ₀;
             parameters=parameters, v̄=pendulum_iode_v)
     end
-
-    idaeproblem(::Type{T}, args...; kwargs...) where {T} = idaeproblem(x₀, p₀_iode, zero(x₀), T, args...; kwargs...)
 
 end

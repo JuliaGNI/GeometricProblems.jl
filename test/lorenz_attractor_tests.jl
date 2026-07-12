@@ -6,7 +6,7 @@ using GeometricSolutions
 
 
 @testset "$(rpad("Lorenz Attractor",80))" begin
-    ode  = lorenz_attractor_ode()
+    ode  = odeproblem()
 
     sol = integrate(ode, Gauss(1))
     @test relative_maximum_error(sol.q[end], reference_solution) < 4E-2

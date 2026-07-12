@@ -6,7 +6,7 @@ using Test
 const test_point₁ = 0.5
 const test_point₂ = 1.5
 const test_point₃ = 2.5
-const μ = lw.default_parameters.μ
+const μ = lw.default_parameters().μ
 
 function test_h_derivative(test_point)
     h_autodiff = ForwardDiff.derivative(h, test_point)

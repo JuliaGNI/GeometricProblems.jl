@@ -32,7 +32,7 @@ module LennardJonesOscillator
     const DEFAULT_TIMESPAN = (0.0, 10.0)
     const DEFAULT_TIMESTEP = 0.01
 
-    const default_parameters = (m = 1.0, ε = 1.0, σ = 1.0)
+    default_parameters(::Type{T}=Float64) where {T} = (m = T(1.0), ε = T(1.0), σ = T(1.0))
 
     # start near the potential minimum q = 2^(1/6) σ, at rest
     const q₀ = [1.2]
@@ -73,23 +73,23 @@ module LennardJonesOscillator
     _parameters(p::AbstractVector) = p[begin]
 
     "Hamiltonian problem for the Lennard-Jones oscillator."
-    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     "Hamiltonian ensemble for the Lennard-Jones oscillator (varying initial conditions and/or parameters)."
-    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         eqs = functions(hamiltonian_system(_parameters(parameters)))
         HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     "Lagrangian problem for the Lennard-Jones oscillator."
-    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
     "Lagrangian ensemble for the Lennard-Jones oscillator (varying initial conditions and/or parameters)."
-    function lodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function lodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         eqs = functions(lagrangian_system(_parameters(parameters)))
         LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end

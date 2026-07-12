@@ -49,11 +49,11 @@ module ThreeBody
     const DEFAULT_TIMESPAN = (0.0, 10 * DEFAULT_TIMESTEP)
 
     @doc raw"Default parameters taken from [jin2020sympnets](@cite)."
-    const default_parameters = (
-        m₁ = m₁,
-        m₂ = m₂,
-        m₃ = m₃,
-        G = G
+    default_parameters(::Type{DT}=Float64) where {DT} = (
+        m₁ = DT(m₁),
+        m₂ = DT(m₂),
+        m₃ = DT(m₃),
+        G = DT(G)
     )
 
     T(p::AbstractVector, params::NamedTuple) = (p[1] ^ 2 + p[2] ^ 2) / (2 * params.m₁) + (p[3] ^ 2 + p[4] ^ 2) / (2 * params.m₂) + (p[5] ^ 2 + p[6] ^ 2) / (2 * params.m₃)
@@ -112,16 +112,16 @@ module ThreeBody
         p₀ = $(initial_condition.p);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        parameters = $(default_parameters)
+        parameters = $(default_parameters())
     )
     ```
     """
-    function hodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function hodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     "Hamiltonian ensemble for the three-body problem (varying initial conditions and/or parameters)."
-    function hodeensemble(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function hodeensemble(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         eqs = functions(hamiltonian_system(_parameters(parameters)))
         HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
@@ -138,16 +138,16 @@ module ThreeBody
         p₀ = $(initial_condition.p);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        parameters = $(default_parameters)
+        parameters = $(default_parameters())
     )
     ```
     """
-    function lodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function lodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
     "Lagrangian ensemble for the three-body problem (varying initial conditions and/or parameters)."
-    function lodeensemble(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+    function lodeensemble(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         eqs = functions(lagrangian_system(_parameters(parameters)))
         LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
