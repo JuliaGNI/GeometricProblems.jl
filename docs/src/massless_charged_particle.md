@@ -12,9 +12,7 @@ using CairoMakie
 ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
-fig = Figure()
-ax = Axis(fig[1, 1]; xlabel = "x₁", ylabel = "x₂", title = "Massless charged particle trajectory")
-lines!(ax, sol.q[:, 1], sol.q[:, 2])
+fig = plot_phase_portrait(sol)
 save("massless_charged_particle.svg", fig)
 
 nothing

@@ -28,7 +28,7 @@ module Pendulum
 
     export default_parameters
 
-    export plot_pendulum, plot_solution
+    export plot_pendulum, plot_solution, plot_phase_portrait, plot_traces, plot_hamiltonian
     export labels_ode, labels_hamiltonian
 
 
@@ -95,6 +95,9 @@ module Pendulum
 
     function plot_pendulum end
     function plot_solution end
+    function plot_phase_portrait end
+    function plot_traces end
+    function plot_hamiltonian end
 
 
     function pendulum_ode_v(v, t, q, params)

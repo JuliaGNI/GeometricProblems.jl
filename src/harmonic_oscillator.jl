@@ -21,7 +21,7 @@ export compute_energy_error, exact_solution
 
 export default_parameters
 
-export plot_solution, plot_spring
+export plot_solution, plot_spring, plot_phase_portrait, plot_traces, plot_hamiltonian
 export labels_ode, labels_hamiltonian
 
 
@@ -561,5 +561,8 @@ const labels_hamiltonian = (t = "t", q = "q", p = "p", h = "H")
 
 function plot_spring end
 function plot_solution end
+function plot_phase_portrait end
+function plot_traces end
+function plot_hamiltonian end
 
 end

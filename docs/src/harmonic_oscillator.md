@@ -44,31 +44,7 @@ A = q_0 \, \sqrt{1 + p_0^2 / (k q_0^2)} , \qquad
 using GeometricProblems.HarmonicOscillator
 using CairoMakie
 
-H(q,p) = hamiltonian(0, q, p, HarmonicOscillator.default_parameters())
-
-levels = [0.0, 0.05, 0.25, 0.65, 1.2, collect(2:7)...]
-ticks = [-2, -1, 0, +1, +2]
-fig = Figure(size = (600, 600), figure_padding = 5, fontsize = 24)
-ax = Axis(
-    fig[1,1],
-    aspect = 1,
-    xlabel = "q",
-    ylabel = "p",
-    xticks = ticks,
-    yticks = ticks,
-    title = "Harmonic Oscillator Hamiltonian",
-)
-
-z = range(-2.5, +2.5; length = 100)
-q = (z' .* one.(z))[:]
-p = (one.(z)' .* z)[:]
-
-co = contourf!(ax, q, p, H.(q,p); levels = levels)
-cb = Colorbar(fig[1, 2], co)
-
-xlims!(ax, minimum(z), maximum(z))
-ylims!(ax, minimum(z), maximum(z))
-
+fig = plot_hamiltonian()
 save("harmonic-oscillator-hamiltonian.svg", fig)
 
 nothing
@@ -97,9 +73,7 @@ using CairoMakie
 
 sol = integrate(hodeproblem(; timespan = (0.0, 10.0), timestep = 0.05), Gauss(1))
 
-fig = Figure(size = (500, 500))
-ax = Axis(fig[1, 1]; xlabel = "q", ylabel = "p", aspect = 1, title = "Harmonic oscillator trajectory")
-lines!(ax, sol.q[:, 1], sol.p[:, 1])
+fig = plot_phase_portrait(sol)
 save("harmonic-oscillator-trajectory.svg", fig)
 
 nothing

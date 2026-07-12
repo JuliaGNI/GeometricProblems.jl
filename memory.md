@@ -71,6 +71,14 @@ Branch: `fix/correctness-audit`. Started 2026-07-11 22:30 CEST.
 - GOTCHAS: (1) `using Makie` exports a `TimeSeries` recipe that clashes with `GeometricSolutions.TimeSeries` → import GS types explicitly in `DiagnosticsPlots`. (2) `DataSeries` range indexing `q[range,i]` is NOT component-i-over-range; use `[q[k][i] for k in idx]` (k = integer time index). (3) `compute_invariant` calls the invariant as `inv(t,q,params)` (3-arg) despite its docstring — pass `parameters(equ)` + `invariants(equ)[:h]` to the 4-arg `compute_invariant_error`.
 - VERIFIED: package loads with deps removed; all 6 extensions precompile; 13 plot tests pass (run in docs env, which has CairoMakie); docstrings resolve for autodocs; HarmonicOscillator/Pendulum extensions unaffected. NOT run: full `Pkg.test()` suite end-to-end (non-plot tests untouched).
 
+## Docs-alignment follow-up (third request: reconcile docs plots with extensions)
+- Reviewed every `@example`/`@eval` block in `docs/src/*.md`. Findings: no doc plots an energy/invariant error (Diagnostics.* had zero doc usage); models with extensions still hand-rolled phase-portrait/trace figures.
+- Uniform API: `plot_phase_portrait(sol)` is now single-argument across all problem extensions (dropped the unused `equ` arg from LV2d/massless).
+- Added `plot_phase_portrait` to LV3d (3D Axis3 trajectory) and LV4d (q₁–q₂ projection). Added `plot_phase_portrait`, `plot_traces`, and `plot_hamiltonian` (energy-landscape contourf + colorbar) to HarmonicOscillator and Pendulum extensions + src stubs/exports.
+- Doc swaps to extension calls: lv2d, lv3d, lv4d, massless (phase portraits), harmonic_oscillator (:43 landscape, :93 phase portrait), pendulum (:49 landscape, :85 traces). Ensemble/param-sweep overlays (pendulum :113/:131) and extension-less models' one-liners left hand-rolled per user. `diagnostics.md` now showcases `plot_energy_error` + `plot_constraint_error`.
+- Plot tests grew 13→21 (added LV3d/LV4d phase portraits + HO/Pendulum phase_portrait/traces/hamiltonian).
+- VERIFIED: 21 plot tests pass; `julia --project=docs docs/make.jl` builds clean (26 pages, no errors, all changed figures render). GOTCHA reminder: `rm -rf docs/build` before rebuild.
+
 ## Log
 - All 17 plan items (P1–P17) complete + docs CairoMakie migration. Kubo test intentionally left disabled (SDE-API migration follow-up).
 - Remaining minor doc polish (non-blocking) noted under "Known follow-ups".

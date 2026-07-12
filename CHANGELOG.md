@@ -66,13 +66,25 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
     `plot_constraint_error`, `plot_lagrange_multiplier` (stubs live in the new `Diagnostics` module,
     `src/diagnostics.jl`, replacing `src/plot_recipes.jl`).
   - `LotkaVolterra2dPlots` — `plot_solution`, `plot_phase_portrait`, `plot_traces`.
-  - `LotkaVolterra3dPlots` / `LotkaVolterra4dPlots` — `plot_traces`.
+  - `LotkaVolterra3dPlots` / `LotkaVolterra4dPlots` — `plot_phase_portrait`, `plot_traces`.
   - `MasslessChargedParticlePlots` — `plot_solution`, `plot_phase_portrait`, `plot_traces`.
 
   The old `@userplot` names (`PlotEnergyError`, `Plot_Lotka_Volterra_2d`, …) are replaced by the
   snake_case functions above, which now build and return a Makie `Figure` instead of a Plots object.
   The massless-particle module's former energy/momentum-error recipes are dropped in favour of the
   generic `Diagnostics` ones. `ext/{DiagnosticsPlots,LotkaVolterra2dPlots,LotkaVolterra3dPlots,LotkaVolterra4dPlots,MasslessChargedParticlePlots}.jl`.
+- **Harmonic-oscillator / pendulum plotting helpers**: extended the `HarmonicOscillatorPlots` and
+  `PendulumPlots` extensions with `plot_phase_portrait(sol)`, `plot_traces(sol)`, and
+  `plot_hamiltonian(; …)` (energy-landscape contour), alongside the existing animation-frame
+  `plot_solution`. `plot_phase_portrait(sol)` is now a uniform single-argument function across all
+  problem extensions. `ext/{HarmonicOscillatorPlots,PendulumPlots}.jl`.
+- **Documentation figures now use the extensions**: the phase-portrait / trajectory figures on the
+  Lotka-Volterra 2D/3D/4D, massless-charged-particle, harmonic-oscillator and pendulum pages, the
+  two Hamiltonian energy-landscape figures (harmonic oscillator, pendulum), and the pendulum
+  time-trace figure now call the extension plotting functions instead of hand-rolling CairoMakie.
+  `diagnostics.md` gained worked examples of `Diagnostics.plot_energy_error` and
+  `plot_constraint_error`. (Ensemble/parameter-sweep overlays and the extension-less models' one-line
+  trajectory plots are left as-is.)
 - **Nonlinear oscillators** (B15/P13): implemented the previously empty stub modules
   **Duffing**, **Lennard-Jones**, **Morse**, and **Mathews-Lakshmanan** oscillators. Each provides
   `hamiltonian`, `lagrangian`, and EulerLagrange-generated `hodeproblem`/`lodeproblem` constructors,

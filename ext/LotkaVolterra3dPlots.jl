@@ -8,6 +8,32 @@ using GeometricSolutions: ntime, compute_invariant_error
 import GeometricProblems.LotkaVolterra3d
 
 """
+    plot_phase_portrait(sol; nplot, nt, latex)
+
+Plot the 3D trajectory `(x₁, x₂, x₃)` of a 3D Lotka-Volterra solution on the
+Casimir surface. Returns a Makie `Figure`.
+
+# Arguments
+- `sol <: GeometricSolution`
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+- `latex = true`: use LaTeX axis labels
+"""
+function LotkaVolterra3d.plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
+    idx = 0:nplot:(nt === :auto ? ntime(sol) : min(nt, ntime(sol)))
+    fig = Figure(size = (600, 600))
+    ax = Axis3(fig[1, 1];
+        xlabel = latex ? L"x_1" : "x₁",
+        ylabel = latex ? L"x_2" : "x₂",
+        zlabel = latex ? L"x_3" : "x₃",
+    )
+    lines!(ax, [sol.q[k][1] for k in idx], [sol.q[k][2] for k in idx], [sol.q[k][3] for k in idx])
+    return fig
+end
+
+"""
     plot_traces(sol, params; nplot, nt, latex)
 
 Plot the time traces `x₁(t)`, `x₂(t)`, `x₃(t)` of a 3D Lotka-Volterra solution

@@ -19,9 +19,7 @@ using CairoMakie
 ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
-fig = Figure()
-ax = Axis(fig[1, 1]; xlabel = "q₁", ylabel = "q₂", title = "Lotka–Volterra 2d")
-lines!(ax, sol.q[:, 1], sol.q[:, 2])
+fig = plot_phase_portrait(sol)
 save("lotka_volterra_2d.svg", fig)
 
 nothing

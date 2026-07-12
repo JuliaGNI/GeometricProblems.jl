@@ -50,27 +50,7 @@ The phase-space portrait of the Hamiltonian, with its characteristic separatrix 
 using GeometricProblems.Pendulum
 using CairoMakie
 
-H(q, p) = hamiltonian(0, q, p, Pendulum.default_parameters())
-
-fig = Figure(size = (700, 400), figure_padding = 5, fontsize = 20)
-ax = Axis(
-    fig[1, 1],
-    xlabel = "θ",
-    ylabel = "p",
-    title = "Pendulum Hamiltonian",
-)
-
-zq = range(-2π, 2π; length = 200)
-zp = range(-3, 3; length = 200)
-q = (zq' .* one.(zp))[:]
-p = (one.(zq)' .* zp)[:]
-
-co = contourf!(ax, q, p, H.(q, p); levels = 20)
-Colorbar(fig[1, 2], co)
-
-xlims!(ax, minimum(zq), maximum(zq))
-ylims!(ax, minimum(zp), maximum(zp))
-
+fig = plot_hamiltonian()
 save("pendulum-hamiltonian.svg", fig)
 
 nothing
@@ -92,16 +72,7 @@ Logging.disable_logging(Logging.Warn) # hide
 prob = hodeproblem([1.0], [0.0]; timespan = (0.0, 20.0), timestep = 0.05)
 sol = integrate(prob, ImplicitMidpoint())
 
-t = [sol.t[n]    for n in axes(sol.q, 1)]
-θ = [sol.q[n][1] for n in axes(sol.q, 1)]
-p = [sol.p[n][1] for n in axes(sol.q, 1)]
-
-fig = Figure(size = (800, 400), fontsize = 18)
-ax = Axis(fig[1, 1], xlabel = "t", ylabel = "θ, p", title = "Hamiltonian pendulum")
-lines!(ax, t, θ, label = "θ")
-lines!(ax, t, p, label = "p")
-axislegend(ax)
-fig
+plot_traces(sol)
 ```
 
 ## Ensembles

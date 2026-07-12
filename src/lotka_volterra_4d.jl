@@ -453,9 +453,10 @@ function iodeproblem_dg(q₀=q₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, time
 end
 
 
-export plot_traces
+export plot_phase_portrait, plot_traces
 
 # Plot functions are implemented in the `LotkaVolterra4dPlots` extension (loaded with Makie).
+function plot_phase_portrait end
 function plot_traces end
 
 end

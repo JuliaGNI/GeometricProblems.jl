@@ -14,21 +14,20 @@ _indices(sol, nplot, nt) = 0:nplot:(nt === :auto ? ntime(sol) : min(nt, ntime(so
 _energy_error(sol, equ) = compute_invariant_error(sol.t, sol.q, parameters(equ), invariants(equ)[:h])[2]
 
 """
-    plot_phase_portrait(sol, equ; nplot, nt, latex)
+    plot_phase_portrait(sol; nplot, nt, latex)
 
 Plot the `x₁`–`x₂` trajectory of a massless charged particle. Returns a Makie
 `Figure`.
 
 # Arguments
 - `sol <: GeometricSolution`
-- `equ <: GeometricProblem`
 
 # Keyword arguments
 - `nplot = 1`: plot every `nplot`-th time step
 - `nt = :auto`: last time step to plot
 - `latex = true`: use LaTeX axis labels
 """
-function MasslessChargedParticle.plot_phase_portrait(sol, equ; nplot = 1, nt = :auto, latex = true)
+function MasslessChargedParticle.plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     fig = Figure(size = (400, 400))
     ax = Axis(fig[1, 1];
