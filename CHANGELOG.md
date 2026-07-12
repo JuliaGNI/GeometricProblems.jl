@@ -58,6 +58,21 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   symmetric variant. `src/lotka_volterra_2d_gauge.jl`.
 
 ### New features
+- **Plotting → CairoMakie extensions** (⚠️ breaking): migrated the remaining package plot recipes
+  from Plots.jl/`RecipesBase` to Makie extensions, matching the pattern already used for the
+  harmonic oscillator and pendulum. There is now one extension per problem plus a shared diagnostics
+  extension, each activated when a Makie backend (e.g. `CairoMakie`) is loaded:
+  - `DiagnosticsPlots` — generic diagnostics `plot_energy_error`, `plot_energy_drift`,
+    `plot_constraint_error`, `plot_lagrange_multiplier` (stubs live in the new `Diagnostics` module,
+    `src/diagnostics.jl`, replacing `src/plot_recipes.jl`).
+  - `LotkaVolterra2dPlots` — `plot_solution`, `plot_phase_portrait`, `plot_traces`.
+  - `LotkaVolterra3dPlots` / `LotkaVolterra4dPlots` — `plot_traces`.
+  - `MasslessChargedParticlePlots` — `plot_solution`, `plot_phase_portrait`, `plot_traces`.
+
+  The old `@userplot` names (`PlotEnergyError`, `Plot_Lotka_Volterra_2d`, …) are replaced by the
+  snake_case functions above, which now build and return a Makie `Figure` instead of a Plots object.
+  The massless-particle module's former energy/momentum-error recipes are dropped in favour of the
+  generic `Diagnostics` ones. `ext/{DiagnosticsPlots,LotkaVolterra2dPlots,LotkaVolterra3dPlots,LotkaVolterra4dPlots,MasslessChargedParticlePlots}.jl`.
 - **Nonlinear oscillators** (B15/P13): implemented the previously empty stub modules
   **Duffing**, **Lennard-Jones**, **Morse**, and **Mathews-Lakshmanan** oscillators. Each provides
   `hamiltonian`, `lagrangian`, and EulerLagrange-generated `hodeproblem`/`lodeproblem` constructors,
@@ -90,6 +105,10 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   diagnostics (marked *not yet implemented* where no backing model exists).
 
 ### Tests
+- **Plotting extensions**: added `test/plots_tests.jl` (wired into `test/runtests.jl`) — smoke
+  tests that each migrated plot function builds a Makie `Figure` for a short integrated solution,
+  covering the `Diagnostics`, Lotka-Volterra 2D/3D/4D, and massless-charged-particle plots. Added
+  `CairoMakie` to `test/Project.toml`. Plots were previously untested.
 - Added tests (P15): nonlinear oscillators and three-body problem (HODE↔LODE trajectory
   agreement), massless charged particle (`Ω·v = −∇H`, i.e. ODE ↔ variational sign consistency —
   the direct regression for B5), and linear wave (constructor regression for B7).
@@ -106,6 +125,13 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   kinetic-term fix). `test/three_body_tests.jl`.
 
 ### Repository hygiene
+- **Dropped plotting-only dependencies**: with the recipes gone, `RecipesBase`, `Measures`, and
+  `LaTeXStrings` were removed from `[deps]`/`[compat]` (they were used only by the deleted plot
+  files). Deleted `src/plot_recipes.jl` and `src/{lotka_volterra_2d,lotka_volterra_3d,lotka_volterra_4d,massless_charged_particle}_plots.jl`,
+  and removed their `include`s from `src/GeometricProblems.jl`. Registered the five new extensions in
+  `Project.toml`. `docs/src/lotka_volterra_2d.md`'s stale `@autodocs` on the removed
+  `LotkaVolterra2dPlots` module now resolves through the problem module (docstrings live on the
+  extended functions).
 - **Docs plotting → CairoMakie**: migrated all documentation plotting from Plots.jl and GLMakie.jl
   to CairoMakie.jl. Rewrote the `@example`/`@eval` blocks in `abc_flow.md`, `initial_condition.md`,
   `coupled_harmonic_oscillator.md`, `massless_charged_particle.md`, `lotka_volterra_2d.md`, and

@@ -61,6 +61,16 @@ Branch: `fix/correctness-audit`. Started 2026-07-11 22:30 CEST.
 - GOTCHA: `docs/build/` must be removed before rebuilding (stale artifacts cause `mkdir build/images EEXIST`).
 - Package RecipesBase recipes (plot_recipes.jl, *_plots.jl) left unchanged (not Plots.jl; still documented via autodocs).
 
+## Package plotting → CairoMakie extensions (follow-up request)
+- Completed the migration the docs-CairoMakie section left open ("*_plots.jl left unchanged"). All package plot recipes are now Makie extensions, one per problem + a shared diagnostics extension, following the existing `HarmonicOscillatorPlots`/`PendulumPlots` pattern (exported stubs in `src/`, methods in `ext/*Plots.jl`, triggered by the `Makie` weakdep).
+- New: `src/diagnostics.jl` (module `Diagnostics`, replaces `plot_recipes.jl`) with exported stubs `plot_energy_error`/`plot_energy_drift`/`plot_constraint_error`/`plot_lagrange_multiplier` + non-exported `subscript`. Extension `ext/DiagnosticsPlots.jl`.
+- New per-problem extensions + stubs: LV2d (`plot_solution`/`plot_phase_portrait`/`plot_traces`), LV3d/LV4d (`plot_traces`), massless (`plot_solution`/`plot_phase_portrait`/`plot_traces`). Massless dropped its generic energy/momentum-error recipes (use `Diagnostics.*`).
+- Renamed `@userplot` PascalCase → snake_case; functions now return a Makie `Figure` (breaking). Docstrings live in the extensions but attach to the problem-module functions, so `@autodocs Modules=[LotkaVolterra2d]` renders them (removed the now-duplicate `LotkaVolterra2dPlots` autodocs block in `lotka_volterra_2d.md`).
+- Deleted `src/plot_recipes.jl` + 4 `*_plots.jl`; removed their includes; removed `RecipesBase`/`Measures`/`LaTeXStrings` from `Project.toml` `[deps]`/`[compat]` (verified plot-only). Registered 5 extensions.
+- Tests: `test/plots_tests.jl` (13 smoke tests, `isa Figure`) + `CairoMakie` in `test/Project.toml`, wired into `runtests.jl`.
+- GOTCHAS: (1) `using Makie` exports a `TimeSeries` recipe that clashes with `GeometricSolutions.TimeSeries` → import GS types explicitly in `DiagnosticsPlots`. (2) `DataSeries` range indexing `q[range,i]` is NOT component-i-over-range; use `[q[k][i] for k in idx]` (k = integer time index). (3) `compute_invariant` calls the invariant as `inv(t,q,params)` (3-arg) despite its docstring — pass `parameters(equ)` + `invariants(equ)[:h]` to the 4-arg `compute_invariant_error`.
+- VERIFIED: package loads with deps removed; all 6 extensions precompile; 13 plot tests pass (run in docs env, which has CairoMakie); docstrings resolve for autodocs; HarmonicOscillator/Pendulum extensions unaffected. NOT run: full `Pkg.test()` suite end-to-end (non-plot tests untouched).
+
 ## Log
 - All 17 plan items (P1–P17) complete + docs CairoMakie migration. Kubo test intentionally left disabled (SDE-API migration follow-up).
 - Remaining minor doc polish (non-blocking) noted under "Known follow-ups".

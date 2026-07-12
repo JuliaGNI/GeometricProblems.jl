@@ -75,3 +75,6 @@ end
 @safetestset "EulerLagrange ensembles (#64)                                                   " begin
     include("eulerlagrange_ensembles_tests.jl")
 end
+@safetestset "Plotting extensions                                                             " begin
+    include("plots_tests.jl")
+end

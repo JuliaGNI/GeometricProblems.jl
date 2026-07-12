@@ -452,4 +452,10 @@ function iodeproblem_dg(q₀=q₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, time
         parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_4d_v)
 end
 
+
+export plot_traces
+
+# Plot functions are implemented in the `LotkaVolterra4dPlots` extension (loaded with Makie).
+function plot_traces end
+
 end

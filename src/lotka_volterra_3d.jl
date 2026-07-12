@@ -132,4 +132,10 @@ function compute_casimir_error(t::Union{TimeSeries{T},ScalarDataSeries{T}}, q::D
     (c, e)
 end
 
+
+export plot_traces
+
+# Plot functions are implemented in the `LotkaVolterra3dPlots` extension (loaded with Makie).
+function plot_traces end
+
 end

@@ -218,4 +218,12 @@ module MasslessChargedParticle
     compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
     compute_momentum_error(t,q,p,params::NamedTuple) = compute_momentum_error(t, q, p, (t,q,k) -> ϑ(t,q,params,k))
 
+
+    export plot_solution, plot_phase_portrait, plot_traces
+
+    # Plot functions are implemented in the `MasslessChargedParticlePlots` extension (loaded with Makie).
+    function plot_solution end
+    function plot_phase_portrait end
+    function plot_traces end
+
 end
