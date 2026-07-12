@@ -68,8 +68,14 @@ Branch: `fix/correctness-audit`. Started 2026-07-11 22:30 CEST.
 - Renamed `@userplot` PascalCase → snake_case; functions now return a Makie `Figure` (breaking). Docstrings live in the extensions but attach to the problem-module functions, so `@autodocs Modules=[LotkaVolterra2d]` renders them (removed the now-duplicate `LotkaVolterra2dPlots` autodocs block in `lotka_volterra_2d.md`).
 - Deleted `src/plot_recipes.jl` + 4 `*_plots.jl`; removed their includes; removed `RecipesBase`/`Measures`/`LaTeXStrings` from `Project.toml` `[deps]`/`[compat]` (verified plot-only). Registered 5 extensions.
 - Tests: `test/plots_tests.jl` (13 smoke tests, `isa Figure`) + `CairoMakie` in `test/Project.toml`, wired into `runtests.jl`.
-- GOTCHAS: (1) `using Makie` exports a `TimeSeries` recipe that clashes with `GeometricSolutions.TimeSeries` → import GS types explicitly in `DiagnosticsPlots`. (2) `DataSeries` range indexing `q[range,i]` is NOT component-i-over-range; use `[q[k][i] for k in idx]` (k = integer time index). (3) `compute_invariant` calls the invariant as `inv(t,q,params)` (3-arg) despite its docstring — pass `parameters(equ)` + `invariants(equ)[:h]` to the 4-arg `compute_invariant_error`.
+- GOTCHAS: (1) `using Makie` exports a `TimeSeries` recipe that clashes with `GeometricSolutions.TimeSeries` → import GS types explicitly (selective `using GeometricSolutions: …`) in every extension. (2) `DataSeries` range indexing `q[range,i]` is NOT component-i-over-range; use `[q[k][i] for k in idx]` (k = integer time index). (3) `compute_invariant` calls the invariant as `inv(t,q,params)` (3-arg) despite its docstring — pass `parameters(equ)` + `invariants(equ)[:h]` to the 4-arg `compute_invariant_error`.
 - VERIFIED: package loads with deps removed; all 6 extensions precompile; 13 plot tests pass (run in docs env, which has CairoMakie); docstrings resolve for autodocs; HarmonicOscillator/Pendulum extensions unaffected. NOT run: full `Pkg.test()` suite end-to-end (non-plot tests untouched).
+
+## Copilot review fixes (commit bd3d257)
+- `plot_energy_drift` now starts at index 1 (drift is interval-based; index 0 is not part of the series), matching the legacy `PlotEnergyDrift` recipe.
+- Extended the explicit `using GeometricSolutions: …` import to the four problem extensions (LV2d/3d/4d, massless), not just `DiagnosticsPlots`, to avoid the latent Makie `TimeSeries` clash.
+- Clarified in `test/plots_tests.jl` that the energy-drift smoke test feeds a pointwise error series as a stand-in (`compute_drift` is unavailable in the pinned GeometricSolutions 0.6.4).
+- All 6 Copilot threads (drift index, 4× GS imports, drift test) replied to and resolved. A later Copilot pass flagged the PR *description* (not code) as stale re: LV3d/LV4d `plot_phase_portrait`; PR body updated and that thread resolved.
 
 ## Docs-alignment follow-up (third request: reconcile docs plots with extensions)
 - Reviewed every `@example`/`@eval` block in `docs/src/*.md`. Findings: no doc plots an energy/invariant error (Diagnostics.* had zero doc usage); models with extensions still hand-rolled phase-portrait/trace figures.
