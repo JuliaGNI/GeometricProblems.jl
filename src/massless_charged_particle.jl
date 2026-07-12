@@ -46,7 +46,7 @@ module MasslessChargedParticle
     # default simulation parameters
     const Δt = 0.2
     const nt = 5000
-    const timespan = (0.0, Δt*nt)
+    const DEFAULT_TIMESPAN = (0.0, Δt*nt)
 
     # default initial conditions and parameters
     q₀ = [1.0, 1.0]
@@ -181,12 +181,12 @@ module MasslessChargedParticle
 
 
     "Creates an ODE object for the massless charged particle in 2D."
-    function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters = default_parameters)
         ODEProblem(massless_charged_particle_v, timespan, timestep, q₀; invariants=(h=hamiltonian,), parameters=parameters)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
-    function iodeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function iodeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters = default_parameters)
         IODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g,
                 timespan, timestep, q₀, ϑ(0., q₀, parameters);
@@ -195,7 +195,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function idaeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function idaeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters = default_parameters)
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,
@@ -205,7 +205,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function idaeproblem_spark(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function idaeproblem_spark(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters = default_parameters)
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f̄,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,

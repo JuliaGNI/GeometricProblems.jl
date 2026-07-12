@@ -23,12 +23,15 @@ module MathewsLakshmananOscillator
     using EulerLagrange
     using LinearAlgebra
     using Parameters
+    using GeometricEquations: HODEEnsemble, LODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
+    export hodeensemble, lodeensemble
+    export hamiltonian_system, lagrangian_system
 
-    const timespan = (0.0, 20.0)
-    const timestep = 0.01
+    const DEFAULT_TIMESPAN = (0.0, 20.0)
+    const DEFAULT_TIMESTEP = 0.01
 
     const default_parameters = (ω = 1.0, λ = 1.0)
 
@@ -50,20 +53,43 @@ module MathewsLakshmananOscillator
         nothing
     end
 
-    "Hamiltonian problem for the Mathews-Lakshmanan oscillator."
-    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function hamiltonian_system(parameters::NamedTuple)
         t, q, p = hamiltonian_variables(1)
         sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
+    end
+
+    function lagrangian_system(parameters::NamedTuple)
+        t, x, v = lagrangian_variables(1)
+        sparams = symbolize(parameters)
+        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+    end
+
+    # Build the symbolic system from a single parameter set, while a vector of parameter
+    # sets is passed on to the ensemble unchanged (see issue #64).
+    _parameters(p::NamedTuple) = p
+    _parameters(p::AbstractVector) = p[begin]
+
+    "Hamiltonian problem for the Mathews-Lakshmanan oscillator."
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
+    end
+
+    "Hamiltonian ensemble for the Mathews-Lakshmanan oscillator (varying initial conditions and/or parameters)."
+    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        eqs = functions(hamiltonian_system(_parameters(parameters)))
+        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     "Lagrangian problem for the Mathews-Lakshmanan oscillator."
-    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
-        t, x, v = lagrangian_variables(1)
-        sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
+    end
+
+    "Lagrangian ensemble for the Mathews-Lakshmanan oscillator (varying initial conditions and/or parameters)."
+    function lodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        eqs = functions(lagrangian_system(_parameters(parameters)))
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
 end

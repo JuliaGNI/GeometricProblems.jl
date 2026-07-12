@@ -34,7 +34,7 @@ export odeproblem,
 
 const Δt = 0.01
 const nt = 1000
-const timespan = (0.0, Δt * nt)
+const DEFAULT_TIMESPAN = (0.0, Δt * nt)
 
 const q₀ = [2.0, 1.0, 1.0, 1.0]
 
@@ -370,25 +370,25 @@ end
 lotka_volterra_4d_ψ(ψ, t, q, v, p, q̇, ṗ, params) = lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
 
 
-function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     ODEProblem(lotka_volterra_4d_v, timespan, timestep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
 end
 
 
-function podeproblem(q₀=q₀, p₀=nothing; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function podeproblem(q₀=q₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     PODEProblem(lotka_volterra_4d_v, lotka_volterra_4d_f,
         timespan, timestep, q₀, p₀; parameters=parameters, invariants=(h=hamiltonian,))
 end
 
-function iodeproblem(q₀=q₀, p₀=nothing; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function iodeproblem(q₀=q₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     IODEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
         lotka_volterra_4d_g, timespan, timestep, q₀, p₀;
         parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_4d_v)
 end
 
-function lodeproblem(q₀=q₀, p₀=nothing; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function lodeproblem(q₀=q₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     LODEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
         lotka_volterra_4d_g, lotka_volterra_4d_ω,
@@ -396,7 +396,7 @@ function lodeproblem(q₀=q₀, p₀=nothing; timespan=timespan, timestep=Δt, p
         parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_4d_v)
 end
 
-function idaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespan, timestep=Δt, parameters=default_parameters)
+function idaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     IDAEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
         lotka_volterra_4d_u, lotka_volterra_4d_g, lotka_volterra_4d_ϕ,
@@ -405,7 +405,7 @@ function idaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespa
         parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_4d_v)
 end
 
-function pdaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespan, timestep=Δt, parameters=default_parameters)
+function pdaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     PDAEProblem(lotka_volterra_4d_v, lotka_volterra_4d_f,
         lotka_volterra_4d_u, lotka_volterra_4d_g, lotka_volterra_4d_ϕ,
@@ -415,7 +415,7 @@ function pdaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespa
         parameters=parameters, invariants=(h=hamiltonian,))
 end
 
-function pdaeproblem_secondary(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespan, timestep=Δt, parameters=default_parameters)
+function pdaeproblem_secondary(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     PDAEProblem(lotka_volterra_4d_v_ham, lotka_volterra_4d_f_ham,
         lotka_volterra_4d_u, lotka_volterra_4d_g, lotka_volterra_4d_ϕ,
@@ -425,7 +425,7 @@ function pdaeproblem_secondary(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timesp
         parameters=parameters, invariants=(h=hamiltonian,))
 end
 
-function ldaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespan, timestep=Δt, parameters=default_parameters)
+function ldaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     LDAEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
         lotka_volterra_4d_u, lotka_volterra_4d_g, lotka_volterra_4d_ϕ,
@@ -435,7 +435,7 @@ function ldaeproblem(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespa
         v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,)
 end
 
-function ldaeproblem_secondary(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=timespan, timestep=Δt, parameters=default_parameters)
+function ldaeproblem_secondary(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     LDAEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f_ham,
         lotka_volterra_4d_u, lotka_volterra_4d_g, lotka_volterra_4d_ϕ,
@@ -445,7 +445,7 @@ function ldaeproblem_secondary(q₀=q₀, p₀=nothing, λ₀=zero(q₀); timesp
         v̄=lotka_volterra_4d_v, f̄=lotka_volterra_4d_f,)
 end
 
-function iodeproblem_dg(q₀=q₀, p₀=nothing; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function iodeproblem_dg(q₀=q₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     p₀ === nothing ? p₀ = ϑ(timespan[begin], q₀) : nothing
     IODEProblem(lotka_volterra_4d_ϑ, lotka_volterra_4d_f,
         lotka_volterra_4d_g, timespan, timestep, q₀, p₀;

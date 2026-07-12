@@ -23,7 +23,7 @@ module PointVortices
 
     const Δt = 0.01
     const nt = 1000
-    const timespan = (0.0, Δt*nt)
+    const DEFAULT_TIMESPAN = (0.0, Δt*nt)
     
     const reference_solution = [0.18722529318641928, 0.38967432450068706, 0.38125332930294187, 0.4258020604293123]
 
@@ -232,30 +232,30 @@ module PointVortices
     point_vortices_ϕ(ϕ, t, q, v, p, params) = point_vortices_ϕ(ϕ, t, q, p, params)
 
 
-    function odeproblem(q₀=q₀; timespan = timespan, timestep = Δt)
+    function odeproblem(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = Δt)
         ODEProblem(point_vortices_v, timespan, timestep, q₀)
     end
 
-    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = timespan, timestep = Δt)
+    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = Δt)
         IODEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_g, timespan, timestep, q₀, p₀;
                     v̄=point_vortices_v)
     end
 
-    function idaeproblem(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀); timespan = timespan, timestep = Δt)
+    function idaeproblem(q₀=q₀, p₀=ϑ(q₀), λ₀=zero(q₀); timespan = DEFAULT_TIMESPAN, timestep = Δt)
         IDAEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_u, point_vortices_g,
                     point_vortices_ϕ, timespan, timestep, q₀, p₀, λ₀;
                     v̄=point_vortices_v)
     end
 
-    function idoeproblem_dg(q₀=q₀; timespan = timespan, timestep = Δt)
+    function idoeproblem_dg(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = Δt)
         IODEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_g, timespan, timestep, q₀, q₀;
                     v=point_vortices_v)
     end
 
-    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = timespan, timestep = Δt)
+    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = Δt)
         LODEProblem(ϑ, point_vortices_f, point_vortices_g, timespan, timestep, q₀, p₀;
                     v̄=point_vortices_v, Ω=ω, ∇H=dH)
     end

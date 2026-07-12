@@ -12,9 +12,12 @@ module ThreeBody
     using EulerLagrange
     using LinearAlgebra
     using Parameters
+    using GeometricEquations: HODEEnsemble, LODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
+    export hodeensemble, lodeensemble
+    export hamiltonian_system, lagrangian_system
 
     "Turn array into a vector."
     _reshape(arr::AbstractArray) = reshape(arr, length(arr))
@@ -40,10 +43,10 @@ module ThreeBody
     const G = 1.
 
     @doc raw"Constant taken from [jin2020sympnets](@cite)."
-    const timestep = .5
+    const DEFAULT_TIMESTEP = .5
 
     @doc raw"Range is taken from [jin2020sympnets](@cite). In that reference the integration is only done for ten time steps."
-    const timespan = (0.0, 10 * timestep)
+    const DEFAULT_TIMESPAN = (0.0, 10 * DEFAULT_TIMESTEP)
 
     @doc raw"Default parameters taken from [jin2020sympnets](@cite)."
     const default_parameters = (
@@ -79,6 +82,23 @@ module ThreeBody
         nothing
     end
 
+    function hamiltonian_system(parameters::NamedTuple)
+        t, q, p = hamiltonian_variables(6)
+        sparams = symbolize(parameters)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
+    end
+
+    function lagrangian_system(parameters::NamedTuple)
+        t, x, v = lagrangian_variables(6)
+        sparams = symbolize(parameters)
+        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+    end
+
+    # Build the symbolic system from a single parameter set, while a vector of parameter
+    # sets is passed on to the ensemble unchanged (see issue #64).
+    _parameters(p::NamedTuple) = p
+    _parameters(p::AbstractVector) = p[begin]
+
 
     """
         hodeproblem(q₀, p₀; timespan, timestep, parameters)
@@ -90,17 +110,20 @@ module ThreeBody
     hodeproblem(
         q₀ = $(initial_condition.q),
         p₀ = $(initial_condition.p);
-        timespan = $(timespan),
-        timestep = $(timestep),
+        timespan = $(DEFAULT_TIMESPAN),
+        timestep = $(DEFAULT_TIMESTEP),
         params = $(default_parameters)
     )
     ```
     """
-    function hodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = timespan, timestep = timestep, parameters = default_parameters)
-        t, q, p = hamiltonian_variables(6)
-        sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
+    function hodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
+    end
+
+    "Hamiltonian ensemble for the three-body problem (varying initial conditions and/or parameters)."
+    function hodeensemble(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        eqs = functions(hamiltonian_system(_parameters(parameters)))
+        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
     """
@@ -113,17 +136,20 @@ module ThreeBody
     lodeproblem(
         q₀ = $(initial_condition.q),
         p₀ = $(initial_condition.p);
-        timespan = $(timespan),
-        timestep = $(timestep),
+        timespan = $(DEFAULT_TIMESPAN),
+        timestep = $(DEFAULT_TIMESTEP),
         params = $(default_parameters)
     )
     ```
     """
-    function lodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = timespan, timestep = timestep, parameters = default_parameters)
-        t, x, v = lagrangian_variables(6)
-        sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
+    function lodeproblem(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
+    end
+
+    "Lagrangian ensemble for the three-body problem (varying initial conditions and/or parameters)."
+    function lodeensemble(q₀ = initial_condition.q, p₀ = initial_condition.p; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters)
+        eqs = functions(lagrangian_system(_parameters(parameters)))
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
 end

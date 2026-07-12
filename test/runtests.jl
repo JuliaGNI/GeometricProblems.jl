@@ -1,5 +1,8 @@
 using SafeTestsets
 
+@safetestset "Default timespan/timestep constants (#83, #82)                                  " begin
+    include("default_timespan_timestep_tests.jl")
+end
 @safetestset "Bump initial condition: test derivative.                                        " begin
     include("bump_initial_condition_test_derivatives.jl")
 end
@@ -68,4 +71,7 @@ end
 end
 @safetestset "Toda Lattice                                                                    " begin
     include("toda_lattice_tests.jl")
+end
+@safetestset "EulerLagrange ensembles (#64)                                                   " begin
+    include("eulerlagrange_ensembles_tests.jl")
 end

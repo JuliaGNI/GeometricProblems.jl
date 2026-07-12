@@ -54,7 +54,7 @@ export compute_energy_error, compute_casimir_error
 
 const Δt = 0.01
 const nt = 1000
-const timespan = (0.0, Δt * nt)
+const DEFAULT_TIMESPAN = (0.0, Δt * nt)
 
 const default_parameters = (A1=1.0, A2=1.0, A3=1.0, B1=0.0, B2=1.0, B3=1.0)
 const reference_solution = [1.2429313310230237, 2.263720576035246, 0.7108206593932]
@@ -103,7 +103,7 @@ function lotka_volterra_3d_v(v, t, q, params)
 end
 
 
-function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=Δt, parameters=default_parameters)
     ODEProblem(lotka_volterra_3d_v, timespan, timestep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
 end
 
