@@ -1,7 +1,10 @@
 module HarmonicOscillatorPlots
 
 using Makie
+using GeometricSolutions: ntime
 import GeometricProblems.HarmonicOscillator
+
+_indices(sol, nplot, nt) = 0:nplot:(nt === :auto ? ntime(sol) : min(nt, ntime(sol)))
 
 function _spring(x; rod = 0.15, top = 2.0, n = 100, w = 10, r = 0.1)
     distance = top - x - 2 * rod
@@ -156,6 +159,74 @@ function HarmonicOscillator.plot_solution(
 
     HarmonicOscillator.plot_spring(t[i], q[i], fig, fig[1:2, 6]; rod, top)
 
+    return fig
+end
+
+"""
+    plot_phase_portrait(sol; nplot, nt)
+
+Plot the `q`–`p` phase-space trajectory of a harmonic-oscillator solution
+(requires a partitioned/Hamiltonian solution with a momentum `sol.p`). Returns a
+Makie `Figure`.
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+"""
+function HarmonicOscillator.plot_phase_portrait(sol; nplot = 1, nt = :auto)
+    idx = _indices(sol, nplot, nt)
+    fig = Figure(size = (500, 500))
+    ax = Axis(fig[1, 1]; aspect = 1, xlabel = "q", ylabel = "p")
+    lines!(ax, [sol.q[k][1] for k in idx], [sol.p[k][1] for k in idx])
+    return fig
+end
+
+"""
+    plot_traces(sol; nplot, nt)
+
+Plot the time traces of the position `q(t)` and momentum `p(t)` of a
+harmonic-oscillator solution. Returns a Makie `Figure`.
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+"""
+function HarmonicOscillator.plot_traces(sol; nplot = 1, nt = :auto)
+    idx = _indices(sol, nplot, nt)
+    ts  = [sol.t[k] for k in idx]
+    fig = Figure(size = (800, 400))
+    ax = Axis(fig[1, 1]; xlabel = "t", ylabel = "q, p")
+    lines!(ax, ts, [sol.q[k][1] for k in idx]; label = "q")
+    lines!(ax, ts, [sol.p[k][1] for k in idx]; label = "p")
+    axislegend(ax)
+    return fig
+end
+
+"""
+    plot_hamiltonian(; params, qlims, plims, n, levels)
+
+Plot the harmonic-oscillator Hamiltonian `H(q, p)` as a filled contour over a
+`q`–`p` grid. Returns a Makie `Figure`.
+
+# Keyword arguments
+- `params`: Hamiltonian parameters (default: `HarmonicOscillator.default_parameters()`)
+- `qlims = (-2.5, 2.5)`, `plims = (-2.5, 2.5)`: grid extent
+- `n = 100`: grid resolution per axis
+- `levels`: contour levels
+"""
+function HarmonicOscillator.plot_hamiltonian(;
+        params = HarmonicOscillator.default_parameters(),
+        qlims = (-2.5, 2.5), plims = (-2.5, 2.5), n = 100,
+        levels = [0.0, 0.05, 0.25, 0.65, 1.2, collect(2:7)...])
+    qs = range(qlims...; length = n)
+    ps = range(plims...; length = n)
+    hs = [HarmonicOscillator.hamiltonian(0, q, p, params) for q in qs, p in ps]
+
+    fig = Figure(size = (600, 600), figure_padding = 5, fontsize = 24)
+    ax = Axis(fig[1, 1]; aspect = 1, xlabel = "q", ylabel = "p",
+              xticks = [-2, -1, 0, +1, +2], yticks = [-2, -1, 0, +1, +2])
+    co = contourf!(ax, qs, ps, hs; levels = levels)
+    Colorbar(fig[1, 2], co)
     return fig
 end
 

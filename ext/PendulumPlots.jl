@@ -1,7 +1,10 @@
 module PendulumPlots
 
 using Makie
+using GeometricSolutions: ntime
 import GeometricProblems.Pendulum
+
+_indices(sol, nplot, nt) = 0:nplot:(nt === :auto ? ntime(sol) : min(nt, ntime(sol)))
 
 """
     plot_pendulum(t, q[, fig, axfig])
@@ -132,6 +135,73 @@ function Pendulum.plot_solution(
 
     Pendulum.plot_pendulum(t[i], q[i], fig, fig[1:2, 6])
 
+    return fig
+end
+
+"""
+    plot_phase_portrait(sol; nplot, nt)
+
+Plot the `θ`–`p` phase-space trajectory of a pendulum solution (requires a
+partitioned/Hamiltonian solution with a momentum `sol.p`). Returns a Makie
+`Figure`.
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+"""
+function Pendulum.plot_phase_portrait(sol; nplot = 1, nt = :auto)
+    idx = _indices(sol, nplot, nt)
+    fig = Figure(size = (600, 500))
+    ax = Axis(fig[1, 1]; xlabel = "θ", ylabel = "p")
+    lines!(ax, [sol.q[k][1] for k in idx], [sol.p[k][1] for k in idx])
+    return fig
+end
+
+"""
+    plot_traces(sol; nplot, nt)
+
+Plot the time traces of the angle `θ(t)` and momentum `p(t)` of a pendulum
+solution. Returns a Makie `Figure`.
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+"""
+function Pendulum.plot_traces(sol; nplot = 1, nt = :auto)
+    idx = _indices(sol, nplot, nt)
+    ts  = [sol.t[k] for k in idx]
+    fig = Figure(size = (800, 400))
+    ax = Axis(fig[1, 1]; xlabel = "t", ylabel = "θ, p")
+    lines!(ax, ts, [sol.q[k][1] for k in idx]; label = "θ")
+    lines!(ax, ts, [sol.p[k][1] for k in idx]; label = "p")
+    axislegend(ax)
+    return fig
+end
+
+"""
+    plot_hamiltonian(; params, qlims, plims, n, levels)
+
+Plot the pendulum Hamiltonian `H(θ, p)` as a filled contour over a `θ`–`p` grid,
+showing the characteristic separatrix between libration and rotation. Returns a
+Makie `Figure`.
+
+# Keyword arguments
+- `params`: Hamiltonian parameters (default: `Pendulum.default_parameters()`)
+- `qlims = (-2π, 2π)`, `plims = (-3, 3)`: grid extent
+- `n = 200`: grid resolution per axis
+- `levels = 20`: contour levels
+"""
+function Pendulum.plot_hamiltonian(;
+        params = Pendulum.default_parameters(),
+        qlims = (-2π, 2π), plims = (-3, 3), n = 200, levels = 20)
+    qs = range(qlims...; length = n)
+    ps = range(plims...; length = n)
+    hs = [Pendulum.hamiltonian(0, q, p, params) for q in qs, p in ps]
+
+    fig = Figure(size = (700, 400), figure_padding = 5, fontsize = 20)
+    ax = Axis(fig[1, 1]; xlabel = "θ", ylabel = "p")
+    co = contourf!(ax, qs, ps, hs; levels = levels)
+    Colorbar(fig[1, 2], co)
     return fig
 end
 

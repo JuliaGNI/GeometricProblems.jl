@@ -24,9 +24,6 @@ export lotka_volterra_4d_ode,
     lotka_volterra_4d_ldae
 
 
-# include("lotka_volterra_4d_plots.jl")
-
-
 const Δt = 0.01
 const nt = 1000
 const DEFAULT_TIMESPAN = (0.0, Δt * nt)

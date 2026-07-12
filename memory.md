@@ -61,6 +61,30 @@ Branch: `fix/correctness-audit`. Started 2026-07-11 22:30 CEST.
 - GOTCHA: `docs/build/` must be removed before rebuilding (stale artifacts cause `mkdir build/images EEXIST`).
 - Package RecipesBase recipes (plot_recipes.jl, *_plots.jl) left unchanged (not Plots.jl; still documented via autodocs).
 
+## Package plotting → CairoMakie extensions (follow-up request)
+- Completed the migration the docs-CairoMakie section left open ("*_plots.jl left unchanged"). All package plot recipes are now Makie extensions, one per problem + a shared diagnostics extension, following the existing `HarmonicOscillatorPlots`/`PendulumPlots` pattern (exported stubs in `src/`, methods in `ext/*Plots.jl`, triggered by the `Makie` weakdep).
+- New: `src/diagnostics.jl` (module `Diagnostics`, replaces `plot_recipes.jl`) with exported stubs `plot_energy_error`/`plot_energy_drift`/`plot_constraint_error`/`plot_lagrange_multiplier` + non-exported `subscript`. Extension `ext/DiagnosticsPlots.jl`.
+- New per-problem extensions + stubs: LV2d (`plot_solution`/`plot_phase_portrait`/`plot_traces`), LV3d/LV4d (`plot_traces`), massless (`plot_solution`/`plot_phase_portrait`/`plot_traces`). Massless dropped its generic energy/momentum-error recipes (use `Diagnostics.*`).
+- Renamed `@userplot` PascalCase → snake_case; functions now return a Makie `Figure` (breaking). Docstrings live in the extensions but attach to the problem-module functions, so `@autodocs Modules=[LotkaVolterra2d]` renders them (removed the now-duplicate `LotkaVolterra2dPlots` autodocs block in `lotka_volterra_2d.md`).
+- Deleted `src/plot_recipes.jl` + 4 `*_plots.jl`; removed their includes; removed `RecipesBase`/`Measures`/`LaTeXStrings` from `Project.toml` `[deps]`/`[compat]` (verified plot-only). Registered 5 extensions.
+- Tests: `test/plots_tests.jl` (13 smoke tests, `isa Figure`) + `CairoMakie` in `test/Project.toml`, wired into `runtests.jl`.
+- GOTCHAS: (1) `using Makie` exports a `TimeSeries` recipe that clashes with `GeometricSolutions.TimeSeries` → import GS types explicitly (selective `using GeometricSolutions: …`) in every extension. (2) `DataSeries` range indexing `q[range,i]` is NOT component-i-over-range; use `[q[k][i] for k in idx]` (k = integer time index). (3) `compute_invariant` calls the invariant as `inv(t,q,params)` (3-arg) despite its docstring — pass `parameters(equ)` + `invariants(equ)[:h]` to the 4-arg `compute_invariant_error`.
+- VERIFIED: package loads with deps removed; all 6 extensions precompile; 13 plot tests pass (run in docs env, which has CairoMakie); docstrings resolve for autodocs; HarmonicOscillator/Pendulum extensions unaffected. NOT run: full `Pkg.test()` suite end-to-end (non-plot tests untouched).
+
+## Copilot review fixes (commit bd3d257)
+- `plot_energy_drift` now starts at index 1 (drift is interval-based; index 0 is not part of the series), matching the legacy `PlotEnergyDrift` recipe.
+- Extended the explicit `using GeometricSolutions: …` import to the four problem extensions (LV2d/3d/4d, massless), not just `DiagnosticsPlots`, to avoid the latent Makie `TimeSeries` clash.
+- Clarified in `test/plots_tests.jl` that the energy-drift smoke test feeds a pointwise error series as a stand-in (`compute_drift` is unavailable in the pinned GeometricSolutions 0.6.4).
+- All 6 Copilot threads (drift index, 4× GS imports, drift test) replied to and resolved. A later Copilot pass flagged the PR *description* (not code) as stale re: LV3d/LV4d `plot_phase_portrait`; PR body updated and that thread resolved.
+
+## Docs-alignment follow-up (third request: reconcile docs plots with extensions)
+- Reviewed every `@example`/`@eval` block in `docs/src/*.md`. Findings: no doc plots an energy/invariant error (Diagnostics.* had zero doc usage); models with extensions still hand-rolled phase-portrait/trace figures.
+- Uniform API: `plot_phase_portrait(sol)` is now single-argument across all problem extensions (dropped the unused `equ` arg from LV2d/massless).
+- Added `plot_phase_portrait` to LV3d (3D Axis3 trajectory) and LV4d (q₁–q₂ projection). Added `plot_phase_portrait`, `plot_traces`, and `plot_hamiltonian` (energy-landscape contourf + colorbar) to HarmonicOscillator and Pendulum extensions + src stubs/exports.
+- Doc swaps to extension calls: lv2d, lv3d, lv4d, massless (phase portraits), harmonic_oscillator (:43 landscape, :93 phase portrait), pendulum (:49 landscape, :85 traces). Ensemble/param-sweep overlays (pendulum :113/:131) and extension-less models' one-liners left hand-rolled per user. `diagnostics.md` now showcases `plot_energy_error` + `plot_constraint_error`.
+- Plot tests grew 13→21 (added LV3d/LV4d phase portraits + HO/Pendulum phase_portrait/traces/hamiltonian).
+- VERIFIED: 21 plot tests pass; `julia --project=docs docs/make.jl` builds clean (26 pages, no errors, all changed figures render). GOTCHA reminder: `rm -rf docs/build` before rebuild.
+
 ## Log
 - All 17 plan items (P1–P17) complete + docs CairoMakie migration. Kubo test intentionally left disabled (SDE-API migration follow-up).
 - Remaining minor doc polish (non-blocking) noted under "Known follow-ups".

@@ -44,16 +44,10 @@ examples/*/*/*.png
 examples/*.h5
 examples/*/*.h5
 examples/*/*/*.h5
-notebooks/*.pdf
-notebooks/*/*.pdf
-notebooks/*/*/*.pdf
-notebooks/*.png
-notebooks/*/*.png
-notebooks/*/*/*.png
-prototyping/*.pdf
-prototyping/*.png
 
-# Backup and scratch files (kept locally; not part of the package) — see bugs.md §6
+# Backup and scratch files (kept locally; not part of the package)
 *-prev.jl
+/notebooks/
+/obsolete/
+/prototyping/
 /references/
-/harmonic-oscillator-plots/

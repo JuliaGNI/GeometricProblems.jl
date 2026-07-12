@@ -19,9 +19,7 @@ using CairoMakie
 ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
-fig = Figure()
-ax = Axis(fig[1, 1]; xlabel = "q₁", ylabel = "q₂", title = "Lotka–Volterra 2d")
-lines!(ax, sol.q[:, 1], sol.q[:, 2])
+fig = plot_phase_portrait(sol)
 save("lotka_volterra_2d.svg", fig)
 
 nothing
@@ -55,14 +53,11 @@ GeometricProblems.LotkaVolterra2dGauge
 
 ## User Functions
 
+The plotting functions (`plot_solution`, `plot_phase_portrait`, `plot_traces`)
+are provided by the `LotkaVolterra2dPlots` extension and become available once a
+Makie backend such as `CairoMakie` is loaded.
+
 ```@autodocs
 Modules = [GeometricProblems.LotkaVolterra2d]
-Order   = [:constant, :type, :macro, :function]
-```
-
-## Plotting Functions
-
-```@autodocs
-Modules = [GeometricProblems.LotkaVolterra2dPlots]
 Order   = [:constant, :type, :macro, :function]
 ```

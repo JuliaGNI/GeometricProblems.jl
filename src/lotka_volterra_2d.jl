@@ -106,4 +106,12 @@ function iodeproblem_dg_gauge(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_T
         v̄=lotka_volterra_2d_v)
 end
 
+
+export plot_solution, plot_phase_portrait, plot_traces
+
+# Plot functions are implemented in the `LotkaVolterra2dPlots` extension (loaded with Makie).
+function plot_solution end
+function plot_phase_portrait end
+function plot_traces end
+
 end
