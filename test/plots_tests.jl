@@ -33,6 +33,9 @@ import GeometricProblems.MasslessChargedParticle as mcp
         _, ΔH = compute_invariant_error(sol.t, sol.q, parameters(ode), invariants(ode)[:h])
         @test diag.plot_energy_error(sol)         isa Figure
         @test diag.plot_energy_error(sol.t, ΔH)   isa Figure
+        # `compute_drift` is not available in the pinned GeometricSolutions, so the
+        # pointwise error series ΔH stands in as a (time, values) pair here — this
+        # only smoke-tests that a Figure is built, not the drift semantics.
         @test diag.plot_energy_drift(sol.t, ΔH)   isa Figure
         @test diag.plot_constraint_error(dsol)    isa Figure
         @test diag.plot_lagrange_multiplier(dsol) isa Figure

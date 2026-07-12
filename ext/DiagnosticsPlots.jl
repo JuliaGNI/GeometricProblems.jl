@@ -86,7 +86,8 @@ see `GeometricSolutions.compute_drift`) as a function of time. Returns a `Figure
 """
 function Diagnostics.plot_energy_drift(t::Union{TimeSeries, ScalarDataSeries}, d::DataSeries;
         nt = :auto, latex = true)
-    r = _steprange(t, 1, nt)
+    # drift data is interval-based; the first entry (index 0) is not part of it.
+    r = 1:(nt === :auto ? ntime(t) : min(nt, ntime(t)))
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1];
         xlabel = latex ? L"t" : "t",

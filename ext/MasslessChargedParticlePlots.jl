@@ -2,7 +2,9 @@ module MasslessChargedParticlePlots
 
 using Makie
 using GeometricEquations: invariants, parameters
-using GeometricSolutions
+# Import GeometricSolutions symbols explicitly: `using Makie` also exports names
+# such as `TimeSeries`, which would otherwise clash with GeometricSolutions.
+using GeometricSolutions: ntime, compute_invariant_error
 
 import GeometricProblems.MasslessChargedParticle
 
