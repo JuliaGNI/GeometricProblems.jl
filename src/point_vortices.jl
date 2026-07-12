@@ -50,6 +50,8 @@ module PointVortices
     function hamiltonian(t, q, params)
         γ₁ * γ₂ * S(q[1],q[2]) * S(q[3],q[4]) * log( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (2π)
     end
+    # H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+    hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
     ϑ₁(q) = - γ₁ * q[2] * S(q[1], q[2]) / 2
     ϑ₂(q) = + γ₁ * q[1] * S(q[1], q[2]) / 2

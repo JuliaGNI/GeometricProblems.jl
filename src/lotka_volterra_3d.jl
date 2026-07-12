@@ -88,6 +88,8 @@ function hamiltonian(t, q, params)
     @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
     A₁ * q[1] + A₂ * q[2] + A₃ * q[3] + B₁ * log(q[1]) + B₂ * log(q[2]) + B₃ * log(q[3])
 end
+# H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
 function casimir(t, q, params)
     log(q[1]) + log(q[2]) + log(q[3])

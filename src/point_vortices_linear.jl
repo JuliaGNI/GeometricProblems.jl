@@ -34,7 +34,8 @@ module PointVorticesLinear
     function hamiltonian(t, q, params)
         γ₁ * γ₂ * log( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (4π)
     end
-    hamiltonian(t, q) = hamiltonian(t, q, default_parameters())
+    # H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+    hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
     ϑ₁(q) = - γ₁ * q[2] / 2
     ϑ₂(q) = + γ₁ * q[1] / 2
@@ -49,7 +50,6 @@ module PointVorticesLinear
         q[1] * ϑ₂(q) - q[2] * ϑ₁(q) +
         q[3] * ϑ₄(q) - q[4] * ϑ₃(q)
     end
-    angular_momentum(t, q) = angular_momentum(t, q, default_parameters())
 
     # Formal (phase-space) Lagrangian L = ϑ(q)·v - H(q) for the non-canonical system.
     # Its Euler–Lagrange equations reproduce the linearised point-vortex dynamics.
@@ -193,26 +193,26 @@ module PointVorticesLinear
     end
 
 
-    function compute_energy(t, q)
+    function compute_energy(t, q, params)
         h = zeros(q.nt+1)
         for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i])
+            h[i] = hamiltonian(t.t[i], q.d[:,i], params)
         end
         return h
     end
 
-    function compute_energy_error(t, q)
+    function compute_energy_error(t, q, params)
         h = zeros(q.nt+1)
         for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i])
+            h[i] = hamiltonian(t.t[i], q.d[:,i], params)
         end
         h_error = (h .- h[1]) / h[1]
     end
 
-    function compute_angular_momentum_error(t, q)
+    function compute_angular_momentum_error(t, q, params)
         P = zeros(q.nt+1)
         for i in 1:(q.nt+1)
-            P[i] = angular_momentum(t.t[i], q.d[:,i])
+            P[i] = angular_momentum(t.t[i], q.d[:,i], params)
         end
         P_error = (P .- P[1]) / P[1]
     end
