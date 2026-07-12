@@ -132,7 +132,7 @@ module DoublePendulum
         p₀ = $(p₀);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
@@ -156,7 +156,7 @@ module DoublePendulum
         p₀ = $(p₀);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """

@@ -20,26 +20,26 @@ module LinearWave
     include("bump_initial_condition.jl")
 
     const μ̃ = .6
-    const Ñ = 256
+    const Ñ = 256
 
-    const default_parameters = (μ = μ̃, N = Ñ)
+    const default_parameters = (μ = μ̃, N = Ñ)
 
     function hamiltonian(t, q, p, parameters)
         @unpack N, μ = parameters
         
-        Δx = one(μ) / (Ñ + 1)
+        Δx = one(μ) / (Ñ + 1)
         Δx² = Δx ^ 2
         μ² = μ ^ 2
-        sum(p[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 + μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
+        sum(p[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 + μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))   
     end
 
     function lagrangian(t, q, q̇, parameters)
         @unpack N, μ = parameters 
 
-        Δx = one(μ) / (Ñ + 1)
+        Δx = one(μ) / (Ñ + 1)
         Δx² = Δx ^ 2 
         μ² = μ ^ 2
-        sum(q̇[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 - μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
+        sum(q̇[n] ^ 2 for n in 1 : (Ñ + 2)) / 2 - μ² / 4Δx² * sum(((q[i] - q[i - 1]) ^ 2 + (q[i + 1] - q[i]) ^ 2) for i in 2 : (Ñ + 1))
     end
 
     _timestep(timespan::Tuple, n_time_steps::Integer) = (timespan[2] - timespan[1]) / (n_time_steps-1)
@@ -49,8 +49,8 @@ module LinearWave
     const n_time_steps = 200
     const DEFAULT_TIMESTEP = _timestep(DEFAULT_TIMESPAN, n_time_steps)
 
-    const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
-    const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
+    const q₀ = compute_initial_condition2(μ̃, Ñ + 2).q 
+    const p₀ = compute_initial_condition2(μ̃, Ñ + 2).p 
 
     function hamiltonian_system(parameters::NamedTuple)
         t, q, p = hamiltonian_variables(Ñ + 2)

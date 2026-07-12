@@ -112,7 +112,7 @@ module ThreeBody
         p₀ = $(initial_condition.p);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
@@ -138,7 +138,7 @@ module ThreeBody
         p₀ = $(initial_condition.p);
         timespan = $(DEFAULT_TIMESPAN),
         timestep = $(DEFAULT_TIMESTEP),
-        params = $(default_parameters)
+        parameters = $(default_parameters)
     )
     ```
     """
