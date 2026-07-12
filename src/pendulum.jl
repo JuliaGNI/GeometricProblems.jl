@@ -85,11 +85,6 @@ module Pendulum
     hamiltonian(t, x::AbstractArray, params) = hamiltonian(t, x[1], x[2], params)
     hamiltonian(t, q::AbstractArray, p::AbstractArray, params) = hamiltonian(t, q[1], p[1], params)
 
-    # parameter-free convenience methods using the default parameters
-    hamiltonian(t, q::Number, p::Number) = hamiltonian(t, q, p, default_parameters())
-    hamiltonian(t, x::AbstractArray) = hamiltonian(t, x[1], x[2], default_parameters())
-    hamiltonian(t, q::AbstractArray, p::AbstractArray) = hamiltonian(t, q[1], p[1], default_parameters())
-
     const labels_ode = (t = "t", q = "θ", p = "θ̇", h = "E")
     const labels_hamiltonian = (t = "t", q = "θ", p = "p", h = "H")
 
