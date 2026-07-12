@@ -124,8 +124,8 @@ function lotka_volterra_2d_v_ham(v, t, q, p, params)
 end
 
 function lotka_volterra_2d_v_dae(v, t, q, params)
-    v[1] = v[3]
-    v[2] = v[4]
+    v[1] = q[3]
+    v[2] = q[4]
     v[3] = 0
     v[4] = 0
     nothing

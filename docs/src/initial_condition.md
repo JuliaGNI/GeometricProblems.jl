@@ -43,18 +43,21 @@ Three initial conditions and their time evolutions are shown in the figure below
 ```@example
 # Plot our initial conditions for different values of μ here! 
 using GeometricProblems: compute_initial_condition, compute_domain
-using Plots # hide
-using LaTeXStrings # hide
+using CairoMakie # hide
 
 μ_vals = [0.416, 0.508, 0.600]
-Ñ = 128
+Ñ = 128
 
-Ω = compute_domain(Ñ)
-ics = [compute_initial_condition(μ, Ñ) for μ in μ_vals]
-p = plot(Ω, ics[1].q, label = L"\mu"*"="*string(μ_vals[1]), xlabel = L"\Omega", ylabel = L"q_0")
-plot!(p, Ω, ics[2].q, label = L"\mu"*"="*string(μ_vals[2]))
-plot!(p, Ω, ics[3].q, label = L"\mu"*"="*string(μ_vals[3]))
-png(p, "ics_plot")
+Ω = compute_domain(Ñ)
+
+fig = Figure()
+ax = Axis(fig[1, 1]; xlabel = "Ω", ylabel = "q₀")
+for μ in μ_vals
+    ic = compute_initial_condition(μ, Ñ)
+    lines!(ax, Ω, ic.q, label = "μ = $(μ)")
+end
+axislegend(ax)
+save("ics_plot.png", fig)
 
 nothing
 ```

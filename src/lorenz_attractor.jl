@@ -1,12 +1,30 @@
 @doc raw"""
 # Lorenz Attractor
 
+The Lorenz system is a three-dimensional, non-Hamiltonian ODE exhibiting chaotic dynamics
+(deterministic, aperiodic flow on a strange attractor):
+```math
+\begin{aligned}
+\dot{x} &= \sigma (y - x) , \\
+\dot{y} &= x (\rho - z) - y , \\
+\dot{z} &= x y - \beta z .
+\end{aligned}
+```
+
+System parameters:
+* `σ`: Prandtl number
+* `ρ`: (reduced) Rayleigh number
+* `β`: geometric factor
+
+The default parameters ``(\sigma, \rho, \beta) = (10, 28, 8/3)`` are the classic values of
+Lorenz (1963), for which the system is chaotic. Only the plain `ODEProblem` form is provided:
+the flow is dissipative (volume-contracting) and carries no Hamiltonian or symplectic structure.
 """
 module LorenzAttractor
 
     using GeometricEquations
 
-    export lorenz_attractor_ode, plot_lorenz_attractor
+    export lorenz_attractor_ode
 
 
     const Δt = 0.01

@@ -66,7 +66,7 @@ module LinearWave
         t, x, v = lagrangian_variables(Ñ + 2)
         sparams = symbolize(parameters)
         lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; simplify = false)
-        lodeproblem(lag_sys, timespan, timestep, q₀, p₀; parameters = parameters)
+        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
 end

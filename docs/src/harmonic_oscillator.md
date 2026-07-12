@@ -78,9 +78,34 @@ nothing
 
 ## Lagrangian Formulation
 
+The harmonic oscillator derives from the regular Lagrangian
+```math
+L(x, \dot{x}) = \frac{m}{2} \dot{x}^2 - \frac{k}{2} x^2 ,
+```
+whose Euler–Lagrange equation $\tfrac{d}{dt} \tfrac{\partial L}{\partial \dot{x}} - \tfrac{\partial L}{\partial x} = 0$ reproduces $m \ddot{x} = -k x$. The conjugate momentum is $p = \partial L / \partial \dot{x} = m \dot{x}$, and the Legendre transform $H = p \dot{x} - L$ recovers the Hamiltonian above.
+
+Besides this regular Lagrangian, the module also provides a degenerate, first-order (phase-space) Lagrangian of the form $L(q, \dot{q}) = \vartheta(q) \cdot \dot{q} - H(q)$, which underlies the implicit/variational formulations (`iodeproblem`, `lodeproblem`, and their `degenerate_` variants).
 
 ## Dynamics
 
+The harmonic oscillator is provided in many equivalent formulations, all describing the same dynamics and conserving the energy $H$: an explicit ODE (`odeproblem`), a partitioned/Hamiltonian system (`podeproblem`, `hodeproblem`), implicit and variational forms (`iodeproblem`, `lodeproblem`), a split ODE (`sodeproblem`), differential-algebraic forms (`daeproblem`, `pdaeproblem`, `hdaeproblem`, `idaeproblem`, `ldaeproblem`), and discrete Euler–Lagrange problems (`deleproblem_midpoint`, `deleproblem_trapezoidal`), together with the corresponding ensembles. Integrating the default Hamiltonian problem traces a closed trajectory in phase space:
+
+```@eval
+using GeometricProblems.HarmonicOscillator
+using GeometricIntegrators
+using CairoMakie
+
+sol = integrate(hodeproblem(; timespan = (0.0, 10.0), timestep = 0.05), Gauss(1))
+
+fig = Figure(size = (500, 500))
+ax = Axis(fig[1, 1]; xlabel = "q", ylabel = "p", aspect = 1, title = "Harmonic oscillator trajectory")
+lines!(ax, sol.q[:, 1], sol.p[:, 1])
+save("harmonic-oscillator-trajectory.svg", fig)
+
+nothing
+```
+
+![](harmonic-oscillator-trajectory.svg)
 
 ## Library
 

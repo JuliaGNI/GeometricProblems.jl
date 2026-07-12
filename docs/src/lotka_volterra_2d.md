@@ -12,16 +12,17 @@ H (q) = a_1 \, q_1 + a_2 \, q_2 + b_1 \, \log q_1 + b_2 \, \log q_2 .
 ```
 
 ```@eval
-using Plots
 using GeometricIntegrators
 using GeometricProblems.LotkaVolterra2d
-using GeometricProblems.LotkaVolterra2dPlots
+using CairoMakie
 
 ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
-plot_lotka_volterra_2d(sol, ode)
-savefig("lotka_volterra_2d.svg")
+fig = Figure()
+ax = Axis(fig[1, 1]; xlabel = "q₁", ylabel = "q₂", title = "Lotka–Volterra 2d")
+lines!(ax, sol.q[:, 1], sol.q[:, 2])
+save("lotka_volterra_2d.svg", fig)
 
 nothing
 ```

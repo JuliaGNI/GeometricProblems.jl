@@ -85,17 +85,17 @@ function degenerate_lagrangian(t, q, v, params)
 end
 
 
-A(q, p, params) = q * sqrt(1 + p^2 / q^2 / params.k)
-ϕ(q, p, params) = atan(p / q / params.ω)
+A(q, p, params) = q * sqrt(1 + p^2 / q^2 / (params.m * params.k))
+ϕ(q, p, params) = atan(p / q / params.ω / params.m)
 
 exact_solution_q(t, q₀, p₀, t₀, params) = A(q₀, p₀, params) * cos(params.ω * (t - t₀) - ϕ(q₀, p₀, params))
-exact_solution_p(t, q₀, p₀, t₀, params) = -params.ω * A(q₀, p₀, params) * sin(params.ω * (t - t₀) - ϕ(q₀, p₀, params))
+exact_solution_p(t, q₀, p₀, t₀, params) = -params.m * params.ω * A(q₀, p₀, params) * sin(params.ω * (t - t₀) - ϕ(q₀, p₀, params))
 
 exact_solution_q(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params) = exact_solution_q(t, q₀[1], p₀[1], t₀, params)
 exact_solution_p(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params) = exact_solution_p(t, q₀[1], p₀[1], t₀, params)
 
-exact_solution_q(t, x₀::AbstractVector, t₀, params) = exact_solution_q(t, x₀[1], x₀[2], t₀, params)
-exact_solution_p(t, x₀::AbstractVector, t₀, params) = exact_solution_p(t, x₀[1], x₀[2], t₀, params)
+exact_solution_q(t, x₀::AbstractVector, t₀, params) = exact_solution_q(t, x₀[1], params.m * x₀[2], t₀, params)
+exact_solution_p(t, x₀::AbstractVector, t₀, params) = exact_solution_p(t, x₀[1], params.m * x₀[2], t₀, params) / params.m
 exact_solution(t, x₀::AbstractVector, t₀, params) = [exact_solution_q(t, x₀, t₀, params), exact_solution_p(t, x₀, t₀, params)]
 
 
@@ -137,9 +137,9 @@ end
 
 
 function oscillator_ode_v(v, t, x, params)
-    @unpack k = params
+    @unpack m, k = params
     v[1] = x[2]
-    v[2] = -k * x[1]
+    v[2] = -k * x[1] / m
     nothing
 end
 
@@ -168,7 +168,8 @@ end
 
 
 function oscillator_pode_v(v, t, q, p, params)
-    v[1] = p[1]
+    @unpack m = params
+    v[1] = p[1] / m
     nothing
 end
 
@@ -241,9 +242,9 @@ function oscillator_sode_v_1(v, t, q, params)
 end
 
 function oscillator_sode_v_2(v, t, q, params)
-    @unpack k = params
+    @unpack m, k = params
     v[1] = 0
-    v[2] = -k * q[1]
+    v[2] = -k * q[1] / m
     nothing
 end
 
@@ -254,9 +255,9 @@ function oscillator_sode_q_1(q₁, t₁, q₀, t₀, params)
 end
 
 function oscillator_sode_q_2(q₁, t₁, q₀, t₀, params)
-    @unpack k = params
+    @unpack m, k = params
     q₁[1] = q₀[1]
-    q₁[2] = q₀[2] - (t₁ - t₀) * k * q₀[1]
+    q₁[2] = q₀[2] - (t₁ - t₀) * k * q₀[1] / m
     nothing
 end
 
@@ -270,7 +271,8 @@ sodeproblem(::Type{T}, args...; kwargs...) where {T} = sodeproblem(x₀, T, args
 
 
 function oscillator_iode_ϑ(p, t, q, v, params)
-    p[1] = v[1]
+    @unpack m = params
+    p[1] = m * v[1]
     nothing
 end
 
@@ -286,7 +288,8 @@ function oscillator_iode_g(g, t, q, v, λ, params)
 end
 
 function oscillator_iode_v(v, t, q, p, params)
-    v[1] = p[1]
+    @unpack m = params
+    v[1] = p[1] / m
     nothing
 end
 
@@ -312,15 +315,16 @@ lodeproblem(::Type{T}, args...; kwargs...) where {T} = lodeproblem(q₀, p₀, T
 
 
 function degenerate_oscillator_iode_ϑ(p, t, q, v, params)
-    p[1] = q[2]
+    @unpack m = params
+    p[1] = m * q[2]
     p[2] = 0
     nothing
 end
 
 function degenerate_oscillator_iode_f(f, t, q, v, params)
-    @unpack k = params
+    @unpack m, k = params
     f[1] = -k * q[1]
-    f[2] = v[1] - q[2]
+    f[2] = m * (v[1] - q[2])
     nothing
 end
 
@@ -331,9 +335,9 @@ function degenerate_oscillator_iode_g(g, t, q, v, λ, params)
 end
 
 function degenerate_oscillator_iode_v(v, t, q, p, params)
-    @unpack k = params
+    @unpack m, k = params
     v[1] = q[2]
-    v[2] = -k * q[1]
+    v[2] = -k * q[1] / m
     nothing
 end
 
@@ -359,9 +363,9 @@ degenerate_lodeproblem(::Type{T}, args...; kwargs...) where {T} = degenerate_lod
 
 
 function oscillator_dae_u(u, t, x, λ, params)
-    @unpack k = params
+    @unpack m, k = params
     u[1] = k * x[1] * λ[1]
-    u[2] = x[2] * λ[1]
+    u[2] = m * x[2] * λ[1]
 end
 
 function oscillator_dae_ϕ(ϕ, t, x, params)
@@ -375,8 +379,8 @@ end
 
 
 function oscillator_pdae_v(v, t, q, p, params)
-    @unpack k = params
-    v[1] = p[1]
+    @unpack m = params
+    v[1] = p[1] / m
     nothing
 end
 
@@ -393,7 +397,8 @@ function oscillator_pdae_u(u, t, q, p, λ, params)
 end
 
 function oscillator_pdae_g(g, t, q, p, λ, params)
-    g[1] = p[1] * λ[1]
+    @unpack m = params
+    g[1] = p[1] * λ[1] / m
     nothing
 end
 
@@ -404,18 +409,18 @@ function oscillator_pdae_ū(u, t, q, p, λ, params)
 end
 
 function oscillator_pdae_ḡ(g, t, q, p, λ, params)
-    g[1] = p[1] * λ[1]
+    g[1] = p[1] * λ[1] / params.m
     nothing
 end
 
 function oscillator_pdae_ϕ(ϕ, t, q, p, params)
-    ϕ[1] = hamitlonian(t, q, p, params)
+    ϕ[1] = hamiltonian(t, q, p, params) - hamiltonian(t₀, q₀, p₀, params)
     nothing
 end
 
 function oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
     @unpack k = params
-    ψ[1] = p[1] * ṗ[1] + k * q[1] * q̇[1]
+    ψ[1] = p[1] * ṗ[1] / params.m + k * q[1] * q̇[1]
     nothing
 end
 

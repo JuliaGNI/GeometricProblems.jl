@@ -9,7 +9,7 @@ The actual code is generated with EulerLagrange.jl.
 The coupled harmonic oscillator is a collection of two point masses that are connected to a fixed wall with spring constants ``k_1`` and ``k_2`` and are furthermore coupled nonlinearly resulting in the Hamiltonian: 
 
 ```math 
-H(q_1, q_2, p_1, p_2) = \frac{q_1^2}{2m_1} + \frac{q_2^2}{2m_2} + k_1\frac{q_1^2}{2} + k_2\frac{q_2^2}{2} +  k\sigma(q_1)\frac{(q_2 - q_1)^2}{2},
+H(q_1, q_2, p_1, p_2) = \frac{p_1^2}{2m_1} + \frac{p_2^2}{2m_2} + k_1\frac{q_1^2}{2} + k_2\frac{q_2^2}{2} +  k\sigma(q_1)\frac{(q_2 - q_1)^2}{2},
 ```
 where ``\sigma(x) = 1 / (1 + e^{-x})`` is the sigmoid activation function. 
 
@@ -61,7 +61,7 @@ module CoupledHarmonicOscillator
     function lagrangian(t, q, q̇, parameters)
         @unpack k₁, k₂, m₁, m₂, k = parameters
 
-        q̇[1] ^ 2 / (2 * m₁) + q̇[2] ^ 2 / (2 * m₂) - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
+        m₁ * q̇[1] ^ 2 / 2 + m₂ * q̇[2] ^ 2 / 2 - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
 
     function v̄(v, t, q, p, parameters)

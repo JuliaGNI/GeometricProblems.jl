@@ -1,6 +1,11 @@
 @doc raw"""
 # Planar Point Vortices with linear one-form
 
+A pair of interacting planar point vortices described with a *linearised* one-form — the $S = 1$
+limit of the deformed `PointVortices` model. It is a non-canonical Hamiltonian system whose
+Hamiltonian is the logarithmic vortex-interaction energy and whose `angular_momentum` is a
+conserved quantity. Explicit (`odeproblem`), implicit/variational (`iodeproblem`,
+`lodeproblem_formal_lagrangian`) and differential-algebraic formulations are provided.
 """
 module PointVorticesLinear
 

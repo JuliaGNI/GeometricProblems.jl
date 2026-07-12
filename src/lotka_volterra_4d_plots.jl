@@ -5,6 +5,8 @@ module LotkaVolterra4dPlots
     using Measures: mm
     using RecipesBase
 
+    using ..LotkaVolterra4d: hamiltonian
+
     compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
     # compute_momentum_error(t,q,p) = compute_momentum_error(t,q,p,ϑ)
 
