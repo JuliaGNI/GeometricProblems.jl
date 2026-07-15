@@ -17,13 +17,13 @@ module ABCFlow
 
     export odeproblem, odeensemble
 
-    const timespan = (0.0, 100.0)
-    const timestep = 0.1
+    const DEFAULT_TIMESPAN = (0.0, 100.0)
+    const DEFAULT_TIMESTEP = 0.1
 
-    const default_parameters = (
-        A = 0.5,
-        B = 1.,
-        C = 1.
+    default_parameters(::Type{T}=Float64) where {T} = (
+        A = T(0.5),
+        B = T(1.),
+        C = T(1.)
     )
 
     const q₀ = [0.0, 0., 0.]
@@ -40,11 +40,11 @@ module ABCFlow
         nothing
     end
 
-    function odeproblem(q₀ = q₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         ODEProblem(abc_flow_v, timespan, timestep, q₀; parameters = parameters)
     end
 
-    function odeensemble(samples = [q₀, q₁, q₂]; parameters = default_parameters, timespan = timespan, timestep = timestep)
+    function odeensemble(samples = [q₀, q₁, q₂]; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         ODEEnsemble(abc_flow_v, timespan, timestep, samples; parameters = parameters)
     end
 

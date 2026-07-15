@@ -1,0 +1,7 @@
+[deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
+GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
+GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
+
+[sources]
+GeometricProblems = {path = ".."}

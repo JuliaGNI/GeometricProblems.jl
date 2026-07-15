@@ -1,5 +1,13 @@
 # The rigid body 
 
+The free rigid body (Euler's equations) is a Lie–Poisson system whose motion conserves the
+Casimir $\lVert x \rVert^2$. Every trajectory therefore stays on a sphere of constant radius, so
+each initial condition below is chosen as a unit vector — a point on the unit sphere. The specific
+parametrisations (e.g. `[sin θ, 0, cos θ]` vs. the module default `[cos θ, 0, sin θ]`) only select
+different starting orientations on that sphere; any unit vector is an equally valid initial
+condition. The example integrates an ensemble of such initial conditions and draws the resulting
+trajectories on the sphere:
+
 ```@example 
 using GeometricProblems.RigidBody: odeensemble
 using GeometricIntegrators: integrate, ImplicitMidpoint

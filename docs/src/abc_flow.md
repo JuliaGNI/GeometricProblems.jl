@@ -5,15 +5,16 @@ The ABC flow (see [hairer2006geometric](@cite)) is described by a divergence-fre
 ```@example
 using GeometricIntegrators: integrate, ImplicitMidpoint
 using GeometricProblems.ABCFlow
-using Plots
+using CairoMakie
 
 ensemble_solution = integrate(odeensemble(), ImplicitMidpoint())
 
-p = plot()
+fig = Figure()
+ax = Axis3(fig[1, 1]; xlabel = "x", ylabel = "y", zlabel = "z")
 for solution in ensemble_solution
-    plot!(p, solution.q[:, 1], solution.q[:, 2], solution.q[:, 3])
+    lines!(ax, solution.q[:, 1], solution.q[:, 2], solution.q[:, 3])
 end
-p
+fig
 ```
 
 ## Library functions

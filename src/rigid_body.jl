@@ -21,13 +21,13 @@ module RigidBody
 
     export odeproblem, odeensemble
 
-    const timespan = (0.0, 100.0)
-    const timestep = 0.1
+    const DEFAULT_TIMESPAN = (0.0, 100.0)
+    const DEFAULT_TIMESTEP = 0.1
 
-    const default_parameters = (
-        I₁ = 2.,
-        I₂ = 1.,
-        I₃ = 2. / 3.
+    default_parameters(::Type{T}=Float64) where {T} = (
+        I₁ = T(2.),
+        I₂ = T(1.),
+        I₃ = T(2. / 3.)
     )
 
     const q₀ = [cos(1.1), 0., sin(1.1)]
@@ -46,11 +46,11 @@ module RigidBody
         nothing
     end
 
-    function odeproblem(q₀ = q₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         ODEProblem(rigid_body_v, timespan, timestep, q₀; parameters = parameters)
     end
 
-    function odeensemble(samples = [q₀, q₁, q₂]; parameters = default_parameters, timespan = timespan, timestep = timestep)
+    function odeensemble(samples = [q₀, q₁, q₂]; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         ODEEnsemble(rigid_body_v, timespan, timestep, samples; parameters = parameters)
     end
 

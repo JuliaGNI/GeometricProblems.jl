@@ -9,7 +9,7 @@ The actual code is generated with EulerLagrange.jl.
 The coupled harmonic oscillator is a collection of two point masses that are connected to a fixed wall with spring constants ``k_1`` and ``k_2`` and are furthermore coupled nonlinearly resulting in the Hamiltonian: 
 
 ```math 
-H(q_1, q_2, p_1, p_2) = \frac{q_1^2}{2m_1} + \frac{q_2^2}{2m_2} + k_1\frac{q_1^2}{2} + k_2\frac{q_2^2}{2} +  k\sigma(q_1)\frac{(q_2 - q_1)^2}{2},
+H(q_1, q_2, p_1, p_2) = \frac{p_1^2}{2m_1} + \frac{p_2^2}{2m_2} + k_1\frac{q_1^2}{2} + k_2\frac{q_2^2}{2} +  k\sigma(q_1)\frac{(q_2 - q_1)^2}{2},
 ```
 where ``\sigma(x) = 1 / (1 + e^{-x})`` is the sigmoid activation function. 
 
@@ -33,15 +33,15 @@ module CoupledHarmonicOscillator
     export hodeensemble
     export hamiltonian_system, lagrangian_system
 
-    const timespan = (0.0, 100.0)
-    const timestep = 0.4
+    const DEFAULT_TIMESPAN = (0.0, 100.0)
+    const DEFAULT_TIMESTEP = 0.4
 
-    const default_parameters = (
-        m₁ = 2.,
-        m₂ = 1.,
-        k₁ = 1.5,
-        k₂ = 0.3,
-        k = 1.0
+    default_parameters(::Type{DT}=Float64) where {DT} = (
+        m₁ = DT(2.),
+        m₂ = DT(1.),
+        k₁ = DT(1.5),
+        k₂ = DT(0.3),
+        k = DT(1.0)
     )
 
     const q₀ = [1., 0.]
@@ -61,7 +61,7 @@ module CoupledHarmonicOscillator
     function lagrangian(t, q, q̇, parameters)
         @unpack k₁, k₂, m₁, m₂, k = parameters
 
-        m₁*q̇[1] ^ 2 / 2 + m₂*q̇[2] ^ 2 / 2 - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
+        m₁ * q̇[1] ^ 2 / 2 + m₂ * q̇[2] ^ 2 / 2 - k₁ * q[1] ^ 2 / 2 - k₂ * q[2] ^ 2 / 2  - k * σ(q[1]) * (q[2] - q[1]) ^2 / 2
     end
 
     function v̄(v, t, q, p, parameters)
@@ -94,17 +94,17 @@ module CoupledHarmonicOscillator
     hodeproblem(
         q₀ = $(q₀),
         p₀ = $(p₀);
-        timespan = $(timespan),
-        timestep = $(timestep),
-        parameters = $(default_parameters)
+        timespan = $(DEFAULT_TIMESPAN),
+        timestep = $(DEFAULT_TIMESTEP),
+        parameters = $(default_parameters())
     )
     ```
     """
-    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
     end
 
-    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         eqs = functions(hamiltonian_system(_parameters(parameters)))
         HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     end
@@ -117,13 +117,13 @@ module CoupledHarmonicOscillator
     lodeproblem(
         q₀ = $(q₀),
         p₀ = $(p₀);
-        timespan = $(timespan),
-        timestep = $(timestep),
-        parameters = $(default_parameters)
+        timespan = $(DEFAULT_TIMESPAN),
+        timestep = $(DEFAULT_TIMESTEP),
+        parameters = $(default_parameters())
     )
     ```
     """
-    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 

@@ -14,4 +14,9 @@ using GeometricSolutions
 
     sol = integrate(iode, Gauss(2))
     @test relative_maximum_error(sol.q, ref.q) < 1E-9
+
+    # the formal (phase-space) Lagrangian LODE reproduces the ODE dynamics
+    lode = lodeproblem_formal_lagrangian()
+    sol = integrate(lode, MidpointProjection(VPRKGauss(2)))
+    @test relative_maximum_error(sol.q, ref.q) < 1E-8
 end

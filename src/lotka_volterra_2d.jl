@@ -94,16 +94,24 @@ end
 # end
 
 
-function iodeproblem_dg_gauge(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=timespan, timestep=Δt, parameters=default_parameters, κ=0)
+function iodeproblem_dg_gauge(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters(), κ=0)
     lotka_volterra_2d_ϑ = (p, t, q, v, params) -> lotka_volterra_2d_ϑ_κ(p, t, q, v, params, κ)
     lotka_volterra_2d_f = (f, t, q, v, params) -> lotka_volterra_2d_f_κ(f, t, q, v, params, κ)
-    lotka_volterra_2d_g = (g, t, q, λ, params) -> lotka_volterra_2d_g_κ(g, t, q, λ, params, κ)
+    lotka_volterra_2d_g = (g, t, q, v, λ, params) -> lotka_volterra_2d_g_κ(g, t, q, λ, params, κ)
 
     IODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
         lotka_volterra_2d_g, timespan, timestep, q₀, p₀;
         parameters=parameters,
-        invariants=(h=hamiltonian_iode,),
+        invariants=(h=hamiltonian,),
         v̄=lotka_volterra_2d_v)
 end
+
+
+export plot_solution, plot_phase_portrait, plot_traces
+
+# Plot functions are implemented in the `LotkaVolterra2dPlots` extension (loaded with Makie).
+function plot_solution end
+function plot_phase_portrait end
+function plot_traces end
 
 end

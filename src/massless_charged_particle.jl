@@ -27,8 +27,8 @@ E(x) &= - \nabla \phi(x) = E_0 \, \big( \sin x_1, \, - \cos x_2 \big)^T .
 The Hamiltonian form of the equations of motion reads
 ```math
 \dot{x} = \frac{1}{B(x)} \begin{pmatrix}
-\hphantom{-} 0 & + 1 \\
-- 1 & \hphantom{+} 0 \\
+\hphantom{-} 0 & - 1 \\
++ 1 & \hphantom{+} 0 \\
 \end{pmatrix} \nabla \phi (x) .
 ```
 
@@ -46,12 +46,13 @@ module MasslessChargedParticle
     # default simulation parameters
     const Δt = 0.2
     const nt = 5000
-    const timespan = (0.0, Δt*nt)
+    const DEFAULT_TIMESPAN = (0.0, Δt*nt)
+    const DEFAULT_TIMESTEP = Δt
 
     # default initial conditions and parameters
-    q₀ = [1.0, 1.0]
+    const q₀ = [1.0, 1.0]
 
-    default_parameters = (A₀ = 1.0, E₀ = 1.0)
+    default_parameters(::Type{T}=Float64) where {T} = (A₀ = T(1.0), E₀ = T(1.0))
 
     # components of the vector potential
     A₁(q, params) = - params[:A₀] * q[2] * (1 + q[1]^2 + q[2]^2) / 2
@@ -75,8 +76,8 @@ module MasslessChargedParticle
     E(q, params) = [E₁(q, params), E₂(q, params)]
 
     # components of the velocity
-    v₁(t, q, params) = - E₂(q, params) / B(q, params)
-    v₂(t, q, params) = + E₁(q, params) / B(q, params)
+    v₁(t, q, params) = + E₂(q, params) / B(q, params)
+    v₂(t, q, params) = - E₁(q, params) / B(q, params)
 
     # components of the one-form (symplectic potential)
     ϑ₁(t, q, params) = A₁(q, params)
@@ -158,6 +159,8 @@ module MasslessChargedParticle
     end
 
     massless_charged_particle_g(g, t, q, p, v, params) = massless_charged_particle_g(g, t, q, v, params)
+    # IDAE evaluates the constraint force g with the multiplier λ (mirrors LotkaVolterra2d).
+    massless_charged_particle_g(g, t, q, v, p, λ, params) = massless_charged_particle_g(g, t, q, λ, params)
 
     function massless_charged_particle_u(u, t, q, v, params)
         u .= v
@@ -165,28 +168,32 @@ module MasslessChargedParticle
     end
 
     massless_charged_particle_u(u, t, q, p, v, params) = massless_charged_particle_u(u, t, q, v, params)
+    # IDAE projects along the multiplier λ (u .= λ), mirroring LotkaVolterra2d.
+    massless_charged_particle_u(u, t, q, v, p, λ, params) = massless_charged_particle_u(u, t, q, λ, params)
 
     function massless_charged_particle_ϕ(ϕ, t, q, p, params)
         ϕ[1] = p[1] - ϑ₁(t,q,params)
         ϕ[2] = p[2] - ϑ₂(t,q,params)
         nothing
     end
+    # IDAE calls ϕ with an extra velocity slot; the constraint p = ϑ(q) does not depend on it.
+    massless_charged_particle_ϕ(ϕ, t, q, v, p, params) = massless_charged_particle_ϕ(ϕ, t, q, p, params)
 
     function massless_charged_particle_ψ(ψ, t, q, p, v, f, params)
-        ψ[1] = f[1] - g₁(t,q,v,params)
-        ψ[2] = f[2] - g₂(t,q,v,params)
+        ψ[1] = f[1] - g₁(v,t,q,params)
+        ψ[2] = f[2] - g₂(v,t,q,params)
         nothing
     end
 
 
 
     "Creates an ODE object for the massless charged particle in 2D."
-    function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
         ODEProblem(massless_charged_particle_v, timespan, timestep, q₀; invariants=(h=hamiltonian,), parameters=parameters)
     end
 
     "Creates an implicit ODE object for the massless charged particle in 2D."
-    function iodeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function iodeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
         IODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_g,
                 timespan, timestep, q₀, ϑ(0., q₀, parameters);
@@ -195,7 +202,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function idaeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function idaeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,
@@ -205,7 +212,7 @@ module MasslessChargedParticle
     end
 
     "Creates an implicit DAE object for the massless charged particle in 2D."
-    function idaeproblem_spark(q₀=q₀; timespan=timespan, timestep=Δt, parameters = default_parameters)
+    function idaeproblem_spark(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
         IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f̄,
                 massless_charged_particle_u, massless_charged_particle_g,
                 massless_charged_particle_ϕ,
@@ -217,5 +224,13 @@ module MasslessChargedParticle
 
     compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
     compute_momentum_error(t,q,p,params::NamedTuple) = compute_momentum_error(t, q, p, (t,q,k) -> ϑ(t,q,params,k))
+
+
+    export plot_solution, plot_phase_portrait, plot_traces
+
+    # Plot functions are implemented in the `MasslessChargedParticlePlots` extension (loaded with Makie).
+    function plot_solution end
+    function plot_phase_portrait end
+    function plot_traces end
 
 end

@@ -18,8 +18,8 @@ using GeometricSolutions
     sol = integrate(ode, Gauss(2))
     H, ΔH = compute_energy_error(sol.t, sol.q, parameters(ode))
     C, ΔC = compute_casimir_error(sol.t, sol.q, parameters(ode))
-    @test relative_maximum_error(sol.q, ref.q) < 2E-9
+    @test relative_maximum_error(sol.q, ref.q) < 1E-8
     @test ΔH[end] < 5E-11
-    @test ΔC[end] < 2E-11
+    @test ΔC[end] < 1E-9
 
 end

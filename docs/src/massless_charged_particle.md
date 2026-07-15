@@ -5,16 +5,15 @@ GeometricProblems.MasslessChargedParticle
 ```
 
 ```@eval
-using Plots
 using GeometricIntegrators
 using GeometricProblems.MasslessChargedParticle
-using GeometricProblems.MasslessChargedParticlePlots
+using CairoMakie
 
 ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
-plot_massless_charged_particle(sol, ode)
-savefig("massless_charged_particle.svg")
+fig = plot_phase_portrait(sol)
+save("massless_charged_particle.svg", fig)
 
 nothing
 ```

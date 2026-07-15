@@ -44,31 +44,7 @@ A = q_0 \, \sqrt{1 + p_0^2 / (k q_0^2)} , \qquad
 using GeometricProblems.HarmonicOscillator
 using CairoMakie
 
-H(q,p) = hamiltonian(0, q, p, HarmonicOscillator.default_parameters())
-
-levels = [0.0, 0.05, 0.25, 0.65, 1.2, collect(2:7)...]
-ticks = [-2, -1, 0, +1, +2]
-fig = Figure(size = (600, 600), figure_padding = 5, fontsize = 24)
-ax = Axis(
-    fig[1,1],
-    aspect = 1,
-    xlabel = "q",
-    ylabel = "p",
-    xticks = ticks,
-    yticks = ticks,
-    title = "Harmonic Oscillator Hamiltonian",
-)
-
-z = range(-2.5, +2.5; length = 100)
-q = (z' .* one.(z))[:]
-p = (one.(z)' .* z)[:]
-
-co = contourf!(ax, q, p, H.(q,p); levels = levels)
-cb = Colorbar(fig[1, 2], co)
-
-xlims!(ax, minimum(z), maximum(z))
-ylims!(ax, minimum(z), maximum(z))
-
+fig = plot_hamiltonian()
 save("harmonic-oscillator-hamiltonian.svg", fig)
 
 nothing
@@ -78,9 +54,32 @@ nothing
 
 ## Lagrangian Formulation
 
+The harmonic oscillator derives from the regular Lagrangian
+```math
+L(x, \dot{x}) = \frac{m}{2} \dot{x}^2 - \frac{k}{2} x^2 ,
+```
+whose Euler–Lagrange equation $\tfrac{d}{dt} \tfrac{\partial L}{\partial \dot{x}} - \tfrac{\partial L}{\partial x} = 0$ reproduces $m \ddot{x} = -k x$. The conjugate momentum is $p = \partial L / \partial \dot{x} = m \dot{x}$, and the Legendre transform $H = p \dot{x} - L$ recovers the Hamiltonian above.
+
+Besides this regular Lagrangian, the module also provides a degenerate, first-order (phase-space) Lagrangian of the form $L(q, \dot{q}) = \vartheta(q) \cdot \dot{q} - H(q)$, which underlies the implicit/variational formulations (`iodeproblem`, `lodeproblem`, and their `degenerate_` variants).
 
 ## Dynamics
 
+The harmonic oscillator is provided in many equivalent formulations, all describing the same dynamics and conserving the energy $H$: an explicit ODE (`odeproblem`), a partitioned/Hamiltonian system (`podeproblem`, `hodeproblem`), implicit and variational forms (`iodeproblem`, `lodeproblem`), a split ODE (`sodeproblem`), differential-algebraic forms (`daeproblem`, `pdaeproblem`, `hdaeproblem`, `idaeproblem`, `ldaeproblem`), and discrete Euler–Lagrange problems (`deleproblem_midpoint`, `deleproblem_trapezoidal`), together with the corresponding ensembles. Integrating the default Hamiltonian problem traces a closed trajectory in phase space:
+
+```@eval
+using GeometricProblems.HarmonicOscillator
+using GeometricIntegrators
+using CairoMakie
+
+sol = integrate(hodeproblem(; timespan = (0.0, 10.0), timestep = 0.05), Gauss(1))
+
+fig = plot_phase_portrait(sol)
+save("harmonic-oscillator-trajectory.svg", fig)
+
+nothing
+```
+
+![](harmonic-oscillator-trajectory.svg)
 
 ## Library
 

@@ -57,10 +57,9 @@ function hamiltonian(t, q, params)
     a₁ * q[1] + a₂ * q[2] + b₁ * log(q[1]) + b₂ * log(q[2])
 end
 
-hamiltonian_iode(t, q, params) = hamiltonian(t, q, params) # This is a workaround. It should be removed asap.
-hamiltonian_iode(t, q, v, params) = hamiltonian(t, q, params)
-
-hamiltonian_pode(t, q, p, params) = hamiltonian(t, q, params)
+# The Hamiltonian depends only on q; this method covers the iode/lode/pode/hode
+# contexts where the invariant or Hamiltonian is evaluated with a momentum/velocity slot.
+hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
 function lagrangian(t, q, v, params)
     ϑ₁(t, q) * v[1] + ϑ₂(t, q) * v[2] - hamiltonian(t, q, params)
@@ -124,8 +123,8 @@ function lotka_volterra_2d_v_ham(v, t, q, p, params)
 end
 
 function lotka_volterra_2d_v_dae(v, t, q, params)
-    v[1] = v[3]
-    v[2] = v[4]
+    v[1] = q[3]
+    v[2] = q[4]
     v[3] = 0
     v[4] = 0
     nothing

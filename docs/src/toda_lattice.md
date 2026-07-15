@@ -25,7 +25,7 @@ Hence we have:
 We can model the evolution of a thin pulse in this system:
 
 ```julia
-using GeometricProblems, GeometricIntegrators, GLMakie # hide
+using GeometricProblems, GeometricIntegrators, CairoMakie # hide
 
 problem = GeometricProblems.TodaLattice.hodeproblem(; timespan = (0.0, 2000.)) 
 sol = integrate(problem, ImplicitMidpoint())
@@ -49,6 +49,24 @@ Docs.HTML("""<video mute autoplay loop controls src="toda_animation.mp4" />""")
 ```
 
 As we can see the thin pulse separates into two smaller pulses an they start traveling in opposite directions until they meet again at time ``t\approx120``. But it is important to note that the right peak at time ``120`` is below the one at time ``0``. This is not a numerical artifact but a feature of the Toda lattice! 
+
+A static snapshot of the initial and the evolved lattice profile can be produced directly with
+CairoMakie:
+
+```@example
+using GeometricProblems.TodaLattice
+using GeometricIntegrators: integrate, ImplicitMidpoint
+using CairoMakie
+
+sol = integrate(TodaLattice.hodeproblem(; timespan = (0.0, 100.0)), ImplicitMidpoint())
+
+fig = Figure()
+ax = Axis(fig[1, 1]; xlabel = "particle index n", ylabel = "qₙ", title = "Toda lattice profile")
+lines!(ax, sol.q[0, :]; label = "initial")
+lines!(ax, sol.q[end, :]; label = "final")
+axislegend(ax)
+fig
+```
 
 ## Library functions
 

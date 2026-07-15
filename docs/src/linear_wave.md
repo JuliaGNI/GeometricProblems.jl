@@ -5,15 +5,15 @@ The linear wave equation in one dimension has the following Hamiltonian (see e.g
 ```math
     \mathcal{H}_\mathrm{cont}(q, p; \mu) := \frac{1}{2}\int_\Omega \mu^2(\partial_\xi q(t, \xi; \mu))^2 + p(t, \xi; \mu)^2 d\xi,
 ```
-where the domain is ``\Omega = (-1/2, 1/2)``. We then divide the domain into ``\tilde{N}`` equidistantly spaces points[^1] ``\xi_i = i\Delta_\xi - 1/2`` for ``i = 1, \ldots, \tilde{N}`` and ``\Delta_xi := 1/(\tilde{N} + 1)``.
+where the domain is ``\Omega = (-1/2, 1/2)``. We then divide the domain into ``\tilde{N}`` equidistantly spaced points[^1] ``\xi_i = i\Delta_\xi - 1/2`` for ``i = 1, \ldots, \tilde{N}`` and ``\Delta_\xi := 1/(\tilde{N} + 1)``.
 
-[^1]: In total the system is therefore described by ``N = \tilde{N} + 2`` coordinates, since we also have to consider the boundary. The resulting Hamiltonian then is:
+[^1]: In total the system is therefore described by ``N = \tilde{N} + 2`` coordinates, since we also have to consider the two boundary points. The resulting (semi-discrete) Hamiltonian, matching the implementation, then is:
 
 ```math
-    \mathcal{H}_h(z) = \sum_{i = 1}^{\tilde{N}}\frac{\Delta{}x}{2}\left[ p_i^2 + \mu^2 \frac{(q_i - q_{i - 1})^2 + (q_{i+1} - q_i)^2}{2\Delta{}x} \right].
+    \mathcal{H}_h(z) = \frac{1}{2} \sum_{i = 1}^{\tilde{N} + 2} p_i^2 + \frac{\mu^2}{4\Delta_\xi^2} \sum_{i = 2}^{\tilde{N} + 1} \left[ (q_i - q_{i - 1})^2 + (q_{i+1} - q_i)^2 \right].
 ```
 
-The discretized linear wave equation example of an *completely-integrable system*, i.e. a Hamiltonian system evolving in ``\mathbb{R}^{2n}`` that has ``n`` Poisson-commuting invariants of motion (see [arnold1978mathematical](@cite)). 
+The discretized linear wave equation is an example of a *completely integrable system*, i.e. a Hamiltonian system evolving in ``\mathbb{R}^{2n}`` that has ``n`` Poisson-commuting invariants of motion (see [arnold1978mathematical](@cite)). 
 
 For evaluating the system we specify the following initial[^2] and boundary conditions: 
 

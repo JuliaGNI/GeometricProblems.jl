@@ -17,8 +17,8 @@ export lodeproblem, lodeensemble, lagrangian, lagrangian_system
 
 include("bump_initial_condition.jl")
 
-const default_parameters = (
-    α=0.64,
+default_parameters(::Type{T}=Float64) where {T} = (
+    α=T(0.64),
 )
 
 function potential(q, params, N)
@@ -28,8 +28,8 @@ end
 hamiltonian(t, q, p, params, N) = p ⋅ p / 2 + potential(q, params, N)
 lagrangian(t, q, q̇, params, N) = q̇ ⋅ q̇ / 2 - potential(q, params, N)
 
-const timestep = 0.1
-const timespan = (0.0, 120.0)
+const DEFAULT_TIMESTEP = 0.1
+const DEFAULT_TIMESPAN = (0.0, 120.0)
 
 # parameter for the default initial conditions
 const Ñ = 200
@@ -61,7 +61,7 @@ _length(q::AbstractVector{<:AbstractArray}) = length(q[begin])
 """
 Hamiltonian problem for the Toda lattice.
 """
-function hodeproblem(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=timespan, timestep=timestep, parameters=default_parameters)
+function hodeproblem(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     HODEProblem(hamiltonian_system(N, parameters), timespan, timestep, q₀, p₀; parameters=parameters)
 end
 
@@ -70,7 +70,7 @@ function hodeproblem(q₀, p₀; kwargs...)
     hodeproblem(length(q₀), q₀, p₀; kwargs...)
 end
 
-function hodeensemble(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=timespan, timestep=timestep, parameters=default_parameters)
+function hodeensemble(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     eqs = functions(hamiltonian_system(N, _parameters(parameters)))
     HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters=parameters)
 end
@@ -83,7 +83,7 @@ end
 """
 Lagrangian problem for the Toda lattice.
 """
-function lodeproblem(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=timespan, timestep=timestep, parameters=default_parameters)
+function lodeproblem(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     heqs = functions(hamiltonian_system(N, _parameters(parameters)))
     LODEProblem(lagrangian_system(N, parameters), timespan, timestep, q₀, p₀; parameters=parameters, v̄=heqs.v)
 end
@@ -93,7 +93,7 @@ function lodeproblem(q₀, p₀; kwargs...)
     lodeproblem(length(q₀), q₀, p₀; kwargs...)
 end
 
-function lodeensemble(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=timespan, timestep=timestep, parameters=default_parameters)
+function lodeensemble(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     leqs = functions(lagrangian_system(N, _parameters(parameters)))
     heqs = functions(hamiltonian_system(N, _parameters(parameters)))
     LODEEnsemble(leqs.ϑ, leqs.f, leqs.g, leqs.ω, leqs.L, timespan, timestep, q₀, p₀; parameters=parameters, v̄=heqs.v)

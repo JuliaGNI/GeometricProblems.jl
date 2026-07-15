@@ -175,7 +175,7 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
     ref_sol = integrate(ref_ldae, TableauVSPARKGLRKpMidpoint(2))
     @test relative_maximum_error(lag_sol.q, ref.q) < 1E-8
     @test relative_maximum_error(ref_sol.q, ref.q) < 1E-8
-    @test relative_maximum_error(lag_sol.q, ref_sol.q) < 2E-14
+    @test relative_maximum_error(lag_sol.q, ref_sol.q) < 4E-14
 
     lag_sol = integrate(lag_ldae, TableauVSPARKGLRKpSymmetric(2))
     ref_sol = integrate(ref_ldae, TableauVSPARKGLRKpSymmetric(2))

@@ -12,16 +12,15 @@ H (q) = a_1 \, q_1 + a_2 \, q_2 + b_1 \, \log q_1 + b_2 \, \log q_2 .
 ```
 
 ```@eval
-using Plots
 using GeometricIntegrators
 using GeometricProblems.LotkaVolterra2d
-using GeometricProblems.LotkaVolterra2dPlots
+using CairoMakie
 
 ode = odeproblem()
 sol = integrate(ode, Gauss(1))
 
-plot_lotka_volterra_2d(sol, ode)
-savefig("lotka_volterra_2d.svg")
+fig = plot_phase_portrait(sol)
+save("lotka_volterra_2d.svg", fig)
 
 nothing
 ```
@@ -54,14 +53,11 @@ GeometricProblems.LotkaVolterra2dGauge
 
 ## User Functions
 
+The plotting functions (`plot_solution`, `plot_phase_portrait`, `plot_traces`)
+are provided by the `LotkaVolterra2dPlots` extension and become available once a
+Makie backend such as `CairoMakie` is loaded.
+
 ```@autodocs
 Modules = [GeometricProblems.LotkaVolterra2d]
-Order   = [:constant, :type, :macro, :function]
-```
-
-## Plotting Functions
-
-```@autodocs
-Modules = [GeometricProblems.LotkaVolterra2dPlots]
 Order   = [:constant, :type, :macro, :function]
 ```

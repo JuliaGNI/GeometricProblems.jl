@@ -1,79 +1,95 @@
 @doc raw"""
-undampled Duffing oscillator
-The `DuffingOscillator` module provides a Hamiltonian problem to be solved
-in the GeometricIntegrators.jl ecosystem.
-The Duffing oscillator is a nonlinear second-order differential equation
-describing the motion of a damped and driven oscillator with a nonlinear
-restoring force. It is often used to model systems with a cubic nonlinearity.
-The equation of motion is given by:
+# Duffing Oscillator
+
+The (undamped, unforced) Duffing oscillator is a one-dimensional anharmonic oscillator with a
+quartic potential. In this conservative form it is an autonomous Hamiltonian system with
+
+```math
+H(q, p) = \frac{p^2}{2m} + \frac{\alpha}{2} q^2 + \frac{\beta}{4} q^4 ,
 ```
-    dot(x) = y
-    dot(y) =  αx - βx^3 - δ * y 
+and Lagrangian
+```math
+L(q, \dot{q}) = \frac{m}{2} \dot{q}^2 - \frac{\alpha}{2} q^2 - \frac{\beta}{4} q^4 ,
 ```
-where `x` is the displacement, `y` is the velocity, and `δ` is the damping coefficient.
-here we only consider the undamped case, i.e., `δ = 0`, which can be described by Hamiltonian and Lagrangian systems.
+giving the equation of motion ``m \ddot{q} + \alpha q + \beta q^3 = 0``.
+
+System parameters:
+* `m`: mass
+* `α`: linear stiffness
+* `β`: coefficient of the cubic force (quartic potential) nonlinearity
 """
 module DuffingOscillator
 
-    using GeometricEquations
     using EulerLagrange
     using LinearAlgebra
     using Parameters
+    using GeometricEquations: HODEEnsemble, LODEEnsemble
 
     export hamiltonian, lagrangian
     export hodeproblem, lodeproblem
+    export hodeensemble, lodeensemble
+    export hamiltonian_system, lagrangian_system
 
-    const default_parameters= (
-        δ = 0.0,  # damping coefficient
-        m = 2.0,  # mass
-        α = -1.0,  # linear stiffness
-        β = 1.0,  # cubic stiffness
-    )
-    
-    const p₀ = [1.2]
-    const q₀ = [1.2]
-    const x₀ = vcat(q₀, p₀)
+    const DEFAULT_TIMESPAN = (0.0, 100.0)
+    const DEFAULT_TIMESTEP = 0.1
 
-    const timestep = 0.1
-    const timespan = (0.0, 10.0)
+    default_parameters(::Type{T}=Float64) where {T} = (m = T(1.0), α = T(1.0), β = T(1.0))
 
-    function hamiltonian(t, q, p, params)
-        @unpack δ, m, α, β = params
-        kinetic = p[1]^2 / (2 * m)
-        potential = 0.5 * α * q[1]^2 + 0.25 * β * q[1]^4
-        return kinetic + potential
+    const q₀ = [1.0]
+    const p₀ = [0.0]
+
+    function hamiltonian(t, q, p, parameters)
+        @unpack m, α, β = parameters
+        p[1]^2 / (2m) + α * q[1]^2 / 2 + β * q[1]^4 / 4
     end
 
-    function lagrangian(t, q, v, params)
-        @unpack δ, m, α, β = params
-        kinetic = 0.5 * m * v[1]^2
-        potential = 0.5 * α * q[1]^2 + 0.25 * β * q[1]^4
-        return kinetic - potential
+    function lagrangian(t, q, q̇, parameters)
+        @unpack m, α, β = parameters
+        m * q̇[1]^2 / 2 - α * q[1]^2 / 2 - β * q[1]^4 / 4
     end
 
-    function θ̇(t, q, p, params)
-        @unpack δ, m, α, β = params
-        p[1]/m
-    end
-
-    function θ̇(v, t, q, p, params)
-        v[1] = θ̇(t, q, p, params)
+    function v̄(v, t, q, p, parameters)
+        v[1] = p[1] / parameters.m
         nothing
     end
 
-
-    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function hamiltonian_system(parameters::NamedTuple)
         t, q, p = hamiltonian_variables(1)
         sparams = symbolize(parameters)
-        ham_sys = HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
-        HODEProblem(ham_sys, timespan, timestep, q₀, p₀; parameters = parameters)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
     end
 
-    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = timespan, timestep = timestep, parameters = default_parameters)
+    function lagrangian_system(parameters::NamedTuple)
         t, x, v = lagrangian_variables(1)
         sparams = symbolize(parameters)
-        lag_sys = LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
-        LODEProblem(lag_sys, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+    end
+
+    # Build the symbolic system from a single parameter set, while a vector of parameter
+    # sets is passed on to the ensemble unchanged (see issue #64).
+    _parameters(p::NamedTuple) = p
+    _parameters(p::AbstractVector) = p[begin]
+
+    "Hamiltonian problem for the Duffing oscillator."
+    function hodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
+    end
+
+    "Hamiltonian ensemble for the Duffing oscillator (varying initial conditions and/or parameters)."
+    function hodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        eqs = functions(hamiltonian_system(_parameters(parameters)))
+        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
+    end
+
+    "Lagrangian problem for the Duffing oscillator."
+    function lodeproblem(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
+    end
+
+    "Lagrangian ensemble for the Duffing oscillator (varying initial conditions and/or parameters)."
+    function lodeensemble(q₀ = q₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+        eqs = functions(lagrangian_system(_parameters(parameters)))
+        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 
 end

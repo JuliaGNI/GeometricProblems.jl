@@ -54,25 +54,26 @@ export compute_energy_error, compute_casimir_error
 
 const Δt = 0.01
 const nt = 1000
-const timespan = (0.0, Δt * nt)
+const DEFAULT_TIMESPAN = (0.0, Δt * nt)
+const DEFAULT_TIMESTEP = Δt
 
-const default_parameters = (A1=1.0, A2=1.0, A3=1.0, B1=0.0, B2=1.0, B3=1.0)
-const reference_solution = [0.39947308320241187, 1.9479527336244262, 2.570183075433086]
+default_parameters(::Type{T}=Float64) where {T} = (A₁=T(1.0), A₂=T(1.0), A₃=T(1.0), B₁=T(0.0), B₂=T(1.0), B₃=T(1.0))
+const reference_solution = [1.2429313310230237, 2.263720576035246, 0.7108206593932]
 
 
 function v₁(t, q, params)
-    @unpack A1, A2, A3, B1, B2, B3 = params
-    q[1] * (-A2 * q[2] + A3 * q[3] + B2 - B3)
+    @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
+    q[1] * (-A₂ * q[2] + A₃ * q[3] - B₂ + B₃)
 end
 
 function v₂(t, q, params)
-    @unpack A1, A2, A3, B1, B2, B3 = params
-    q[2] * (+A1 * q[1] - A3 * q[3] - B1 + B3)
+    @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
+    q[2] * (+A₁ * q[1] - A₃ * q[3] + B₁ - B₃)
 end
 
 function v₃(t, q, params)
-    @unpack A1, A2, A3, B1, B2, B3 = params
-    q[3] * (-A1 * q[1] + A2 * q[2] + B1 - B2)
+    @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
+    q[3] * (-A₁ * q[1] + A₂ * q[2] - B₁ + B₂)
 end
 
 
@@ -80,15 +81,15 @@ const X₀ = 1.0
 const Y₀ = 1.0
 const Z₀ = 2.0
 const q₀ = [X₀, Y₀, Z₀]
-const v₀ = [v₁(0, q₀, default_parameters), v₂(0, q₀, default_parameters), v₃(0, q₀, default_parameters)]
+const v₀ = [v₁(0, q₀, default_parameters()), v₂(0, q₀, default_parameters()), v₃(0, q₀, default_parameters())]
 
 
 function hamiltonian(t, q, params)
-    @unpack A1, A2, A3, B1, B2, B3 = params
-    A1 * q[1] + A2 * q[2] + A3 * q[3] - B1 * log(q[1]) - B2 * log(q[2]) - B3 * log(q[3])
+    @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
+    A₁ * q[1] + A₂ * q[2] + A₃ * q[3] + B₁ * log(q[1]) + B₂ * log(q[2]) + B₃ * log(q[3])
 end
-
-hamiltonian_iode(v, t, q, params) = hamiltonian(t, q, params)
+# H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
 function casimir(t, q, params)
     log(q[1]) + log(q[2]) + log(q[3])
@@ -103,7 +104,7 @@ function lotka_volterra_3d_v(v, t, q, params)
 end
 
 
-function odeproblem(q₀=q₀; timespan=timespan, timestep=Δt, parameters=default_parameters)
+function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     ODEProblem(lotka_volterra_3d_v, timespan, timestep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
 end
 
@@ -131,5 +132,12 @@ function compute_casimir_error(t::Union{TimeSeries{T},ScalarDataSeries{T}}, q::D
 
     (c, e)
 end
+
+
+export plot_phase_portrait, plot_traces
+
+# Plot functions are implemented in the `LotkaVolterra3dPlots` extension (loaded with Makie).
+function plot_phase_portrait end
+function plot_traces end
 
 end

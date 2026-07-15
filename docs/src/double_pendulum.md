@@ -63,6 +63,29 @@ H &= \frac{m_2 l_2^2 p^2_{\theta_1} + (m_1 + m_2) l_1^2 p^2_{\theta_2} - 2 m_2 l
 ```
 
 
+Integrating the default problem and mapping the angles back to Cartesian coordinates traces the
+(chaotic) path of the lower bob:
+
+```@example
+using GeometricProblems.DoublePendulum
+using GeometricIntegrators: integrate, Gauss
+using CairoMakie
+
+sol = integrate(hodeproblem(), Gauss(1))
+
+l₁ = DoublePendulum.default_parameters().l₁
+l₂ = DoublePendulum.default_parameters().l₂
+θ₁ = collect(sol.q[:, 1])
+θ₂ = collect(sol.q[:, 2])
+x₂ = l₁ .* sin.(θ₁) .+ l₂ .* sin.(θ₂)
+y₂ = .- l₁ .* cos.(θ₁) .- l₂ .* cos.(θ₂)
+
+fig = Figure()
+ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y", aspect = DataAspect(), title = "Trajectory of the lower bob")
+lines!(ax, x₂, y₂; linewidth = 0.6)
+fig
+```
+
 ## Library functions
 
 ```@docs
