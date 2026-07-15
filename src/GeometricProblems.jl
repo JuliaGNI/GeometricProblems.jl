@@ -33,4 +33,5 @@ module GeometricProblems
     include("three_body_problem.jl")
     include("toda_lattice.jl")
     include("henon_heiles_potential.jl")
+    include("outer_solar_system.jl")
 end

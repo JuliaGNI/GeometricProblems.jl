@@ -72,12 +72,12 @@ end
 @safetestset "Toda Lattice                                                                    " begin
     include("toda_lattice_tests.jl")
 end
+@safetestset "Henon Heiles Potential                                                          " begin
+    include("henon_heiles_potential_tests.jl")
+end
 @safetestset "EulerLagrange ensembles (#64)                                                   " begin
     include("eulerlagrange_ensembles_tests.jl")
 end
 @safetestset "Plotting extensions                                                             " begin
     include("plots_tests.jl")
-end
-@safetestset "Henon Heiles Potential                                                             " begin
-    include("henon_heiles_potential_tests.jl")
 end
