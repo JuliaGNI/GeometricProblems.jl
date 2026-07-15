@@ -32,4 +32,5 @@ module GeometricProblems
     include("rigid_body.jl")
     include("three_body_problem.jl")
     include("toda_lattice.jl")
+    include("henon_heiles_potential.jl")
 end
