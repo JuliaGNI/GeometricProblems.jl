@@ -27,6 +27,7 @@ module GeometricProblems
     include("mathews_lakshmanan_oscillator.jl")
     include("morse_oscillator.jl")
     include("pendulum.jl")
+    include("perturbed_pendulum.jl")
     include("point_vortices.jl")
     include("point_vortices_linear.jl")
     include("rigid_body.jl")
