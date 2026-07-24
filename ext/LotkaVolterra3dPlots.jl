@@ -60,12 +60,14 @@ function LotkaVolterra3d.plot_traces(sol, params; nplot = 1, nt = :auto, latex =
     for i in 1:3
         ax = Axis(fig[i, 1]; ylabel = ylabels[i], xticklabelsvisible = false)
         lines!(ax, ts, [sol.q[k][i] for k in idx])
+        xlims!(ax, ts[begin], ts[end])
     end
     ax_energy = Axis(fig[4, 1];
         xlabel = latex ? L"t" : "t",
         ylabel = latex ? L"[H(t) - H(0)] / H(0)" : "[H(t) - H(0)] / H(0)",
     )
     lines!(ax_energy, ts, [ΔH[k] for k in idx])
+    xlims!(ax_energy, ts[begin], ts[end])
     return fig
 end
 

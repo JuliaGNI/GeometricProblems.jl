@@ -199,6 +199,7 @@ function HarmonicOscillator.plot_traces(sol; nplot = 1, nt = :auto)
     lines!(ax, ts, [sol.q[k][1] for k in idx]; label = "q")
     lines!(ax, ts, [sol.p[k][1] for k in idx]; label = "p")
     axislegend(ax)
+    xlims!(ax, ts[begin], ts[end])
     return fig
 end
 

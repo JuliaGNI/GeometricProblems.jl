@@ -52,6 +52,7 @@ energy error. Returns a Makie `Figure`.
 """
 function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
+    ts  = [sol.t[k] for k in idx]
     ΔH  = _energy_error(sol, equ)
 
     fig = Figure(size = (800, 300))
@@ -67,7 +68,8 @@ function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
         xlabel = latex ? L"t" : "t",
         ylabel = latex ? L"[H(t) - H(0)] / H(0)" : "[H(t) - H(0)] / H(0)",
     )
-    lines!(ax_energy, [sol.t[k] for k in idx], [ΔH[k] for k in idx])
+    lines!(ax_energy, ts, [ΔH[k] for k in idx])
+    xlims!(ax_energy, ts[begin], ts[end])
 
     return fig
 end
@@ -90,12 +92,14 @@ function _plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
     for i in 1:2
         ax = Axis(fig[i, 1]; ylabel = ylabels[i], xticklabelsvisible = false)
         lines!(ax, ts, [sol.q[k][i] for k in idx])
+        xlims!(ax, ts[begin], ts[end])
     end
     ax_energy = Axis(fig[3, 1];
         xlabel = latex ? L"t" : "t",
         ylabel = latex ? L"[H(t) - H(0)] / H(0)" : "[H(t) - H(0)] / H(0)",
     )
     lines!(ax_energy, ts, [ΔH[k] for k in idx])
+    xlims!(ax_energy, ts[begin], ts[end])
     return fig
 end
 

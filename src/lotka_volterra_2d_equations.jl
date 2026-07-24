@@ -57,7 +57,7 @@ function initial_conditions_loop(n)
 end
 
 
-compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
+compute_energy_error(t, q, params) = compute_invariant_error(t, q, params, hamiltonian)
 
 
 "Creates an ODE object for the Lotka-Volterra 2D model."
