@@ -222,8 +222,15 @@ module MasslessChargedParticle
     end
 
 
-    compute_energy_error(t,q,params) = compute_invariant_error(t,q, (t,q) -> hamiltonian(t,q,params))
-    compute_momentum_error(t,q,p,params::NamedTuple) = compute_momentum_error(t, q, p, (t,q,k) -> ϑ(t,q,params,k))
+    compute_energy_error(t, q, params) = compute_invariant_error(t, q, params, hamiltonian)
+
+    function compute_momentum_error(t, q::DataSeries{T}, p::DataSeries{T}, params::NamedTuple) where {T}
+        err = DataSeries(zero(p[begin]), ntime(p))
+        for i in axes(p, 1)
+            err[i] = p[i] .- ϑ(t[i], q[i], params)
+        end
+        return err
+    end
 
 
     export plot_solution, plot_phase_portrait, plot_traces

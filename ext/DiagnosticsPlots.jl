@@ -6,7 +6,8 @@ using GeometricEquations: invariants, parameters
 # (its recipe), which would otherwise clash with `GeometricSolutions.TimeSeries`.
 using GeometricSolutions: TimeSeries, ScalarDataSeries, DataSeries, GeometricSolution,
                           SolutionPODE, SolutionPDAE, ntime,
-                          compute_invariant_error, compute_momentum_error
+                          compute_invariant_error, compute_momentum_error,
+                          compute_error_drift
 
 import GeometricProblems.Diagnostics
 import GeometricProblems.Diagnostics: subscript
@@ -48,6 +49,7 @@ function _plot_components(t, d, label; nplot = 1, nt = :auto, k = 0, latex = tru
         if plot_title !== nothing && row == 1
             ax.title = plot_title
         end
+        xlims!(ax, t[begin], t[end])
     end
     return fig
 end
@@ -71,6 +73,7 @@ function Diagnostics.plot_energy_error(t::Union{TimeSeries, ScalarDataSeries}, �
         ylabel = latex ? L"[H(t) - H(0)] / H(0)" : "[H(t) - H(0)] / H(0)",
     )
     lines!(ax, [t[j] for j in r], [ΔH[j] for j in r])
+    xlims!(ax, t[begin], t[end])
     return fig
 end
 
@@ -94,7 +97,13 @@ function Diagnostics.plot_energy_drift(t::Union{TimeSeries, ScalarDataSeries}, d
         ylabel = latex ? L"\Delta H" : "ΔH",
     )
     scatter!(ax, [t[j] for j in r], [d[j] for j in r])
+    xlims!(ax, t[begin], t[end])
     return fig
+end
+function Diagnostics.plot_energy_drift(sol::GeometricSolution; energy = nothing, kwargs...)
+    interval = div(ntime(sol), 10)
+    ΔH = _energy_error(sol; energy)
+    Diagnostics.plot_energy_drift(compute_error_drift(sol.t, ΔH, interval)...; kwargs...)
 end
 
 """
