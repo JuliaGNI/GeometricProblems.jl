@@ -7,11 +7,16 @@ using GeometricEquations: invariants, parameters
 using GeometricSolutions: ntime, compute_invariant_error
 
 import GeometricProblems.MasslessChargedParticle
+import GeometricProblems.MasslessChargedParticleSingular
 
 # Downsampled integer time indices 0:nplot:nt (nt = :auto → all stored steps).
 _indices(sol, nplot, nt) = 0:nplot:(nt === :auto ? ntime(sol) : min(nt, ntime(sol)))
 
 _energy_error(sol, equ) = compute_invariant_error(sol.t, sol.q, parameters(equ), invariants(equ)[:h])[2]
+
+# The plot functions are gauge-agnostic: they depend only on the solution `sol`, the equation
+# `equ` (for the `:h` invariant), and the keyword arguments. The generic implementations below are
+# attached to both the standard and the singular problem's plot-function stubs.
 
 """
     plot_phase_portrait(sol; nplot, nt, latex)
@@ -27,7 +32,7 @@ Plot the `x₁`–`x₂` trajectory of a massless charged particle. Returns a Ma
 - `nt = :auto`: last time step to plot
 - `latex = true`: use LaTeX axis labels
 """
-function MasslessChargedParticle.plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
+function _plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     fig = Figure(size = (400, 400))
     ax = Axis(fig[1, 1];
@@ -45,7 +50,7 @@ end
 Plot the `x₁`–`x₂` trajectory of a massless charged particle next to its relative
 energy error. Returns a Makie `Figure`.
 """
-function MasslessChargedParticle.plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
+function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     ΔH  = _energy_error(sol, equ)
 
@@ -74,7 +79,7 @@ Plot the time traces `x₁(t)`, `x₂(t)` of a massless charged particle traject
 together with its relative energy error, stacked vertically. Returns a Makie
 `Figure`.
 """
-function MasslessChargedParticle.plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
+function _plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     ts  = [sol.t[k] for k in idx]
     ΔH  = _energy_error(sol, equ)
@@ -93,5 +98,14 @@ function MasslessChargedParticle.plot_traces(sol, equ; nplot = 1, nt = :auto, la
     lines!(ax_energy, ts, [ΔH[k] for k in idx])
     return fig
 end
+
+# Attach the generic implementations to both problems' plot-function stubs.
+MasslessChargedParticle.plot_phase_portrait(sol; kwargs...) = _plot_phase_portrait(sol; kwargs...)
+MasslessChargedParticle.plot_solution(sol, equ; kwargs...) = _plot_solution(sol, equ; kwargs...)
+MasslessChargedParticle.plot_traces(sol, equ; kwargs...) = _plot_traces(sol, equ; kwargs...)
+
+MasslessChargedParticleSingular.plot_phase_portrait(sol; kwargs...) = _plot_phase_portrait(sol; kwargs...)
+MasslessChargedParticleSingular.plot_solution(sol, equ; kwargs...) = _plot_solution(sol, equ; kwargs...)
+MasslessChargedParticleSingular.plot_traces(sol, equ; kwargs...) = _plot_traces(sol, equ; kwargs...)
 
 end

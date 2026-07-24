@@ -30,6 +30,9 @@ end
 @safetestset "Massless Charged Particle                                                       " begin
     include("massless_charged_particle_tests.jl")
 end
+@safetestset "Massless Charged Particle (singular)                                            " begin
+    include("massless_charged_particle_singular_tests.jl")
+end
 @safetestset "Three-Body Problem                                                              " begin
     include("three_body_tests.jl")
 end
