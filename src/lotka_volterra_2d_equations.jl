@@ -87,7 +87,7 @@ end
 "Creates a variational ODE object for the Lotka-Volterra 2D model."
 function lodeproblem(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     LODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-                lotka_volterra_2d_g, lagrangian, lotka_volterra_2d_ω, timespan, timestep, q₀, p₀;
+                lotka_volterra_2d_g, lotka_volterra_2d_ω, lagrangian, timespan, timestep, q₀, p₀;
                 parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_2d_v)
 end
 
