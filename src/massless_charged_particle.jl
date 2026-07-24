@@ -32,6 +32,19 @@ The Hamiltonian form of the equations of motion reads
 \end{pmatrix} \nabla \phi (x) .
 ```
 
+The problem is available in explicit (`odeproblem`), implicit (`iodeproblem`, `idaeproblem`,
+`idaeproblem_spark`) and Lagrangian (`lodeproblem`, `ldaeproblem`) form. The latter two are built
+from the Lagrangian ``L(x, \dot{x}) = \vartheta (x) \cdot \dot{x} - H(x)`` with one-form
+``\vartheta = A`` and the symplectic two-form
+```math
+\Omega_{ij} (x) = \frac{\partial \vartheta_i}{\partial x_j} - \frac{\partial \vartheta_j}{\partial x_i}
+= \begin{pmatrix}
+\hphantom{+} 0 & - B(x) \\
++ B(x) & \hphantom{-} 0 \\
+\end{pmatrix} ,
+```
+so that the Euler-Lagrange equations read ``\Omega (x) \, \dot{x} = - \nabla \phi (x)``.
+
 See [`GeometricProblems.MasslessChargedParticleSingular`](@ref) for a formulation with the same
 magnetic field but a "singular" (one-component) vector potential, suitable for degenerate
 variational integrators.

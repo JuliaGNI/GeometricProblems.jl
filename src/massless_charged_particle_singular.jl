@@ -39,6 +39,21 @@ potential differs by a gauge transformation, chosen here so that its second comp
 variational integrator, and is the form required by the degenerate variational integrator (DVI)
 method of GeometricIntegrators.
 
+The problem is available in explicit (`odeproblem`), implicit (`iodeproblem`, `idaeproblem`,
+`idaeproblem_spark`) and Lagrangian (`lodeproblem`, `ldaeproblem`) form. The latter two are built
+from the Lagrangian ``L(x, \dot{x}) = \vartheta (x) \cdot \dot{x} - H(x)`` with one-form
+``\vartheta = A`` and the symplectic two-form
+```math
+\Omega_{ij} (x) = \frac{\partial \vartheta_i}{\partial x_j} - \frac{\partial \vartheta_j}{\partial x_i}
+= \begin{pmatrix}
+\hphantom{+} 0 & - B(x) \\
++ B(x) & \hphantom{-} 0 \\
+\end{pmatrix} ,
+```
+so that the Euler-Lagrange equations read ``\Omega (x) \, \dot{x} = - \nabla \phi (x)``. Since the
+gauge transformation shifts ``\vartheta`` only by an exact one-form, ``\Omega`` is the same as for
+[`GeometricProblems.MasslessChargedParticle`](@ref), while the Lagrangian differs.
+
 """
 module MasslessChargedParticleSingular
 

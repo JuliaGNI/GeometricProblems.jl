@@ -10,6 +10,13 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 ## [Unreleased]
 
 ### Bug fixes
+- **Massless charged particle**: added `hamiltonian(t, q, p, params)`, which both massless modules
+  were missing. All their implicit problems declare `invariants=(h=hamiltonian,)`, but
+  GeometricEquations evaluates that invariant with an additional momentum/velocity slot, so
+  e.g. `compute_invariant_error(t, q, p, params, invariants(iodeproblem())[:h])` raised
+  `MethodError: no method matching hamiltonian(::Float64, ::Vector, ::Vector, ::NamedTuple)`.
+  Mirrors the existing shim in Lotka-Volterra 2D/4D and the harmonic oscillator.
+  `src/massless_charged_particle_common.jl`.
 - **Lotka-Volterra 2D** (B10/P10): `lotka_volterra_2d_v_dae` now reads the velocities from
   `q[3]`/`q[4]` instead of its own uninitialised output `v[3]`/`v[4]`.
   `src/lotka_volterra_2d_common.jl`.
@@ -58,6 +65,19 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   symmetric variant. `src/lotka_volterra_2d_gauge.jl`.
 
 ### New features
+- **Massless charged particle**: added `lodeproblem` and `ldaeproblem` to both
+  `MasslessChargedParticle` and `MasslessChargedParticleSingular`, completing the variational
+  formulations. This required the two previously missing ingredients, both derived from what the
+  modules already provide: the degenerate Lagrangian `lagrangian(t, q, v, params) = ϑ⋅v − H` and
+  the symplectic two-form `ω`, assembled from the per-gauge derivatives `dϑᵢdxⱼ` with the
+  convention `Ωᵢⱼ = ∂ϑᵢ/∂qⱼ − ∂ϑⱼ/∂qᵢ` shared with Lotka-Volterra 2D/4D and the point vortices
+  (`Ω = [0 −B; +B 0]` for both gauges, so `Ω v = −∇H`). `ω` is exported in an allocating form
+  `ω(t, q, params)` mirroring `ϑ`, alongside the in-place callback
+  `massless_charged_particle_ω`. Also added the `ū`/`ḡ` projection callbacks and the eight-argument
+  `ψ` method that `LDAEProblem` requires, and renamed the existing `ψ` arguments to
+  `(ψ, t, q, p, q̇, ṗ, params)` to match the interface it implements.
+  `src/massless_charged_particle_common.jl`, `src/massless_charged_particle.jl`,
+  `src/massless_charged_particle_singular.jl`.
 - **Plotting → CairoMakie extensions** (⚠️ breaking): migrated the remaining package plot recipes
   from Plots.jl/`RecipesBase` to Makie extensions, matching the pattern already used for the
   harmonic oscillator and pendulum. There is now one extension per problem plus a shared diagnostics
@@ -117,6 +137,15 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   diagnostics (marked *not yet implemented* where no backing model exists).
 
 ### Tests
+- **Massless charged particle two-form and Lagrangian forms**: added testsets to
+  `test/massless_charged_particle_tests.jl` and `test/massless_charged_particle_singular_tests.jl`
+  that compare `ω` against `ForwardDiff.jacobian` of `ϑ` (validating both the assembly and the
+  hand-coded `dϑᵢdxⱼ`), check antisymmetry, `Ω₁₂ = −B`, `Ω v = −∇H`, gauge invariance of `Ω` across
+  the two modules, and `∂L/∂v = ϑ`; and that integrate `lodeproblem` with
+  `MidpointProjection(VPRKGauss(2))` and `ldaeproblem` with `SLRKLobattoIIIE(2)` against the
+  `Gauss(8)` ODE reference. Since no integrator in GeometricIntegrators evaluates `ω` and
+  `check_methods` skips it, the tests also assert the positional wiring via `functions(prob).ω` /
+  `.l` — an `ω`/`l` swap would otherwise be silent (as it is in Lotka-Volterra 2D).
 - **Plotting extensions**: added `test/plots_tests.jl` (wired into `test/runtests.jl`) — smoke
   tests that each migrated plot function builds a Makie `Figure` for a short integrated solution,
   covering the `Diagnostics`, Lotka-Volterra 2D/3D/4D, and massless-charged-particle plots. Added
