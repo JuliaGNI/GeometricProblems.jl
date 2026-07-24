@@ -60,6 +60,9 @@ end
 @safetestset "Pendulum                                                                        " begin
     include("pendulum_tests.jl")
 end
+@safetestset "Perturbed Pendulum                                                              " begin
+    include("perturbed_pendulum_tests.jl")
+end
 @safetestset "Point Vortices                                                                  " begin
     include("point_vortices_tests.jl")
 end
@@ -71,6 +74,9 @@ end
 end
 @safetestset "Toda Lattice                                                                    " begin
     include("toda_lattice_tests.jl")
+end
+@safetestset "Henon Heiles Potential                                                          " begin
+    include("henon_heiles_potential_tests.jl")
 end
 @safetestset "EulerLagrange ensembles (#64)                                                   " begin
     include("eulerlagrange_ensembles_tests.jl")
