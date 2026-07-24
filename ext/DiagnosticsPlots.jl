@@ -49,7 +49,7 @@ function _plot_components(t, d, label; nplot = 1, nt = :auto, k = 0, latex = tru
         if plot_title !== nothing && row == 1
             ax.title = plot_title
         end
-        xlims!(ax, t[begin], t[end])
+        xlims!(ax, ts[begin], ts[end])
     end
     return fig
 end
@@ -66,14 +66,15 @@ invariant (override with the `energy` keyword). Returns a Makie `Figure`.
 """
 function Diagnostics.plot_energy_error(t::Union{TimeSeries, ScalarDataSeries}, ΔH::DataSeries;
         nplot = 1, nt = :auto, latex = true)
-    r = _steprange(t, nplot, nt)
+    r  = _steprange(t, nplot, nt)
+    ts = [t[j] for j in r]
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1];
         xlabel = latex ? L"t" : "t",
         ylabel = latex ? L"[H(t) - H(0)] / H(0)" : "[H(t) - H(0)] / H(0)",
     )
-    lines!(ax, [t[j] for j in r], [ΔH[j] for j in r])
-    xlims!(ax, t[begin], t[end])
+    lines!(ax, ts, [ΔH[j] for j in r])
+    xlims!(ax, ts[begin], ts[end])
     return fig
 end
 
@@ -90,14 +91,15 @@ see `GeometricSolutions.compute_drift`) as a function of time. Returns a `Figure
 function Diagnostics.plot_energy_drift(t::Union{TimeSeries, ScalarDataSeries}, d::DataSeries;
         nt = :auto, latex = true)
     # drift data is interval-based; the first entry (index 0) is not part of it.
-    r = 1:(nt === :auto ? ntime(t) : min(nt, ntime(t)))
+    r  = 1:(nt === :auto ? ntime(t) : min(nt, ntime(t)))
+    ts = [t[j] for j in r]
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1];
         xlabel = latex ? L"t" : "t",
         ylabel = latex ? L"\Delta H" : "ΔH",
     )
-    scatter!(ax, [t[j] for j in r], [d[j] for j in r])
-    xlims!(ax, t[begin], t[end])
+    scatter!(ax, ts, [d[j] for j in r])
+    xlims!(ax, ts[begin], ts[end])
     return fig
 end
 function Diagnostics.plot_energy_drift(sol::GeometricSolution; energy = nothing, kwargs...)
