@@ -13,5 +13,5 @@ using GeometricSolutions
     lode_sol = integrate(lode, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, lode_sol.q) < 1e-12
-    @test isapprox(collect(lode_sol.p[:,1]), collect(hode_sol.p[:,1]); atol=1e-12) 
+    @test relative_maximum_error(hode_sol.p, lode_sol.p) < 1e-12
 end
