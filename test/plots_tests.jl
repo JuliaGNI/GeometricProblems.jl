@@ -12,6 +12,8 @@ import GeometricProblems.LotkaVolterra2d as lv2
 import GeometricProblems.LotkaVolterra3d as lv3
 import GeometricProblems.LotkaVolterra4d as lv4
 import GeometricProblems.MasslessChargedParticle as mcp
+import GeometricProblems.PointVortices as pv
+import GeometricProblems.PointVorticesLinear as pvl
 
 # Loading CairoMakie activates the `Makie` weakdep, and with it all `*Plots`
 # extensions. These are smoke tests: each plot function must build and return a
@@ -63,6 +65,39 @@ import GeometricProblems.MasslessChargedParticle as mcp
         @test mcp.plot_phase_portrait(sol)  isa Figure
         @test mcp.plot_solution(sol, ode)   isa Figure
         @test mcp.plot_traces(sol, ode)     isa Figure
+    end
+
+    @testset "Point vortices" begin
+        for (name, mod) in (("deformed", pv), ("linear", pvl))
+            @testset "$(name)" begin
+                ode = mod.odeproblem()
+                sol = integrate(ode, Gauss(2))
+
+                @test mod.plot_phase_portrait(sol) isa Figure
+                @test mod.plot_solution(sol, ode)  isa Figure
+                @test mod.plot_traces(sol, ode)    isa Figure
+
+                # The point-vortex problems carry a second invariant, the angular
+                # momentum `:p`, which is what the generic diagnostics are for.
+                @test diag.plot_energy_error(sol)                       isa Figure
+                @test diag.plot_invariant_error(sol)                    isa Figure
+                @test diag.plot_invariant_error(sol; invariant = :p)    isa Figure
+                @test diag.plot_invariant_drift(sol; invariant = :p)    isa Figure
+                @test diag.plot_invariant_error(sol; invariant = mod.angular_momentum) isa Figure
+            end
+        end
+    end
+
+    @testset "Convergence" begin
+        h = [0.1, 0.05, 0.025, 0.0125]
+        ε = h .^ 2
+
+        @test diag.plot_convergence(h, ε)            isa Figure
+        @test diag.plot_convergence(h, ε; order = 2) isa Figure
+        # A method that is exact for the diagnostic gives a vanishing error everywhere,
+        # which has to yield an (empty) figure rather than a degenerate log axis.
+        @test diag.plot_convergence(h, zero(h); order = 2) isa Figure
+        @test diag.plot_order(h, fill(2.0, length(h)))     isa Figure
     end
 
     @testset "Harmonic oscillator" begin
