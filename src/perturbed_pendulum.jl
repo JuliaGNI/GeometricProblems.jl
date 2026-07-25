@@ -20,7 +20,6 @@ System parameters:
 * `ω`: natural frequency of the unperturbed pendulum
 * `ϵ`: perturbation amplitude
 * `ϕ`: perturbation phase
-* `A`: pre-computed perturbation coefficient ``A = 0.3\epsilon\sin(2\phi) + 0.7\epsilon\sin(3\phi)``
 """
 module PerturbedPendulum
 
@@ -38,18 +37,17 @@ module PerturbedPendulum
     const q₀ = [0.5]
     const p₀ = [0.0]
 
-    function default_parameters(::Type{T} = Float64) where {T}
-        ω = T(0.5)
-        ϵ = T(0.5)
-        ϕ = T(π/3)
-        A = T(0.3ϵ * sin(2ϕ) + 0.7ϵ * sin(3ϕ))
-        (ω = ω, ϵ = ϵ, ϕ = ϕ, A = A)
-    end
+    default_parameters(::Type{T} = Float64) where {T} = (ω = T(0.5), ϵ = T(0.5), ϕ = T(π/3))
+
+    # The perturbation coefficient A(ϵ, ϕ) = 0.3 ϵ sin(2ϕ) + 0.7 ϵ sin(3ϕ). It is *derived* from ϵ
+    # and ϕ, so it must not be stored alongside them in the parameter tuple: a user overriding ϵ or
+    # ϕ would otherwise silently keep a stale A. `symbolize` handles the expression, so the
+    # symbolic Hamiltonian/Lagrangian pick up the dependence on ϵ and ϕ correctly.
+    perturbation(params) = 0.3 * params.ϵ * sin(2 * params.ϕ) + 0.7 * params.ϵ * sin(3 * params.ϕ)
 
     # velocity from momentum: q̇ = ∂H/∂p = p - q*A
     function θ̇(t, q, p, params)
-        @unpack ω, ϵ, ϕ, A = params
-        p[1] - q[1] * A
+        p[1] - q[1] * perturbation(params)
     end
 
     function θ̇(v, t, q, p, params)
@@ -58,12 +56,14 @@ module PerturbedPendulum
     end
 
     function hamiltonian(t, q, p, params)
-        @unpack ω, ϵ, ϕ, A = params
+        @unpack ω = params
+        A = perturbation(params)
         p[1]^2 / 2 - ω^2 * cos(q[1]) - q[1] * p[1] * A
     end
 
     function lagrangian(t, q, v, params)
-        @unpack ω, ϵ, ϕ, A = params
+        @unpack ω = params
+        A = perturbation(params)
         v[1]^2 / 2 + ω^2 * cos(q[1]) + q[1] * v[1] * A + q[1]^2 * A^2 / 2
     end
 

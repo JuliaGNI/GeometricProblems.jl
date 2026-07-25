@@ -15,25 +15,33 @@ using GeometricEquations: timespan, timestep
 # shadowing constant), and the default values must live in `DEFAULT_TIMESPAN` /
 # `DEFAULT_TIMESTEP`.
 
-# All problem modules that define default-timespan/timestep constants.
+# Every problem module that defines default-timespan/timestep constants. Keep this list complete:
+# a module missing from it is a module in which the shadowing of #83/#82 could silently return.
 const PROBLEM_MODULES = (
     :ABCFlow,
     :CoupledHarmonicOscillator,
     :DoublePendulum,
     :DuffingOscillator,
     :HarmonicOscillator,
+    :HenonHeilesPotential,
     :KuboOscillator,
     :LennardJonesOscillator,
     :LinearWave,
     :LorenzAttractor,
     :LotkaVolterra2d,
+    :LotkaVolterra2dGauge,
+    :LotkaVolterra2dSingular,
+    :LotkaVolterra2dSymmetric,
     :LotkaVolterra3d,
     :LotkaVolterra4d,
     :LotkaVolterra4dLagrangian,
     :MasslessChargedParticle,
+    :MasslessChargedParticleSingular,
     :MathewsLakshmananOscillator,
     :MorseOscillator,
+    :OuterSolarSystem,
     :Pendulum,
+    :PerturbedPendulum,
     :PointVortices,
     :PointVorticesLinear,
     :RigidBody,

@@ -18,6 +18,10 @@ using GeometricSolutions
     sol = integrate(ode, Gauss(2))
     H, ΔH = compute_energy_error(sol.t, sol.q, parameters(ode))
     C, ΔC = compute_casimir_error(sol.t, sol.q, parameters(ode))
+    # The tolerances are looser than before the sign convention of the `b`-terms was brought in
+    # line with the documented Hamiltonian `H = a·q + b·ln q`: that changed the vector field (and
+    # hence `reference_solution`), and the new trajectory is somewhat less benign over this
+    # timespan. The energy bound is unchanged; only the trajectory and Casimir bounds were relaxed.
     @test relative_maximum_error(sol.q, ref.q) < 1E-8
     @test ΔH[end] < 5E-11
     @test ΔC[end] < 1E-9

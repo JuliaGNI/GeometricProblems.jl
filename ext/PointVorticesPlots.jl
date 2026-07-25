@@ -26,20 +26,6 @@ end
 # invariant) and the keyword arguments, so the same implementations serve the deformed
 # `PointVortices` model and the linearised `PointVorticesLinear` one.
 
-"""
-    plot_phase_portrait(sol; nplot, nt, latex)
-
-Plot the trajectories of both point vortices in the `x`–`y` plane. Returns a Makie
-`Figure`.
-
-# Arguments
-- `sol <: GeometricSolution`
-
-# Keyword arguments
-- `nplot = 1`: plot every `nplot`-th time step
-- `nt = :auto`: last time step to plot
-- `latex = true`: use LaTeX axis labels
-"""
 function _plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     fig = Figure(size = (400, 400))
@@ -56,12 +42,6 @@ function _plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
     return fig
 end
 
-"""
-    plot_solution(sol, equ; nplot, nt, latex)
-
-Plot the trajectories of both point vortices next to the relative energy error of the
-solution. Returns a Makie `Figure`.
-"""
 function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     ts  = [sol.t[j] for j in idx]
@@ -89,12 +69,6 @@ function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
     return fig
 end
 
-"""
-    plot_traces(sol, equ; nplot, nt, latex)
-
-Plot the time traces of the four state components together with the relative energy error,
-stacked vertically. Returns a Makie `Figure`.
-"""
 function _plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     ts  = [sol.t[j] for j in idx]
@@ -119,10 +93,37 @@ function _plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
 end
 
 # Attach the generic implementations to both problems' plot-function stubs.
+@doc """
+    plot_phase_portrait(sol; nplot, nt, latex)
+
+Plot the trajectories of both point vortices in the `x`–`y` plane. Returns a Makie
+`Figure`.
+
+# Arguments
+- `sol <: GeometricSolution`
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+- `latex = true`: use LaTeX axis labels
+"""
 PointVortices.plot_phase_portrait(sol; kwargs...) = _plot_phase_portrait(sol; kwargs...)
+@doc """
+    plot_solution(sol, equ; nplot, nt, latex)
+
+Plot the trajectories of both point vortices next to the relative energy error of the
+solution. Returns a Makie `Figure`.
+"""
 PointVortices.plot_solution(sol, equ; kwargs...) = _plot_solution(sol, equ; kwargs...)
+@doc """
+    plot_traces(sol, equ; nplot, nt, latex)
+
+Plot the time traces of the four state components together with the relative energy error,
+stacked vertically. Returns a Makie `Figure`.
+"""
 PointVortices.plot_traces(sol, equ; kwargs...) = _plot_traces(sol, equ; kwargs...)
 
+# The same implementations, and hence the same documentation as above.
 PointVorticesLinear.plot_phase_portrait(sol; kwargs...) = _plot_phase_portrait(sol; kwargs...)
 PointVorticesLinear.plot_solution(sol, equ; kwargs...) = _plot_solution(sol, equ; kwargs...)
 PointVorticesLinear.plot_traces(sol, equ; kwargs...) = _plot_traces(sol, equ; kwargs...)

@@ -1,9 +1,16 @@
 @doc raw"""
     OuterSolarSystem
 
-Gravitational N-body model of the Sun and the five outer planets (Jupiter, Saturn,
+Gravitational N-body model of the Sun, the four outer planets (Jupiter, Saturn,
 Uranus, Neptune) and Pluto. The system has ``N = 6`` bodies in ``d = 3`` spatial
 dimensions, giving 18 degrees of freedom.
+
+!!! warning "Slow to construct"
+    `hodeproblem`/`lodeproblem` generate the equations of motion symbolically with
+    EulerLagrange for all 18 degrees of freedom, which takes many minutes. The problem
+    should be reformulated with hand-written vector fields (as the other N-body problems
+    in this package are) before it is used in anything automated; `test/outer_solar_system_tests.jl`
+    is deliberately not part of `runtests.jl` for this reason.
 
 The Hamiltonian is
 ```math

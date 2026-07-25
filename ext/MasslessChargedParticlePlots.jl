@@ -18,20 +18,6 @@ _energy_error(sol, equ) = compute_invariant_error(sol.t, sol.q, parameters(equ),
 # `equ` (for the `:h` invariant), and the keyword arguments. The generic implementations below are
 # attached to both the standard and the singular problem's plot-function stubs.
 
-"""
-    plot_phase_portrait(sol; nplot, nt, latex)
-
-Plot the `x₁`–`x₂` trajectory of a massless charged particle. Returns a Makie
-`Figure`.
-
-# Arguments
-- `sol <: GeometricSolution`
-
-# Keyword arguments
-- `nplot = 1`: plot every `nplot`-th time step
-- `nt = :auto`: last time step to plot
-- `latex = true`: use LaTeX axis labels
-"""
 function _plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     fig = Figure(size = (400, 400))
@@ -44,12 +30,6 @@ function _plot_phase_portrait(sol; nplot = 1, nt = :auto, latex = true)
     return fig
 end
 
-"""
-    plot_solution(sol, equ; nplot, nt, latex)
-
-Plot the `x₁`–`x₂` trajectory of a massless charged particle next to its relative
-energy error. Returns a Makie `Figure`.
-"""
 function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     ts  = [sol.t[k] for k in idx]
@@ -74,13 +54,6 @@ function _plot_solution(sol, equ; nplot = 1, nt = :auto, latex = true)
     return fig
 end
 
-"""
-    plot_traces(sol, equ; nplot, nt, latex)
-
-Plot the time traces `x₁(t)`, `x₂(t)` of a massless charged particle trajectory
-together with its relative energy error, stacked vertically. Returns a Makie
-`Figure`.
-"""
 function _plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
     idx = _indices(sol, nplot, nt)
     ts  = [sol.t[k] for k in idx]
@@ -104,10 +77,38 @@ function _plot_traces(sol, equ; nplot = 1, nt = :auto, latex = true)
 end
 
 # Attach the generic implementations to both problems' plot-function stubs.
+@doc """
+    plot_phase_portrait(sol; nplot, nt, latex)
+
+Plot the `x₁`–`x₂` trajectory of a massless charged particle. Returns a Makie
+`Figure`.
+
+# Arguments
+- `sol <: GeometricSolution`
+
+# Keyword arguments
+- `nplot = 1`: plot every `nplot`-th time step
+- `nt = :auto`: last time step to plot
+- `latex = true`: use LaTeX axis labels
+"""
 MasslessChargedParticle.plot_phase_portrait(sol; kwargs...) = _plot_phase_portrait(sol; kwargs...)
+@doc """
+    plot_solution(sol, equ; nplot, nt, latex)
+
+Plot the `x₁`–`x₂` trajectory of a massless charged particle next to its relative
+energy error. Returns a Makie `Figure`.
+"""
 MasslessChargedParticle.plot_solution(sol, equ; kwargs...) = _plot_solution(sol, equ; kwargs...)
+@doc """
+    plot_traces(sol, equ; nplot, nt, latex)
+
+Plot the time traces `x₁(t)`, `x₂(t)` of a massless charged particle trajectory
+together with its relative energy error, stacked vertically. Returns a Makie
+`Figure`.
+"""
 MasslessChargedParticle.plot_traces(sol, equ; kwargs...) = _plot_traces(sol, equ; kwargs...)
 
+# The same implementations, and hence the same documentation as above.
 MasslessChargedParticleSingular.plot_phase_portrait(sol; kwargs...) = _plot_phase_portrait(sol; kwargs...)
 MasslessChargedParticleSingular.plot_solution(sol, equ; kwargs...) = _plot_solution(sol, equ; kwargs...)
 MasslessChargedParticleSingular.plot_traces(sol, equ; kwargs...) = _plot_traces(sol, equ; kwargs...)

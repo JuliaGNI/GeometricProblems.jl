@@ -134,7 +134,7 @@ function ldaeproblem(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=
     LDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
                 lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
                 lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ_lode,
-                lagrangian, lotka_volterra_2d_ω,
+                lotka_volterra_2d_ω, lagrangian,
                 timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
                 v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end
@@ -144,7 +144,7 @@ function ldaeproblem_slrk(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); time
     LDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
                 lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
                 lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
-                lagrangian, lotka_volterra_2d_ω,
+                lotka_volterra_2d_ω, lagrangian,
                 timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
                 v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
 end

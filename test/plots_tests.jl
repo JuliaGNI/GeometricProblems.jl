@@ -45,18 +45,20 @@ import GeometricProblems.PointVorticesLinear as pvl
         @test diag.plot_lagrange_multiplier(dsol) isa Figure
     end
 
+    # `plot_traces` takes the problem (not its parameters) in every extension, so that it can pull
+    # both the `:h` invariant and the parameters from it and dispatch on the problem type.
     @testset "Lotka-Volterra 3d" begin
         ode = lv3.odeproblem()
         sol = integrate(ode, Gauss(2))
-        @test lv3.plot_phase_portrait(sol)          isa Figure
-        @test lv3.plot_traces(sol, parameters(ode)) isa Figure
+        @test lv3.plot_phase_portrait(sol) isa Figure
+        @test lv3.plot_traces(sol, ode)    isa Figure
     end
 
     @testset "Lotka-Volterra 4d" begin
         ode = lv4.odeproblem()
         sol = integrate(ode, Gauss(2))
-        @test lv4.plot_phase_portrait(sol)          isa Figure
-        @test lv4.plot_traces(sol, parameters(ode)) isa Figure
+        @test lv4.plot_phase_portrait(sol) isa Figure
+        @test lv4.plot_traces(sol, ode)    isa Figure
     end
 
     @testset "Massless charged particle" begin
