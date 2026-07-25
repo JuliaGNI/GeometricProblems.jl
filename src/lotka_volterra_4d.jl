@@ -286,6 +286,8 @@ end
 lotka_volterra_4d_ϑ(Θ, t, q, params) = ϑ(Θ, t, q)
 lotka_volterra_4d_ϑ(Θ, t, q, v, params) = ϑ(Θ, t, q)
 lotka_volterra_4d_ω(Ω, t, q, params) = ω(Ω, t, q)
+# LODE/LDAE evaluate the symplectic matrix with an extra velocity slot; ω depends only on q.
+lotka_volterra_4d_ω(Ω, t, q, v, params) = ω(Ω, t, q)
 
 
 function lotka_volterra_4d_v(v, t, q, params)
