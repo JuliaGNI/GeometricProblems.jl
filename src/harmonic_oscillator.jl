@@ -39,23 +39,44 @@ const ω = √(k / m)
 default_parameters(::Type{T}=Float64) where {T} = (m=T(m), k=T(k), ω=T(ω))
 
 
-ϑ₁(t, q) = q[2]
-ϑ₂(t, q) = zero(eltype(q))
+# Components of the one-form of the *degenerate* (phase-space) formulation, in which the state is
+# q = (x, ẋ) and ϑ = (m ẋ, 0). The mass has to appear here for the same reason it appears in
+# `degenerate_oscillator_iode_ϑ`: both are ∂L/∂v of `degenerate_lagrangian`.
+ϑ₁(t, q, params) = params.m * q[2]
+ϑ₂(t, q, params) = zero(eltype(q))
 
-function ϑ(q)
+function ϑ(q, params)
     p = zero(q)
-    p[1] = ϑ₁(0, q)
-    p[2] = ϑ₂(0, q)
+    p[1] = ϑ₁(0, q, params)
+    p[2] = ϑ₂(0, q, params)
     return p
 end
 
-function ω!(ω, t, q, params)
-    ω[1, 1] = 0
-    ω[1, 2] = -1
-    ω[2, 1] = +1
-    ω[2, 2] = 0
+# The symplectic two-form of the regular Lagrangian L = m v²/2 - k q²/2. Its one-form
+# ϑ = ∂L/∂v = m v depends on the velocity only, so Ωᵢⱼ = ∂ϑᵢ/∂qⱼ - ∂ϑⱼ/∂qᵢ vanishes identically.
+# `fill!` keeps this valid for the one-degree-of-freedom (1×1) matrix the LODE/LDAE allocate.
+function ω!(Ω, t, q, params)
+    fill!(Ω, zero(eltype(Ω)))
     nothing
 end
+
+# LODE/LDAE evaluate the symplectic matrix with an extra velocity slot; ω depends only on q.
+ω!(Ω, t, q, v, params) = ω!(Ω, t, q, params)
+
+# The symplectic two-form of the degenerate formulation. With ϑ = (m q₂, 0) and the convention
+# Ωᵢⱼ = ∂ϑᵢ/∂qⱼ - ∂ϑⱼ/∂qᵢ (shared with LotkaVolterra2d/4d, PointVortices and the massless charged
+# particle) it reads Ω = [0 m; -m 0], so that the Euler-Lagrange equations Ω v = -∇H reproduce
+# `degenerate_oscillator_iode_v`.
+function degenerate_ω!(Ω, t, q, params)
+    @unpack m = params
+    Ω[1, 1] = 0
+    Ω[1, 2] = +m
+    Ω[2, 1] = -m
+    Ω[2, 2] = 0
+    nothing
+end
+
+degenerate_ω!(Ω, t, q, v, params) = degenerate_ω!(Ω, t, q, params)
 
 function hamiltonian(t, q::AbstractArray, params)
     @unpack m, k = params
@@ -81,7 +102,7 @@ function lagrangian(t, q::AbstractArray, v::AbstractArray, params)
 end
 
 function degenerate_lagrangian(t, q, v, params)
-    ϑ₁(t, q) * v[1] + ϑ₂(t, q) * v[2] - hamiltonian(t, q, params)
+    ϑ₁(t, q, params) * v[1] + ϑ₂(t, q, params) * v[2] - hamiltonian(t, q, params)
 end
 
 
@@ -333,7 +354,11 @@ function degenerate_oscillator_iode_v(v, t, q, p, params)
     nothing
 end
 
-function degenerate_iodeproblem(q₀=x₀, p₀=ϑ(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+# `p₀ = nothing` resolves to ϑ(q₀) evaluated with the *given* parameters. A positional default
+# cannot reference the `parameters` keyword, and hard-coding `ϑ(q₀)` with the default parameters
+# would silently produce a momentum off by a factor `m` whenever `m ≠ 1`.
+function degenerate_iodeproblem(q₀=x₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+    p₀ = p₀ === nothing ? ϑ(q₀, parameters) : p₀
     @assert length(q₀) == length(p₀) == 2
     IODEProblem(degenerate_oscillator_iode_ϑ, degenerate_oscillator_iode_f,
         degenerate_oscillator_iode_g, timespan, timestep, q₀, p₀;
@@ -341,10 +366,11 @@ function degenerate_iodeproblem(q₀=x₀, p₀=ϑ(q₀); timespan=DEFAULT_TIMES
         v̄=degenerate_oscillator_iode_v)
 end
 
-function degenerate_lodeproblem(q₀=x₀, p₀=ϑ(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function degenerate_lodeproblem(q₀=x₀, p₀=nothing; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+    p₀ = p₀ === nothing ? ϑ(q₀, parameters) : p₀
     @assert length(q₀) == length(p₀) == 2
     LODEProblem(degenerate_oscillator_iode_ϑ, degenerate_oscillator_iode_f,
-        degenerate_oscillator_iode_g, ω!, lagrangian,
+        degenerate_oscillator_iode_g, degenerate_ω!, degenerate_lagrangian,
         timespan, timestep, q₀, p₀;
         invariants=(h=hamiltonian,), parameters=parameters,
         v̄=degenerate_oscillator_iode_v)
@@ -358,12 +384,41 @@ function oscillator_dae_u(u, t, x, λ, params)
     u[2] = m * x[2] * λ[1]
 end
 
-function oscillator_dae_ϕ(ϕ, t, x, params)
-    ϕ[1] = hamiltonian(t, x, params) - hamiltonian(t₀, x₀, params)
+@doc raw"""
+Build the energy constraint ``\phi = H(t, \cdot) - H_0`` of the differential-algebraic
+formulations, where ``H_0`` is the energy of the *problem's own* initial condition.
+
+`H₀` is captured in a closure per problem rather than read from the module-level defaults, so
+that the constraint vanishes at ``t_0`` for any initial data. A shared constraint closing over
+the default initial condition would be satisfied only for that one initial condition.
+
+`_dae_energy_constraint` covers the plain DAE, whose state `x = (q, v)` carries the velocity, so
+that `H` is evaluated in its velocity form.
+"""
+_dae_energy_constraint(H₀) = function (ϕ, t, x, params)
+    ϕ[1] = hamiltonian(t, x, params) - H₀
+    nothing
+end
+
+@doc raw"""
+Energy constraint for the partitioned, Hamiltonian, implicit and variational DAEs, which keep
+position and momentum separate. The implicit/variational forms evaluate it with an additional
+velocity slot, which the energy does not depend on.
+
+See `_dae_energy_constraint` for why the reference energy is captured per problem.
+"""
+function _pdae_energy_constraint(H₀)
+    function constraint(ϕ, t, q, p, params)
+        ϕ[1] = hamiltonian(t, q, p, params) - H₀
+        nothing
+    end
+    constraint(ϕ, t, q, v, p, params) = constraint(ϕ, t, q, p, params)
+    return constraint
 end
 
 function daeproblem(x₀=x₀, λ₀=[zero(eltype(x₀))]; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
-    DAEProblem(oscillator_ode_v, oscillator_dae_u, oscillator_dae_ϕ, timespan, timestep, x₀, λ₀;
+    constraint = _dae_energy_constraint(hamiltonian(timespan[begin], x₀, parameters))
+    DAEProblem(oscillator_ode_v, oscillator_dae_u, constraint, timespan, timestep, x₀, λ₀;
         v̄=oscillator_ode_v, invariants=(h=hamiltonian,), parameters=parameters)
 end
 
@@ -403,10 +458,7 @@ function oscillator_pdae_ḡ(g, t, q, p, λ, params)
     nothing
 end
 
-function oscillator_pdae_ϕ(ϕ, t, q, p, params)
-    ϕ[1] = hamiltonian(t, q, p, params) - hamiltonian(t₀, q₀, p₀, params)
-    nothing
-end
+# The energy constraint is built per problem, see `_pdae_energy_constraint`.
 
 function oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
     @unpack k = params
@@ -416,15 +468,17 @@ end
 
 function pdaeproblem(q₀=q₀, p₀=p₀, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     @assert length(q₀) == length(p₀) == 1
+    constraint = _pdae_energy_constraint(hamiltonian(timespan[begin], q₀, p₀, parameters))
     PDAEProblem(oscillator_pdae_v, oscillator_pdae_f,
-        oscillator_pdae_u, oscillator_pdae_g, oscillator_pdae_ϕ,
+        oscillator_pdae_u, oscillator_pdae_g, constraint,
         timespan, timestep, q₀, p₀, λ₀; invariants=(h=hamiltonian,), parameters=parameters)
 end
 
 function hdaeproblem(q₀=q₀, p₀=p₀, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     @assert length(q₀) == length(p₀) == 1
+    constraint = _pdae_energy_constraint(hamiltonian(timespan[begin], q₀, p₀, parameters))
     HDAEProblem(oscillator_pdae_v, oscillator_pdae_f,
-        oscillator_pdae_u, oscillator_pdae_g, oscillator_pdae_ϕ,
+        oscillator_pdae_u, oscillator_pdae_g, constraint,
         oscillator_pdae_ū, oscillator_pdae_ḡ, oscillator_pdae_ψ,
         hamiltonian, timespan, timestep, q₀, p₀, λ₀; parameters=parameters)
 end
@@ -434,20 +488,23 @@ oscillator_idae_u(u, t, q, v, p, λ, params) = oscillator_pdae_u(u, t, q, p, λ,
 oscillator_idae_g(g, t, q, v, p, λ, params) = oscillator_pdae_g(g, t, q, p, λ, params)
 oscillator_idae_ū(u, t, q, v, p, λ, params) = oscillator_pdae_ū(u, t, q, p, λ, params)
 oscillator_idae_ḡ(g, t, q, v, p, λ, params) = oscillator_pdae_ḡ(g, t, q, p, λ, params)
-oscillator_idae_ϕ(ϕ, t, q, v, p, params) = oscillator_pdae_ϕ(ϕ, t, q, p, params)
+# The energy constraint of the implicit/variational forms is the same closure as for the
+# partitioned ones; it already accepts the extra velocity slot.
 oscillator_idae_ψ(ψ, t, q, v, p, q̇, ṗ, params) = oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
 
 function idaeproblem(q₀=q₀, p₀=p₀, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     @assert length(q₀) == length(p₀) == length(λ₀) == 1
+    constraint = _pdae_energy_constraint(hamiltonian(timespan[begin], q₀, p₀, parameters))
     IDAEProblem(oscillator_iode_ϑ, oscillator_iode_f,
-        oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ,
+        oscillator_idae_u, oscillator_idae_g, constraint,
         timespan, timestep, q₀, p₀, λ₀; v̄=oscillator_iode_v, invariants=(h=hamiltonian,), parameters=parameters)
 end
 
 function ldaeproblem(q₀=q₀, p₀=p₀, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     @assert length(q₀) == length(p₀) == length(λ₀) == 1
+    constraint = _pdae_energy_constraint(hamiltonian(timespan[begin], q₀, p₀, parameters))
     LDAEProblem(oscillator_iode_ϑ, oscillator_iode_f,
-        oscillator_idae_u, oscillator_idae_g, oscillator_idae_ϕ, ω!, lagrangian,
+        oscillator_idae_u, oscillator_idae_g, constraint, ω!, lagrangian,
         timespan, timestep, q₀, p₀, λ₀; v̄=oscillator_iode_v, invariants=(h=hamiltonian,), parameters=parameters)
 end
 
