@@ -16,9 +16,21 @@ and its relative error.
 ## Diagnostic plots
 
 When a Makie backend such as `CairoMakie` is loaded, the `Diagnostics` module provides generic
-plotting functions — `plot_energy_error`, `plot_energy_drift`, `plot_constraint_error`, and
-`plot_lagrange_multiplier` — that visualise these diagnostics for a `GeometricSolution`. For an ODE
-solution with an energy invariant, `plot_energy_error` shows the relative energy drift over time:
+plotting functions that visualise these diagnostics for a `GeometricSolution`:
+
+* `plot_energy_error` and `plot_energy_drift` — the relative error of the energy, and its
+  maximum absolute value per time interval;
+* `plot_invariant_error` and `plot_invariant_drift` — the same for *any* invariant the problem
+  carries, selected with the `invariant` keyword (a key into `invariants(problem)`, `:h` by
+  default, or the invariant function itself). The energy variants above are the `:h` special
+  case;
+* `plot_constraint_error` and `plot_lagrange_multiplier` — the drift of the momentum one-form
+  and the multipliers of an implicit/variational (DAE) solution;
+* `plot_convergence` and `plot_order` — the error and the observed order of convergence over a
+  sequence of time steps, for a convergence study.
+
+For an ODE solution with an energy invariant, `plot_energy_error` shows the relative energy
+drift over time:
 
 ```@example diagnostics
 using GeometricProblems.LotkaVolterra2d
@@ -37,4 +49,15 @@ one-form, with one stacked panel per degree of freedom:
 ```@example diagnostics
 dsol = integrate(idaeproblem(), TableauVSPARKGLRKpMidpoint(2))
 plot_constraint_error(dsol)
+```
+
+Problems with more than one conserved quantity are what `plot_invariant_error` is for. The
+[point vortices](point_vortices.md), for instance, conserve both the energy `:h` and the
+angular momentum `:p`:
+
+```@example diagnostics
+import GeometricProblems.PointVortices as pv
+
+pvsol = integrate(pv.odeproblem(), Gauss(1))
+plot_invariant_error(pvsol; invariant = :p)
 ```

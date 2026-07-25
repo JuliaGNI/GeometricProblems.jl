@@ -65,6 +65,25 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   symmetric variant. `src/lotka_volterra_2d_gauge.jl`.
 
 ### New features
+- **Generic invariant diagnostics**: `Diagnostics.plot_invariant_error` and
+  `Diagnostics.plot_invariant_drift` plot the relative error (and its per-interval drift) of *any*
+  invariant a problem carries, selected by its key in `invariants(problem)` (`:h` by default) or
+  by passing the invariant function itself. `plot_energy_error`/`plot_energy_drift` are now the
+  `:h` special case of these and keep their previous behaviour and axis labels.
+  Motivated by problems with more than one conserved quantity — the point vortices below, and the
+  guiding-centre toroidal momentum in `ChargedParticleDynamics` — which previously each needed
+  their own bespoke plotting code. `src/diagnostics.jl`, `ext/DiagnosticsPlots.jl`.
+- **Convergence diagnostics**: `Diagnostics.plot_convergence(h, ε; order)` (log-log error over
+  time step, with an optional reference slope of the expected order) and
+  `Diagnostics.plot_order(h, p)` (observed order over time step). `src/diagnostics.jl`,
+  `ext/DiagnosticsPlots.jl`.
+- **Point vortices**: added a `PointVorticesPlots` Makie extension providing
+  `plot_phase_portrait`, `plot_solution` and `plot_traces` for both `PointVortices` and
+  `PointVorticesLinear`, mirroring `MasslessChargedParticlePlots`. Both modules' problems now also
+  declare their invariants, `invariants=(h=hamiltonian, p=angular_momentum)`, which they were
+  missing entirely, so that the generic diagnostics above work on them; `angular_momentum` gained
+  the four-argument `(t, q, p, params)` method the implicit formulations evaluate it with.
+  `ext/PointVorticesPlots.jl`, `src/point_vortices.jl`, `src/point_vortices_linear.jl`.
 - **Massless charged particle**: added `lodeproblem` and `ldaeproblem` to both
   `MasslessChargedParticle` and `MasslessChargedParticleSingular`, completing the variational
   formulations. This required the two previously missing ingredients, both derived from what the

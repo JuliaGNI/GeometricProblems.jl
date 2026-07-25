@@ -1,6 +1,6 @@
 name = "GeometricProblems"
 uuid = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
-version = "0.7.2"
+version = "0.7.3"
 authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
 
 [deps]
@@ -39,6 +39,7 @@ LotkaVolterra3dPlots = "Makie"
 LotkaVolterra4dPlots = "Makie"
 MasslessChargedParticlePlots = "Makie"
 PendulumPlots = "Makie"
+PointVorticesPlots = "Makie"
 
 [extras]
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"

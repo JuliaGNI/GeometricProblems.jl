@@ -50,6 +50,8 @@ module PointVorticesLinear
         q[1] * ϑ₂(q) - q[2] * ϑ₁(q) +
         q[3] * ϑ₄(q) - q[4] * ϑ₃(q)
     end
+    # P depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+    angular_momentum(t, q, p, params) = angular_momentum(t, q, params)
 
     # Formal (phase-space) Lagrangian L = ϑ(q)·v - H(q) for the non-canonical system.
     # Its Euler–Lagrange equations reproduce the linearised point-vortex dynamics.
@@ -139,8 +141,14 @@ module PointVorticesLinear
         nothing
     end
 
+    # The energy `h` and the angular momentum `p` are both conserved, so every formulation
+    # carries them and the generic `Diagnostics.plot_invariant_error(sol; invariant = :h/:p)`
+    # works out of the box.
+    const INVARIANTS = (h = hamiltonian, p = angular_momentum)
+
+
     function odeproblem(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        ODEProblem(point_vortices_v, timespan, timestep, q₀; parameters=parameters)
+        ODEProblem(point_vortices_v, timespan, timestep, q₀; invariants=INVARIANTS, parameters=parameters)
     end
 
 
@@ -178,18 +186,19 @@ module PointVorticesLinear
     function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         IODEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_g, timespan, timestep, q₀, p₀;
-                    v̄=point_vortices_v, parameters=parameters)
+                    v̄=point_vortices_v, invariants=INVARIANTS, parameters=parameters)
     end
 
     function iodeproblem_dg(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         IODEProblem(point_vortices_ϑ, point_vortices_f,
                     point_vortices_g, timespan, timestep, q₀, q₀;
-                    v̄=point_vortices_v, parameters=parameters)
+                    v̄=point_vortices_v, invariants=INVARIANTS, parameters=parameters)
     end
 
     function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         LODEProblem(point_vortices_ϑ, point_vortices_f, point_vortices_g, ω, lagrangian,
-                    timespan, timestep, q₀, p₀; v̄=point_vortices_v, parameters=parameters)
+                    timespan, timestep, q₀, p₀;
+                    v̄=point_vortices_v, invariants=INVARIANTS, parameters=parameters)
     end
 
 
@@ -248,5 +257,14 @@ module PointVorticesLinear
 
         (p1, p2, p3, p4)
     end
+
+
+    export plot_solution, plot_phase_portrait, plot_traces
+
+    # Problem-specific plots. The methods are implemented in the `PointVorticesPlots`
+    # extension, which is loaded together with `Makie`/`CairoMakie`.
+    function plot_solution end
+    function plot_phase_portrait end
+    function plot_traces end
 
 end
