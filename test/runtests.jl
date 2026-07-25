@@ -84,6 +84,21 @@ end
 @safetestset "EulerLagrange ensembles (#64)                                                   " begin
     include("eulerlagrange_ensembles_tests.jl")
 end
+@safetestset "LODE/LDAE ω and l wiring                                                        " begin
+    include("lode_wiring_tests.jl")
+end
 @safetestset "Plotting extensions                                                             " begin
     include("plots_tests.jl")
 end
+
+# NOTE: `outer_solar_system_tests.jl` is intentionally NOT included here.
+#
+# `OuterSolarSystem.hodeproblem`/`lodeproblem` build the equations of motion symbolically with
+# EulerLagrange for all 18 degrees of freedom, which takes many minutes — far too slow for CI. The
+# problem needs to be refactored to use hand-written vector fields (like the other N-body problems
+# in this package) instead of symbolic code generation; once that is done, add:
+#
+#     @safetestset "Outer Solar System" begin include("outer_solar_system_tests.jl") end
+#
+# Until then the test can be run manually with
+# `julia --project=test test/outer_solar_system_tests.jl`.
