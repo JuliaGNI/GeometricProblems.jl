@@ -76,6 +76,12 @@ module KuboOscillator
         SDEProblem(kubo_oscillator_sde_v, kubo_oscillator_sde_B, KuboNoise(), timespan, timestep, q₀; parameters = parameters)
     end
 
+    # NOTE: GeometricEquations exports `SDEEnsemble`/`PSDEEnsemble`/`SPSDEEnsemble`, but only as
+    # type aliases — unlike `ODEEnsemble` and friends they have no convenience constructor. The
+    # ensembles below therefore have to assemble the `EnsembleProblem` by hand, which also means
+    # reaching for the non-exported `GeometricEquations.parameter_types`. Once upstream adds the
+    # constructors these three functions collapse into one-liners.
+
     function sdeensemble(q₀=q_init_B; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
         # q_init_B holds several initial conditions -> ensemble problem
         equ = SDE(kubo_oscillator_sde_v, kubo_oscillator_sde_B, KuboNoise();
