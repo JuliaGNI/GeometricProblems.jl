@@ -1,6 +1,6 @@
 using SafeTestsets
 
-@safetestset "Default timespan/timestep constants (#83, #82)                                  " begin
+@safetestset "Default timespan/timestep constants                                             " begin
     include("default_timespan_timestep_tests.jl")
 end
 @safetestset "Bump initial condition: test derivative.                                        " begin
