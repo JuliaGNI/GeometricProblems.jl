@@ -52,20 +52,32 @@ function ϑ(q, params)
     return p
 end
 
-# The symplectic two-form of the regular Lagrangian L = m v²/2 - k q²/2. Its one-form
-# ϑ = ∂L/∂v = m v depends on the velocity only, so Ωᵢⱼ = ∂ϑᵢ/∂qⱼ - ∂ϑⱼ/∂qᵢ vanishes identically.
-# `fill!` keeps this valid for the one-degree-of-freedom (1×1) matrix the LODE/LDAE allocate.
+# The Lagrange two-form ω = dθ of the *regular* Lagrangian L = m v²/2 - k q²/2, where θ = ϑᵢ dqⁱ.
+#
+# A regular Lagrangian is a second-order system of n equations, equivalent to a first-order system
+# of 2n, so its ω is the 2n×2n form on (q, q̇) — here 2×2 for the single degree of freedom. In block
+# form it is [∂ϑᵢ/∂qⱼ - ∂ϑⱼ/∂qᵢ   -Mᵀ; M   0]; since ϑ = ∂L/∂v = m v depends on the velocity alone,
+# the upper-left block vanishes and what remains is the canonical [0 -m; m 0].
+#
+# This is the same convention EulerLagrange's `LagrangianSystem` produces. Degenerate formulations
+# are first-order systems of n equations and carry an n×n ω instead — see `degenerate_ω!` below and
+# LotkaVolterra2d/4d, PointVortices and the massless charged particle.
 function ω!(Ω, t, q, params)
-    fill!(Ω, zero(eltype(Ω)))
+    @unpack m = params
+    Ω[1, 1] = 0
+    Ω[1, 2] = -m
+    Ω[2, 1] = +m
+    Ω[2, 2] = 0
     nothing
 end
 
-# LODE/LDAE evaluate the symplectic matrix with an extra velocity slot; ω depends only on q.
+# LODE/LDAE evaluate the two-form with an extra velocity slot; ω depends only on q.
 ω!(Ω, t, q, v, params) = ω!(Ω, t, q, params)
 
-# The symplectic two-form of the degenerate formulation. With ϑ = (m q₂, 0) and the convention
-# Ωᵢⱼ = ∂ϑᵢ/∂qⱼ - ∂ϑⱼ/∂qᵢ (shared with LotkaVolterra2d/4d, PointVortices and the massless charged
-# particle) it reads Ω = [0 m; -m 0], so that the Euler-Lagrange equations Ω v = -∇H reproduce
+# The two-form of the degenerate formulation, in which the state is q = (x, ẋ) and the system is
+# first order, so ω is n×n = 2×2. With ϑ = (m q₂, 0) and the convention Ωᵢⱼ = ∂ϑᵢ/∂qⱼ - ∂ϑⱼ/∂qᵢ
+# (shared with LotkaVolterra2d/4d, PointVortices and the massless charged particle) it reads
+# Ω = [0 m; -m 0], so that the Euler-Lagrange equations Ω v = -∇H reproduce
 # `degenerate_oscillator_iode_v`.
 function degenerate_ω!(Ω, t, q, params)
     @unpack m = params

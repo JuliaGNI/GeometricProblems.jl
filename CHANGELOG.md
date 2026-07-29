@@ -13,6 +13,37 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ## [Unreleased]
 
+### Model fixes
+- **Symplectic two-form `ω` of a regular Lagrangian**: `ω` is now the full ``2n × 2n`` Lagrange
+  two-form on `(q, q̇)`, not the ``n × n`` `q`–`q` block. A regular Lagrangian is a second-order
+  system of `n` equations, equivalently first order in `2n`; a degenerate one is already first order
+  in `n` and keeps its ``n × n`` form. This makes the convention consistent within this package and
+  with EulerLagrange, which had generated an identically-zero `ω` (it antisymmetrised `∂L/∂z`, giving
+  `d(dL) ≡ 0`) until JuliaGNI/EulerLagrange.jl#24.
+
+  **This supersedes the `ω!` entry under Bug fixes below**, which recorded `Ω = 0` for the regular
+  harmonic oscillator. That was right for the `q`–`q` block but is not the two-form the LODE wants:
+  `HarmonicOscillator.ω!` now returns the ``2 × 2`` canonical `[0 -m; m 0]`. `degenerate_ω!` is
+  unchanged. `src/harmonic_oscillator.jl`.
+
+### Added
+- **Outer solar system**: hand-written vector fields. `hodeproblem`/`lodeproblem` no longer generate
+  the equations of motion symbolically by default; they use in-place `v`, `f`, `ϑ`, `g` and `ω!`
+  built on a shared `∇V!` kernel that computes each of the `N(N-1)/2 = 15` pairwise distances once
+  per force evaluation. The generated force was 2.7× slower. `hamiltonian_system` and
+  `lagrangian_system` remain, and `symbolic = true` routes the problems through them for
+  cross-checking; the two agree to one ulp. `src/outer_solar_system.jl`.
+- `benchmark/outer_solar_system.jl` and `benchmark/simplify_evaluation.jl`, backing the two changes
+  above with construction time, generated-code size and per-call evaluation cost.
+- **All symbolically generated problems now pass `nanmath = true`** to
+  `LagrangianSystem`/`HamiltonianSystem`/`DegenerateLagrangianSystem` (25 call sites across 13
+  modules). The generated code uses the `NaNMath` variants of `log`, `sqrt`, `^` and friends, so an
+  inadmissible state returns `NaN` instead of throwing a `DomainError`. Implicit integrators solve a
+  nonlinear system per step and can probe states outside a model's domain — a negative population in
+  Lotka-Volterra, a non-positive radius in Lennard-Jones or Morse — where an exception aborts the run
+  while a `NaN` lets the solver reject the trial step and continue. The keyword is new in
+  EulerLagrange 0.5; before that the behaviour was hardcoded off.
+
 ### Bug fixes
 - **Lotka-Volterra 2D**: `ldaeproblem` and `ldaeproblem_slrk` passed the symplectic matrix `ω` and
   the Lagrangian `l` to `LDAEProblem` in the wrong positional order, so `functions(prob).ω` *was*
@@ -46,6 +77,16 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 The three entries below alter a public signature, but each one repairs behaviour that never worked
 as documented, so they are bug fixes rather than deliberate API changes: nothing could have
 depended on the old form doing what it claimed.
+
+- **Requires EulerLagrange 0.5.** That release stops calling `Symbolics.simplify` on the
+  Lagrangian/Hamiltonian by default, which was never a win: measured over all 13 EulerLagrange-based
+  problems here (88 generated functions), `simplify = true` was faster **zero** times, slower up to
+  15× (`OuterSolarSystem`'s Hamiltonian force), and cost 17.5 s against 0.75 s to build in
+  aggregate. Three local workarounds for the old default are therefore gone: the explicit
+  `simplify = false` in `src/linear_wave.jl`, the `simplify = N ≤ 10` size heuristic in
+  `src/toda_lattice.jl`, and the explicit setting in `src/outer_solar_system.jl`. EulerLagrange 0.5
+  also generates code with common subexpression elimination, so results may differ from 0.4 in the
+  last bit.
 
 - **Linear wave**: the number of interior points `N` was carried in `default_parameters()` but
   **silently ignored** — `hamiltonian`, `lagrangian` and the symbolic system all sized themselves
@@ -82,6 +123,14 @@ depended on the old form doing what it claimed.
 - Restructured this changelog into released versions with a migration guide (below).
 
 ### Tests
+- **`test/outer_solar_system_tests.jl` is now part of `runtests.jl`**, which the note at the end of
+  that file had deferred until the problem stopped taking minutes to construct. It runs in ~12 s and
+  gained a second testset checking the hand-written vector fields against the generated ones and
+  `∇V!` against an independent body-by-body double sum.
+- **`test/lode_wiring_tests.jl`**: each problem now carries whether its Lagrangian is regular, and
+  the expected `ω` is sized accordingly (``2n × 2n`` regular, ``n × n`` degenerate). Added an
+  `any(!iszero, Ω)` assertion — antisymmetry alone is satisfied vacuously by a zero matrix, which is
+  exactly what EulerLagrange used to return.
 - **`test/lode_wiring_tests.jl`** (new, wired into `runtests.jl`): asserts for *every*
   `lodeproblem`/`ldaeproblem` in the package that `functions(prob).ω` accepts the velocity slot the
   LODE/LDAE evaluate it with and yields an antisymmetric matrix of the right size, and that
@@ -106,11 +155,6 @@ depended on the old form doing what it claimed.
   root and shipping in the released tarball.
 
 ### Known follow-ups
-- **`OuterSolarSystem` needs to be reformulated without symbolic code generation.** Building
-  `hodeproblem`/`lodeproblem` runs EulerLagrange over all 18 degrees of freedom and takes many
-  minutes, which is why `test/outer_solar_system_tests.jl` exists but is deliberately *not* part of
-  `runtests.jl` (see the note at the end of that file). Hand-written vector fields, as used by the
-  other N-body problems here, would fix it and let the test be wired in.
 - `LotkaVolterra3d` declares only `h` as an invariant, although `casimir` is conserved too;
   declaring it would make `Diagnostics.plot_invariant_error(sol; invariant = :c)` work out of the
   box.

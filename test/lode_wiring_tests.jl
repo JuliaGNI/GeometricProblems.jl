@@ -26,48 +26,66 @@ import GeometricProblems.PointVorticesLinear as pvl
 # right size, and `l` must be callable and return a finite scalar.
 #
 # Any new `lodeproblem`/`ldaeproblem` belongs in the list below.
+#
+# `ω` also has to have the right *size*, and that depends on the nature of the system:
+#
+#   * a **regular** Lagrangian is a second-order system of n equations, equivalent to a first-order
+#     system of 2n, so its two-form on (q, q̇) is `2n × 2n`;
+#   * a **degenerate** Lagrangian is already a first-order system of n equations, so its two-form
+#     is `n × n`.
+#
+# EulerLagrange follows the same split: `LagrangianSystem` emits a 2n×2n `ω`, and
+# `DegenerateLagrangianSystem` an n×n one.
 
-# (name, problem, degrees of freedom, a valid (q, v) at which to evaluate)
+# (name, problem, degrees of freedom, regular?, a valid (q, v) at which to evaluate)
 #
 # The initial data has to be admissible for the model: the Lotka-Volterra Hamiltonians take
 # `log(q)`, so `q > 0`, and the point-vortex Hamiltonians take the logarithm of the distance
 # between the two vortices, so the two positions must differ.
 const LODE_PROBLEMS = (
-    ("HarmonicOscillator.lodeproblem",              ho.lodeproblem(),               1, ([0.7], [0.3])),
-    ("HarmonicOscillator.ldaeproblem",              ho.ldaeproblem(),               1, ([0.7], [0.3])),
-    ("HarmonicOscillator.degenerate_lodeproblem",   ho.degenerate_lodeproblem(),    2, ([0.7, 0.3], [0.3, -0.2])),
-    ("LotkaVolterra2d.lodeproblem",                 lv2.lodeproblem(),              2, ([2.0, 1.0], [0.3, -0.2])),
-    ("LotkaVolterra2d.ldaeproblem",                 lv2.ldaeproblem(),              2, ([2.0, 1.0], [0.3, -0.2])),
-    ("LotkaVolterra2d.ldaeproblem_slrk",            lv2.ldaeproblem_slrk(),         2, ([2.0, 1.0], [0.3, -0.2])),
-    ("LotkaVolterra2dGauge.lodeproblem",            lv2gauge.lodeproblem(),         2, ([2.0, 1.0], [0.3, -0.2])),
-    ("LotkaVolterra2dSingular.lodeproblem",         lv2sing.lodeproblem(),          2, ([2.0, 1.0], [0.3, -0.2])),
-    ("LotkaVolterra2dSymmetric.lodeproblem",        lv2symm.lodeproblem(),          2, ([2.0, 1.0], [0.3, -0.2])),
-    ("LotkaVolterra4d.lodeproblem",                 lv4.lodeproblem(),              4, ([2.0, 1.0, 1.0, 1.0], [0.3, -0.2, 0.1, 0.4])),
-    ("LotkaVolterra4d.ldaeproblem",                 lv4.ldaeproblem(),              4, ([2.0, 1.0, 1.0, 1.0], [0.3, -0.2, 0.1, 0.4])),
-    ("LotkaVolterra4d.ldaeproblem_secondary",       lv4.ldaeproblem_secondary(),    4, ([2.0, 1.0, 1.0, 1.0], [0.3, -0.2, 0.1, 0.4])),
-    ("MasslessChargedParticle.lodeproblem",         mcp.lodeproblem(),              2, ([1.3, 0.2], [0.7, -0.4])),
-    ("MasslessChargedParticle.ldaeproblem",         mcp.ldaeproblem(),              2, ([1.3, 0.2], [0.7, -0.4])),
-    ("MasslessChargedParticleSingular.lodeproblem", mcps.lodeproblem(),             2, ([1.3, 0.2], [0.7, -0.4])),
-    ("MasslessChargedParticleSingular.ldaeproblem", mcps.ldaeproblem(),             2, ([1.3, 0.2], [0.7, -0.4])),
-    ("PointVortices.lodeproblem_formal_lagrangian", pv.lodeproblem_formal_lagrangian(),  4, ([0.2, 0.4, 0.4, 0.2], [0.1, -0.1, 0.2, 0.3])),
-    ("PointVorticesLinear.lodeproblem_formal_lagrangian", pvl.lodeproblem_formal_lagrangian(), 4, ([0.3, 0.0, -0.6, 0.1], [0.1, -0.1, 0.2, 0.3])),
+    ("HarmonicOscillator.lodeproblem",              ho.lodeproblem(),               1, true,  ([0.7], [0.3])),
+    ("HarmonicOscillator.ldaeproblem",              ho.ldaeproblem(),               1, true,  ([0.7], [0.3])),
+    ("HarmonicOscillator.degenerate_lodeproblem",   ho.degenerate_lodeproblem(),    2, false, ([0.7, 0.3], [0.3, -0.2])),
+    ("LotkaVolterra2d.lodeproblem",                 lv2.lodeproblem(),              2, false, ([2.0, 1.0], [0.3, -0.2])),
+    ("LotkaVolterra2d.ldaeproblem",                 lv2.ldaeproblem(),              2, false, ([2.0, 1.0], [0.3, -0.2])),
+    ("LotkaVolterra2d.ldaeproblem_slrk",            lv2.ldaeproblem_slrk(),         2, false, ([2.0, 1.0], [0.3, -0.2])),
+    ("LotkaVolterra2dGauge.lodeproblem",            lv2gauge.lodeproblem(),         2, false, ([2.0, 1.0], [0.3, -0.2])),
+    ("LotkaVolterra2dSingular.lodeproblem",         lv2sing.lodeproblem(),          2, false, ([2.0, 1.0], [0.3, -0.2])),
+    ("LotkaVolterra2dSymmetric.lodeproblem",        lv2symm.lodeproblem(),          2, false, ([2.0, 1.0], [0.3, -0.2])),
+    ("LotkaVolterra4d.lodeproblem",                 lv4.lodeproblem(),              4, false, ([2.0, 1.0, 1.0, 1.0], [0.3, -0.2, 0.1, 0.4])),
+    ("LotkaVolterra4d.ldaeproblem",                 lv4.ldaeproblem(),              4, false, ([2.0, 1.0, 1.0, 1.0], [0.3, -0.2, 0.1, 0.4])),
+    ("LotkaVolterra4d.ldaeproblem_secondary",       lv4.ldaeproblem_secondary(),    4, false, ([2.0, 1.0, 1.0, 1.0], [0.3, -0.2, 0.1, 0.4])),
+    ("MasslessChargedParticle.lodeproblem",         mcp.lodeproblem(),              2, false, ([1.3, 0.2], [0.7, -0.4])),
+    ("MasslessChargedParticle.ldaeproblem",         mcp.ldaeproblem(),              2, false, ([1.3, 0.2], [0.7, -0.4])),
+    ("MasslessChargedParticleSingular.lodeproblem", mcps.lodeproblem(),             2, false, ([1.3, 0.2], [0.7, -0.4])),
+    ("MasslessChargedParticleSingular.ldaeproblem", mcps.ldaeproblem(),             2, false, ([1.3, 0.2], [0.7, -0.4])),
+    ("PointVortices.lodeproblem_formal_lagrangian", pv.lodeproblem_formal_lagrangian(),  4, false, ([0.2, 0.4, 0.4, 0.2], [0.1, -0.1, 0.2, 0.3])),
+    ("PointVorticesLinear.lodeproblem_formal_lagrangian", pvl.lodeproblem_formal_lagrangian(), 4, false, ([0.3, 0.0, -0.6, 0.1], [0.1, -0.1, 0.2, 0.3])),
 )
 
 @testset "$(rpad("LODE/LDAE ω and l wiring",80))" begin
-    @testset "$(name)" for (name, prob, d, (q, v)) in LODE_PROBLEMS
+    @testset "$(name)" for (name, prob, d, regular, (q, v)) in LODE_PROBLEMS
         equs = functions(prob)
         pars = parameters(prob)
         t = 0.0
 
+        # 2n×2n for a regular (second-order) Lagrangian, n×n for a degenerate (first-order) one.
+        n = regular ? 2d : d
+
         # `ω` must accept the velocity slot the LODE/LDAE evaluate it with. If `ω` and `l` are
         # swapped this raises a MethodError, because a Lagrangian takes no output matrix.
-        Ω = zeros(d, d)
+        Ω = zeros(n, n)
         @test_nowarn equs.ω(Ω, t, q, v, pars)
 
         # A symplectic two-form is antisymmetric, which also rules out a matrix left partly
         # unwritten because `ω` filled the wrong number of entries.
         equs.ω(Ω, t, q, v, pars)
         @test Ω ≈ -transpose(Ω) atol = 1e-12
+
+        # A two-form that came out all zeros would satisfy antisymmetry vacuously. Every problem
+        # here has a nondegenerate two-form, so require it to be nonzero — this is what would have
+        # caught a `ω` left as an identically vanishing matrix.
+        @test any(!iszero, Ω)
 
         # `l` must be the Lagrangian: callable with (t, q, v, params) and scalar-valued. If the two
         # were swapped this returns `nothing` (an in-place `ω` writes and returns nothing).

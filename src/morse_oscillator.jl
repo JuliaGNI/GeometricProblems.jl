@@ -58,13 +58,13 @@ module MorseOscillator
     function hamiltonian_system(parameters::NamedTuple)
         t, q, p = hamiltonian_variables(1)
         sparams = symbolize(parameters)
-        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams; nanmath = true)
     end
 
     function lagrangian_system(parameters::NamedTuple)
         t, x, v = lagrangian_variables(1)
         sparams = symbolize(parameters)
-        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams)
+        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; nanmath = true)
     end
 
     # Build the symbolic system from a single parameter set, while a vector of parameter

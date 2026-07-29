@@ -63,13 +63,13 @@ module LinearWave
     function hamiltonian_system(N::Int, parameters::NamedTuple)
         t, q, p = hamiltonian_variables(N + 2)
         sparams = symbolize(parameters)
-        HamiltonianSystem(hamiltonian(t, q, p, sparams, N), t, q, p, sparams; simplify = false)
+        HamiltonianSystem(hamiltonian(t, q, p, sparams, N), t, q, p, sparams; nanmath = true)
     end
 
     function lagrangian_system(N::Int, parameters::NamedTuple)
         t, x, v = lagrangian_variables(N + 2)
         sparams = symbolize(parameters)
-        LagrangianSystem(lagrangian(t, x, v, sparams, N), t, x, v, sparams; simplify = false)
+        LagrangianSystem(lagrangian(t, x, v, sparams, N), t, x, v, sparams; nanmath = true)
     end
 
     # Build the symbolic system from a single parameter set, while a vector of parameter

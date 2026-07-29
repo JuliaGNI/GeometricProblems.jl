@@ -97,7 +97,7 @@ function lagrangian_system(A, B, parameters)
     Ks = K(x, v, A, B)
     Hs = H(x, get_parameters(sparams)...)
 
-    DegenerateLagrangianSystem(Ks, Hs, t, x, v, sparams)
+    DegenerateLagrangianSystem(Ks, Hs, t, x, v, sparams; nanmath = true)
 end
 
 function initial_momentum(lag_sys, t₀, q₀, params)
