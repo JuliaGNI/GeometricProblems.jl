@@ -6,6 +6,12 @@ System parameters:
 * `m₂`: mass of body 2
 * `m₃`: mass of body 3
 * `G`: gravitational constant
+
+The default initial condition is the figure-eight choreography (`figure_eight`, aliased as
+`initial_condition`) and the default window is one of its periods. The 4096-member
+`initial_conditions` grid of [jin2020sympnets](@cite) is also provided, but every one of its members
+ends in a collision — see [`sympnets_initial_condition`](@ref) — so those are usable only on a window
+that stops short of it.
 """
 module ThreeBody
 
@@ -28,7 +34,46 @@ module ThreeBody
                                     p = [sin(π * iᵖ₁ / 5), cos(π * iᵖ₂ / 5), sin(π * jᵖ₁ / 5 + π / 2), sin(π * jᵖ₂ / 5), cos(π * kᵖ₁ / 5), sin(π * kᵖ₂ / 5 + π / 2)]
                                 ) 
                                 for i₁ ∈ 1:2, i₂ ∈ 1:2, j₁ ∈ 1:2, j₂ ∈ 1:2, k₁ ∈ 1:2, k₂ ∈ 1:2, iᵖ₁ ∈ 1:2, iᵖ₂ ∈ 1:2, jᵖ₁ ∈ 1:2, jᵖ₂ ∈ 1:2, kᵖ₁ ∈ 1:2, kᵖ₂ ∈ 1:2] |> _reshape
-    const initial_condition = initial_conditions[1]
+    @doc raw"""
+    The first member of `initial_conditions`. It is **not** the default initial condition, because it
+    ends in a collision: the bodies collide at ``t \approx 0.08867``, where the solution ceases to
+    exist. Successive RK4 refinements resolve a smallest mutual distance of ``1.95 \times 10^{-3}``,
+    ``5.39 \times 10^{-4}``, ``4.78 \times 10^{-5}`` and ``2.93 \times 10^{-6}`` for
+    ``\Delta{}t = 10^{-4} \ldots 10^{-7}`` — the distance keeps collapsing at a fixed time rather
+    than bottoming out — and two RK4 references at ``\Delta{}t = 10^{-6}`` and ``5 \times 10^{-7}``
+    disagree by 36 in position, so there is no computable trajectory to compare against either.
+
+    Every member of `initial_conditions` behaves this way: all 4096 come within 0.04 of a collision
+    within ``t \in [0, 5]``. Integrating any of them past its collision is not a matter of the step
+    size or of the nonlinear solver (see [`DEFAULT_TIMESTEP`](@ref)); it needs regularization
+    (Kustaanheimo–Stiefel, Levi-Civita) or an adaptive time transformation, neither of which this
+    package provides. Use it only on a window that ends before the collision.
+    """
+    const sympnets_initial_condition = initial_conditions[1]
+
+    @doc raw"""
+    The default initial condition: the figure-eight choreography of [chenciner2000remarkable](@cite),
+    in which three equal masses chase one another along a single figure-eight curve.
+
+    It is the default because, unlike every member of `initial_conditions` (see
+    [`sympnets_initial_condition`](@ref)), it has no close encounters — the smallest mutual distance
+    over a period is 0.69 — so it can be integrated over many periods. Over one period
+    `DEFAULT_TIMESTEP` conserves energy to ``4 \times 10^{-9}`` and closes the orbit to
+    ``1.3 \times 10^{-3}`` with `ImplicitMidpoint`.
+
+    The momenta equal the velocities because the masses are one: ``v_3 = (-0.93240737, -0.86473146)``
+    and ``v_1 = v_2 = -v_3 / 2``.
+    """
+    const figure_eight = (
+        q = [ 0.97000436, -0.24308753, -0.97000436,  0.24308753,  0.0,         0.0        ],
+        p = [ 0.46620368,  0.43236573,  0.46620368,  0.43236573, -0.93240737, -0.86473146],
+    )
+
+    @doc raw"Alias for [`figure_eight`](@ref), the default initial condition of the problem constructors."
+    const initial_condition = figure_eight
+
+    @doc raw"Period of the `figure_eight` choreography for ``G = m_1 = m_2 = m_3 = 1``."
+    const figure_eight_period = 6.32591398
 
     @doc raw"Constant taken from [jin2020sympnets](@cite)."
     const m₁ = 1.
@@ -42,11 +87,23 @@ module ThreeBody
     @doc raw"Constant taken from [jin2020sympnets](@cite)."
     const G = 1.
 
-    @doc raw"Constant taken from [jin2020sympnets](@cite)."
-    const DEFAULT_TIMESTEP = .5
+    @doc raw"""
+    Four hundred steps per period of the default `figure_eight` initial condition. Over one period
+    `ImplicitMidpoint` then conserves energy to ``4 \times 10^{-9}`` and closes the orbit to
+    ``1.3 \times 10^{-3}``; `Gauss(2)` reaches ``3 \times 10^{-15}`` and ``1.3 \times 10^{-7}``.
 
-    @doc raw"Range is taken from [jin2020sympnets](@cite). In that reference the integration is only done for ten time steps."
-    const DEFAULT_TIMESPAN = (0.0, 10 * DEFAULT_TIMESTEP)
+    Neither this nor any other step size makes `sympnets_initial_condition` integrable past its
+    collision, and neither does exchanging the nonlinear solver: over ``t \in [0, 1]`` the default
+    Newton method with a backtracking line search emits 596, 1346, 390, 321 and 361 warnings for
+    ``\Delta{}t = 0.5, 0.05, 0.01, 0.005, 0.001``, while the trust-region `DogLeg` solver emits 1–2
+    — but commits an energy error of 12 to 45 either way, and the two disagree on where the bodies
+    end up. The trust region is merely quieter about the same failure, so the default Newton solver
+    is kept; on problems that *are* solvable the two agree bit for bit.
+    """
+    const DEFAULT_TIMESTEP = figure_eight_period / 400
+
+    @doc raw"One period of the default `figure_eight` initial condition."
+    const DEFAULT_TIMESPAN = (0.0, figure_eight_period)
 
     @doc raw"Default parameters taken from [jin2020sympnets](@cite)."
     default_parameters(::Type{DT}=Float64) where {DT} = (

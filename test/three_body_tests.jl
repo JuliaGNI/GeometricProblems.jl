@@ -6,8 +6,11 @@ using Test
 #  * the potential must contain all three pairwise gravitational interactions (previously the
 #    body-1↔body-3 term was missing);
 #  * `lodeproblem` must construct and integrate (it used to reference undefined names and threw).
-# A direct HODE↔LODE trajectory comparison is not used here: the dynamics from the default
-# initial conditions is sensitive/chaotic, so two distinct order-4 integrators diverge quickly.
+# The default initial condition is the figure-eight choreography over one of its periods, which is
+# what makes the assertions below possible: it is a closed, collision-free orbit, so the trajectory
+# has to return to where it started, and the Hamiltonian and Lagrangian forms have to agree to
+# roundoff. The `initial_conditions` grid cannot support either check — every member of it ends in a
+# collision (see `ThreeBody.sympnets_initial_condition`).
 
 @testset "$(rpad("Three-Body Problem",80))" begin
     params = ThreeBody.default_parameters()
@@ -27,18 +30,30 @@ using Test
     # all three pairwise interactions present (B3 regression)
     @test ThreeBody.V(q, params) ≈ V_expected
 
-    # both problem types construct and integrate, returning finite solutions (B4 regression:
-    # `lodeproblem` previously threw an UndefVarError). A short window keeps the stiff implicit
-    # solves well-behaved; the coarse default step can trigger line-search warnings.
-    hsol = integrate(hodeproblem(; timespan = (0.0, 1.0), timestep = 0.05), Gauss(2))
-    lsol = integrate(lodeproblem(; timespan = (0.0, 1.0), timestep = 0.05), Gauss(2))
+    # both problem types construct and integrate (B4 regression: `lodeproblem` previously threw an
+    # UndefVarError), and agree to roundoff over the default window.
+    hsol = integrate(hodeproblem(), Gauss(2))
+    lsol = integrate(lodeproblem(), Gauss(2))
 
-    @test all(isfinite, hsol.q[end])
-    @test all(isfinite, lsol.q[end])
+    @test relative_maximum_error(hsol.q, lsol.q) < 1E-14
+    @test relative_maximum_error(hsol.p, lsol.p) < 1E-14
 
-    # Hamiltonian and Lagrangian formulations must agree for non-unit masses too. Over a very short
-    # window the two order-4 integrators differ only negligibly, so a mass-scaling error in the
-    # Lagrangian kinetic term (∝ q̇²/m instead of m·q̇²) would show up as an O(1) discrepancy.
+    # The choreography is periodic, so after one period both formulations must return to the initial
+    # condition. The residual is set by the eight-digit precision of the tabulated constants, not by
+    # the integrator: Gauss(2) closes to 1.3E-7 in q and 2.0E-7 in p, and conserves energy to 3E-15.
+    # A sign or factor error anywhere in the vector fields would break the closure outright.
+    @test maximum(abs, hsol.q[end] .- ThreeBody.figure_eight.q) < 1E-6
+    @test maximum(abs, hsol.p[end] .- ThreeBody.figure_eight.p) < 1E-6
+    @test maximum(abs, lsol.q[end] .- ThreeBody.figure_eight.q) < 1E-6
+
+    H₀ = ThreeBody.hamiltonian(hsol.t[0], hsol.q[0], hsol.p[0], params)
+    H₁ = ThreeBody.hamiltonian(hsol.t[end], hsol.q[end], hsol.p[end], params)
+    @test abs(H₁ - H₀) < 1E-12
+
+    # Hamiltonian and Lagrangian formulations must agree for non-unit masses too, so that a
+    # mass-scaling error in the Lagrangian kinetic term (∝ q̇²/m instead of m·q̇²) shows up as an O(1)
+    # discrepancy. Unequal masses destroy the choreography — the orbit then decays into a close
+    # encounter within a period — so this check keeps an explicit short window instead of the default.
     mparams = (m₁ = 1.0, m₂ = 2.0, m₃ = 3.0, G = 1.0)
     h = integrate(hodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
     l = integrate(lodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))

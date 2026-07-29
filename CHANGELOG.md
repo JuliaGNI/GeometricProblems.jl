@@ -26,7 +26,42 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   `HarmonicOscillator.ω!` now returns the ``2 × 2`` canonical `[0 -m; m 0]`. `degenerate_ω!` is
   unchanged. `src/harmonic_oscillator.jl`.
 
+- **Three-body default initial condition and window**: the default is now the figure-eight
+  choreography over one of its periods, not a member of the collisional `initial_conditions` grid.
+
+  The previous default, `initial_conditions[1]`, **ends in a collision** at `t ≈ 0.08867`, where the
+  solution ceases to exist. Successive RK4 refinements resolve a smallest mutual distance of
+  `1.95e-3`, `5.39e-4`, `4.78e-5`, `2.93e-6` for `Δt = 1e-4 … 1e-7` — collapsing at a fixed time
+  rather than bottoming out — and two RK4 references at `Δt = 1e-6` and `5e-7` disagree by 36 in
+  position, so there is no computable trajectory to compare against either. The old default window
+  `(0, 5)` at `Δt = 0.5` ran straight through it, committing an energy error of `+35.7` on a total
+  energy of `-10.6`; that is where the ~5400 solver warnings of the Euler-Lagrange ensembles test
+  came from. Around the collision the nonlinear system of the implicit step has no root the Newton
+  iteration can reach, so its line search collapses to `α = eps` and the solver exhausts its
+  1000-iteration budget on every step.
+
+  Nothing rescues that configuration short of regularization (Kustaanheimo–Stiefel, Levi-Civita) or
+  an adaptive time transformation, neither of which this package provides. Refining the step does not
+  resolve a `1/r` singularity; no benign member of the grid exists (all 4096 come within `0.04` of a
+  collision within `t ∈ [0, 5]`); and exchanging the nonlinear solver only changes how loudly it
+  fails — over `t ∈ [0, 1]` the default Newton method with a backtracking line search emits 596,
+  1346, 390, 321, 361 warnings for `Δt = 0.5, 0.05, 0.01, 0.005, 0.001` while the trust-region
+  `DogLeg` solver emits 1–2, yet both commit an energy error of 12 to 45 and disagree on where the
+  bodies end up. The default Newton solver is therefore kept; on problems that *are* solvable the two
+  agree bit for bit, with `DogLeg` about 20% faster.
+
+  `initial_conditions` is unchanged and `initial_conditions[1]` is still available, renamed to
+  `sympnets_initial_condition` (see *Changed*). `src/three_body_problem.jl`.
+
 ### Added
+- **Three-body figure-eight choreography**: `ThreeBody.figure_eight` and
+  `ThreeBody.figure_eight_period`, the equal-mass periodic solution of Chenciner & Montgomery,
+  *Ann. Math.* 152 (2000) (`chenciner2000remarkable`), newly added to the bibliography. It is now the
+  default initial condition, aliased as `initial_condition`, and `DEFAULT_TIMESPAN`/`DEFAULT_TIMESTEP`
+  are one of its periods in 400 steps. Unlike every member of `initial_conditions` it has no close
+  encounters — the smallest mutual distance over a period is `0.69` — so it can be integrated
+  indefinitely: over one period `ImplicitMidpoint` conserves energy to `4.4e-9` and `Gauss(2)` to
+  `2.7e-15`, closing the orbit to `1.3e-7`. `src/three_body_problem.jl`.
 - **Outer solar system**: hand-written vector fields. `hodeproblem`/`lodeproblem` no longer generate
   the equations of motion symbolically by default; they use in-place `v`, `f`, `ϑ`, `g` and `ω!`
   built on a shared `∇V!` kernel that computes each of the `N(N-1)/2 = 15` pairwise distances once
@@ -73,6 +108,16 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   against the parameters actually passed. `src/harmonic_oscillator.jl`.
 
 ### Changed
+- **`ThreeBody.initial_condition` is a different configuration**, and the old one is renamed. This is
+  a deliberate API change, unlike the three entries below. `initial_condition` now aliases
+  `figure_eight`; `initial_conditions[1]`, which it used to alias, is available as
+  `sympnets_initial_condition`. Code that called `hodeproblem()`/`lodeproblem()`/`hodeensemble()`/
+  `lodeensemble()` with no arguments now integrates the choreography over one period instead of a
+  collision orbit over `(0, 5)`, and code that referenced `initial_condition` explicitly gets the
+  choreography. To recover the previous behaviour exactly:
+  `hodeproblem(sympnets_initial_condition.q, sympnets_initial_condition.p; timespan = (0.0, 5.0), timestep = 0.5)`
+  — though the result was never meaningful, for the reasons under *Model fixes*.
+  `src/three_body_problem.jl`.
 
 The three entries below alter a public signature, but each one repairs behaviour that never worked
 as documented, so they are bug fixes rather than deliberate API changes: nothing could have
@@ -121,8 +166,44 @@ depended on the old form doing what it claimed.
   GeometricEquations exports `SDEEnsemble`/`PSDEEnsemble`/`SPSDEEnsemble` only as type aliases,
   without the convenience constructors that `ODEEnsemble` and friends have.
 - Restructured this changelog into released versions with a migration guide (below).
+- **Three-body problem**: the page now plots the figure-eight choreography instead of
+  `hodeproblem(; timestep = .2)`. That call inherited the old default timespan `(0, 5)`, so every
+  docs build integrated through the near-collision — 2554 solver warnings and an energy drift of
+  `18.4`, with the plot showing three bodies flung apart by a numerical artefact rather than an
+  orbit. The choreography builds quietly with a drift of `2.1e-7`. `docs/src/three_body_problem.md`.
 
 ### Tests
+- **`test/eulerlagrange_ensembles_tests.jl`: 5453 solver warnings → 0, and 4m21s → 55s.** The
+  warnings all came from the three-body defaults fixed above. The runtime came from somewhere else
+  entirely: 3m12s of the 4m21s was the linear-wave testset, which integrates nothing but generated
+  the equations of motion for the default `Ñ = 256` (258 degrees of freedom) three times. It now
+  passes `N = 20` to the `N`-first `hodeensemble`/`lodeensemble` methods, the way
+  `toda_lattice_tests.jl` already did, covering the same construction plumbing in 1.0s.
+
+  Two gaps closed while in there. Every integration now runs through a helper that fails if the
+  nonlinear solver emitted a warning: a stalling implicit solve still returns a solution, so it
+  previously passed every assertion — the suite used `@test_nowarn` only on problem *construction*.
+  Warnings are attributed by originating module rather than caught with `@test_nowarn`, so that the
+  unrelated `GeometricEquations` warning about single-sample ensembles does not trip it and
+  SimpleSolvers (an indirect dependency) need not be imported. And the initial-condition ensembles
+  now also integrate a `lodeensemble`; that path covered only `hodeensemble`, leaving `p₀_vec` built
+  and unused. 75 assertions, up from 39.
+
+  `Logging` is now a declared dependency in `test/Project.toml`. The warning guard needs
+  `with_logger`, and although an undeclared stdlib resolves under `julia --project=test` when it is
+  already in the manifest, `Pkg.test` resolves a fresh environment in which it is not on the load
+  path — so the suite passed one way and failed the other.
+- **`test/three_body_tests.jl`: 1341 solver warnings → 0, and real assertions instead of
+  `all(isfinite, …)`.** Its `timespan = (0.0, 1.0), timestep = 0.05` pair reached past the collision,
+  and the comment claiming that window "keeps the stiff implicit solves well-behaved" had it
+  backwards. It now uses the module defaults, i.e. the choreography over one period, which is a
+  closed collision-free orbit — so the test can assert what the old default could not support: that
+  the trajectory returns to its initial condition after a period (`< 1E-6` in both `q` and `p`, the
+  residual being the eight-digit precision of the tabulated constants rather than integrator error),
+  that energy is conserved (`< 1E-12`), and that the Hamiltonian and Lagrangian forms agree to
+  `< 1E-14` in both `q` and `p`. A sign or factor error anywhere in the vector fields breaks the
+  closure outright. 8 assertions, up from 4. The unequal-mass check keeps an explicit short window,
+  since unequal masses destroy the choreography.
 - **`test/outer_solar_system_tests.jl` is now part of `runtests.jl`**, which the note at the end of
   that file had deferred until the problem stopped taking minutes to construct. It runs in ~12 s and
   gained a second testset checking the hand-written vector fields against the generated ones and
