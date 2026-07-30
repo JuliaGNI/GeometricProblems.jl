@@ -226,6 +226,22 @@ depended on the old form doing what it claimed.
   docs build integrated through the near-collision — 2554 solver warnings and an energy drift of
   `18.4`, with the plot showing three bodies flung apart by a numerical artefact rather than an
   orbit. The choreography builds quietly with a drift of `2.1e-7`. `docs/src/three_body_problem.md`.
+- **Linear wave**: the page has a runnable figure again — six snapshots of the travelling pulse over
+  the spatial domain, plus a heatmap of `q` over the whole ``(ξ, t)`` plane, which shows the
+  one-directional travel that the snapshots only hint at. The pulse keeps its shape and moves at the
+  speed `μ = 0.6` set by the initial momentum, from `ξ = -0.30` to `ξ = +0.29` over the default
+  window.
+
+  This restores, in CairoMakie, the Plots.jl example that commit `1679378` cut from the page for
+  being too slow; it had been sitting unreferenced in `docs/src/linear_wave_plots` (extensionless, so
+  Documenter copied it into `build/` as a static asset) and could no longer have run in any case,
+  since `Plots` is not in `docs/Project.toml`. With the hand-written vector fields, construction is
+  no longer what costs — `hodeproblem(N)` returns in 0.01 ms — but the *integration* still grows as
+  ``n^3``, since an implicit step solves a dense `2n`-dimensional nonlinear system: 0.24 s at
+  `N = 64`, 2.9 s at `N = 128`, 27.6 s at the default `Ñ = 256`. The figure is visually
+  indistinguishable across all three (peak positions agree to better than 0.01), so it uses
+  `N = 128`, as `docs/src/initial_condition.md` uses `Ñ = 128` and `docs/src/toda_lattice.md` shrinks
+  its window. This is also the first `heatmap` in `docs/src/`. `docs/src/linear_wave.md`.
 
 ### Tests
 - **`test/linear_wave_tests.jl`: 2 assertions in ~160 s → 56 assertions in ~26 s.** It built the

@@ -27,6 +27,56 @@ For evaluating the system we specify the following initial[^2] and boundary cond
 
 [^2]: The precise shape of ``q_0(\cdot;\cdot)`` is described in [the chapter on initial conditions](initial_condition.md).
 
+## Solution
+
+By default `GeometricProblems` uses the following parameters:
+
+```@example linear_wave
+using GeometricIntegrators
+using CairoMakie
+import GeometricProblems.LinearWave as lw
+
+lw.default_parameters()
+```
+
+And if we integrate we get:
+
+```@example linear_wave
+# A smaller lattice than the default Ñ = 256. The figure is indistinguishable, but an implicit step
+# solves a dense 2n-dimensional nonlinear system, so the cost of the integration grows as n³.
+N = 128
+
+sol = integrate(lw.hodeproblem(N), ImplicitMidpoint())
+
+Ω  = lw.compute_domain(N + 2)      # N interior points plus the two boundary points
+nt = length(sol.t) - 1             # the time axis of a DataSeries runs 0:nt
+
+fig = Figure(size = (800, 700))
+
+ax1 = Axis(fig[1, 1]; ylabel = "q", title = "Snapshots")
+for step in round.(Int, range(0, nt, length = 6))   # `0:nt÷5:nt` would stop short of the last step
+    lines!(ax1, Ω, sol.q[step, :]; label = "t = $(round(sol.t[step]; digits = 2))")
+end
+axislegend(ax1; position = :lt, labelsize = 10)
+
+# q over the whole (ξ, t) plane: a single band with one slope, which is the one-directional travel
+# that the snapshots above only hint at.
+Q = [sol.q[n][i] for i in eachindex(Ω), n in 0:nt]
+
+ax2 = Axis(fig[2, 1]; xlabel = "ξ", ylabel = "t", title = "Space-time")
+hm = heatmap!(ax2, Ω, collect(sol.t), Q)
+Colorbar(fig[2, 2], hm; label = "q")
+
+linkxaxes!(ax1, ax2)
+hidexdecorations!(ax1; grid = false)
+
+fig
+```
+
+As we can see the pulse travels in one direction, at the speed ``\mu`` set by the initial momentum
+``p(0, \omega; \mu) = -\mu \partial_\omega q_0``, and keeps its shape — the discretization is
+non-dispersive to the resolution of the figure.
+
 ## Implementation
 
 The equations of motion are written by hand. Because the sum above runs over the *interior* points
