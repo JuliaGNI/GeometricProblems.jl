@@ -13,6 +13,7 @@ import GeometricProblems.MasslessChargedParticle as mcp
 import GeometricProblems.MasslessChargedParticleSingular as mcps
 import GeometricProblems.PointVortices as pv
 import GeometricProblems.PointVorticesLinear as pvl
+import GeometricProblems.TodaLattice as toda
 
 # `LODEProblem(ϑ, f, g, ω, l, …)` and `LDAEProblem(…, ϕ, ū, ḡ, ψ, ω, l, …)` take the symplectic
 # matrix `ω` and the Lagrangian `l` as *adjacent positional* arguments. No integrator in
@@ -51,6 +52,13 @@ const WAVE_N = 5
 const wave_q = lw.compute_initial_condition2(lw.μ̃, WAVE_N + 2).q
 const wave_v = lw.compute_initial_condition2(lw.μ̃, WAVE_N + 2).p
 
+# `TodaLattice` is entered on a small lattice for the same reason, and its state has exactly N
+# components, so N = 5 gives d = 5 and a 10×10 two-form. Its default initial momentum is zero, which
+# would make `l` degenerate here, so the velocity is offset.
+const TODA_N = 5
+const toda_q = toda.compute_initial_q(toda.μ, TODA_N)
+const toda_v = zero(toda_q) .+ 0.1
+
 const LODE_PROBLEMS = (
     ("HarmonicOscillator.lodeproblem",              ho.lodeproblem(),               1, true,  ([0.7], [0.3])),
     ("HarmonicOscillator.ldaeproblem",              ho.ldaeproblem(),               1, true,  ([0.7], [0.3])),
@@ -71,6 +79,7 @@ const LODE_PROBLEMS = (
     ("MasslessChargedParticleSingular.ldaeproblem", mcps.ldaeproblem(),             2, false, ([1.3, 0.2], [0.7, -0.4])),
     ("PointVortices.lodeproblem_formal_lagrangian", pv.lodeproblem_formal_lagrangian(),  4, false, ([0.2, 0.4, 0.4, 0.2], [0.1, -0.1, 0.2, 0.3])),
     ("PointVorticesLinear.lodeproblem_formal_lagrangian", pvl.lodeproblem_formal_lagrangian(), 4, false, ([0.3, 0.0, -0.6, 0.1], [0.1, -0.1, 0.2, 0.3])),
+    ("TodaLattice.lodeproblem",                     toda.lodeproblem(TODA_N),       TODA_N, true,  (toda_q, toda_v)),
 )
 
 @testset "$(rpad("LODE/LDAE ω and l wiring",80))" begin

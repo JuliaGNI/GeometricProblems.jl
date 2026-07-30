@@ -62,7 +62,8 @@ end
 
 # `simplify=false` has been the EulerLagrange default since 0.5, and these two are the only problems
 # here whose size is a free parameter. Both are measured on a small lattice, because construction
-# cost grows steeply with it — see `benchmark/linear_wave.jl` for how steeply.
+# cost grows steeply with it — see `benchmark/linear_wave.jl` and `benchmark/toda_lattice.jl` for how
+# steeply.
 const TODA_N = 8
 const WAVE_N = 8
 

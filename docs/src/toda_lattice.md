@@ -74,6 +74,11 @@ fig
 GeometricProblems.TodaLattice
 ```
 
+```@autodocs
+Modules = [GeometricProblems.TodaLattice]
+Order   = [:constant, :type, :macro, :function]
+```
+
 ```@bibliography
 Pages = []
 

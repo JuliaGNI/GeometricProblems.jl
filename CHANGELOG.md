@@ -99,6 +99,49 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   is no break-even — the symbolic route never earns its setup cost back, however long the run. (At
   `n = 10` the generated `v`, `ϑ` and `g` do win, being ten unrolled assignments against a broadcast;
   by `n = 130` they have lost that too.) `src/linear_wave.jl`.
+- **Toda lattice**: hand-written vector fields, the last of the three conversions. `hodeproblem`,
+  `lodeproblem`, `hodeensemble` and `lodeensemble` no longer generate the equations of motion
+  symbolically by default; they use in-place `v`, `f`, `ϑ`, `g` and `ω!` built on a shared `∇V!`
+  kernel. `hamiltonian_system` and `lagrangian_system` remain, and `symbolic = true` routes all four
+  constructors through them for cross-checking; the two agree exactly on `v`, `f`, `ϑ`, `g` and `ω`
+  and to one ulp on `H` and `L`.
+
+  The lattice is periodic, so with `Eₙ = exp(qₙ - qₙ₊₁)` the gradient is `∂V/∂qⱼ = α (Eⱼ - Eⱼ₋₁)`
+  with `E₀ ≡ E_N`. `∇V!` computes the wrap-around term `E_N` — which is also `E₀` — once and up
+  front, then makes a single pass carrying `Eⱼ₋₁` in a scalar and writing each output as it goes: no
+  allocation, one `exp` per site (which is the whole cost), and one entry, the last, peeled off. It
+  is correct for every `N ≥ 1`: at `N = 1` the only neighbour of the only point is itself, so `V` is
+  constant and `∇V` vanishes identically — the right answer, and the one the wrap-around is easiest
+  to get wrong at. Because no entry of the output is ever read back and `E_N` is taken before the
+  first write, the kernel is also correct when its output aliases the state, which the tests assert.
+
+  As with the linear wave the win is in *setup*, and for the same reason: EulerLagrange builds the
+  `2N × 2N` Lagrange two-form by symbolically differentiating a dense matrix — 160 k entries at the
+  default `Ñ = 200` — so `lagrangian_system(200, …)` takes **73 s** and emits **8.4 MB** of code for
+  an `ω` whose first evaluation costs a further **82 s**, all for a two-form no integrator evaluates
+  and that `check_methods` skips. Construction grows as `N^2.4` (0.43 s at `N = 32`, 2.6 s at
+  `N = 64`, 20 s at `N = 128`, 73 s at `N = 200`) and the generated `ω` as `N^2` (208 k characters at
+  `N = 32`, 3.4 M at `N = 128`, 8.4 M at `N = 200`); `hamiltonian_system` stays cheap throughout,
+  1.2 s at `N = 200`. The hand-written problems build in a tenth of a millisecond at any size.
+
+  Per call the picture differs from the linear wave, and not in the hand-written code's favour
+  everywhere. Both force functions are dominated by the `N` exponentials rather than by arithmetic,
+  so the **generated force stays ahead** — by 10% at `N = 8`, 12% at `N = 32`, 8% at `N = 128` and 5%
+  at `N = 200` — while the hand-written `H` and `L` are 1.3× faster at `N = 8` rising to 2.0× at
+  `N = 128`, and `v`, `ϑ` and `g` change places (generated ~2× ahead at `N = 8`, hand-written ~1.5×
+  ahead at `N = 128`). Writing `∇V!` as a single pass rather than filling the output with the `Eₙ` and
+  overwriting them buys a further 3–4% at every size, which narrows that gap without closing it.
+  There is therefore a real break-even here rather than none at all — it is just never reached: the
+  155 s of setup a `symbolic = true` LODE pays at `N = 200` takes **6.9 × 10⁹** force evaluations to
+  earn back, some six orders of magnitude beyond a default run. `src/toda_lattice.jl`.
+- **Toda lattice**: `lodeproblem` and `lodeensemble` no longer build a second, complete
+  `HamiltonianSystem` for the sole purpose of obtaining `v̄ = heqs.v`. The mass matrix is the
+  identity, so that function is `v .= p`, which is now written out. This was the last such call site
+  in the package; every other LODE already passed a hand-written `v̄`. `src/toda_lattice.jl`.
+- `benchmark/toda_lattice.jl`, backing the numbers above, in the shape of `benchmark/linear_wave.jl`:
+  agreement, construction and compile cost (one fresh process per lattice size), steady-state
+  per-call cost, break-even, and an end-to-end build-plus-integrate comparison.
+  `TODA_LATTICE_BENCH_FULL=1` waives the 90 s per-size budget and sweeps to the default `Ñ = 200`.
 - `benchmark/outer_solar_system.jl` and `benchmark/simplify_evaluation.jl`, backing the two changes
   above with construction time, generated-code size and per-call evaluation cost.
 - `benchmark/linear_wave.jl`, backing the linear-wave numbers above, and `benchmark/timing.jl`, the
@@ -159,8 +202,26 @@ depended on the old form doing what it claimed.
   constructors now also assert that the initial condition has `N + 2` components: the hand-written
   fields read the size off the state while the symbolic ones bake it in, so a mismatched `N` would
   otherwise mean two different systems depending on `symbolic`. `src/linear_wave.jl`.
+- **Toda lattice**: `hamiltonian` and `lagrangian` gained the same four-argument methods, recovering
+  `N = length(q)` (the lattice is periodic, so the state has exactly `N` components), and the four
+  constructors likewise assert that the initial condition has `N` of them. That assertion also
+  repairs the two-argument `hodeproblem(q₀, p₀)`/`lodeproblem(q₀, p₀)` forms, which sized themselves
+  with `length(q₀)` where the ensemble forms correctly used `_length(q₀)`: handed a vector of
+  samples they took the *number of samples* for the lattice size. And `lodeproblem`/`hodeproblem`
+  passed `parameters` raw to `lagrangian_system`/`hamiltonian_system` in one place and
+  `_parameters(parameters)` in another, so a vector of parameter sets reached `symbolize`
+  asymmetrically; both now use `_parameters`. `src/toda_lattice.jl`.
+- **Toda lattice**: removed the unused module-level `const Ω = compute_domain(Ñ, typeof(μ))`. It was
+  a plot domain, referenced nowhere in `src/`, `test/`, `docs/` or `benchmark/`, and a module-level
+  `Ω` that is *not* the two-form sitting next to the new `ω!` is a trap worth not setting.
+  `src/toda_lattice.jl`.
 
 ### Documentation
+- **Toda lattice**: the page gained the `@autodocs` block every other converted problem page has, so
+  that `potential`, `∇V!`, `ω!` and the four constructors are rendered at all. Without it the
+  `@ref` links in the module docstring — which *is* rendered, via `@docs` — resolve to nothing, and
+  an unresolved `@ref` is a fatal `:cross_references` error, so the docs build terminated before
+  rendering. `docs/src/toda_lattice.md`.
 - **Three-body problem**: the page now plots the figure-eight choreography instead of
   `hodeproblem(; timestep = .2)`. That call inherited the old default timespan `(0, 5)`, so every
   docs build integrated through the near-collision — 2554 solver warnings and an energy drift of
@@ -207,6 +268,27 @@ depended on the old form doing what it claimed.
 - **`LinearWave.lodeproblem` added to `test/lode_wiring_tests.jl`** as a regular Lagrangian
   (`2n × 2n` two-form), on a `N = 5` lattice. That file asks for every new `lodeproblem` to be listed;
   `LinearWave` was absent only because constructing it symbolically was too slow.
+- **`TodaLattice.lodeproblem` added to `test/lode_wiring_tests.jl`** for the same reason, also as a
+  regular Lagrangian on `N = 5`. Its default initial momentum is zero, which would leave `l`
+  degenerate, so the velocity is offset.
+- **`test/toda_lattice_tests.jl`: 16 assertions → 88.** The existing `N = 20` HODE/LODE and ensemble
+  agreement block is unchanged. Four testsets added, mirroring `linear_wave_tests.jl`: the two
+  default-size constructions with function-identity assertions
+  (`functions(prob).f === TodaLattice.toda_lattice_f` and friends, plus
+  `initialguess(lode).v === TodaLattice.v̄`), which are the cheapest possible guard that the default
+  path never routes through EulerLagrange again; a cross-check at `N = 5` of every generated function
+  against its hand-written counterpart, including the `2N × 2N` `ω`; an integration-agreement testset
+  against `symbolic = true` under `ImplicitMidpoint`; and a symbolic ensemble construction testset.
+  That last one exists because the ensembles are hand-written now, so
+  `test/eulerlagrange_ensembles_tests.jl` — which names this file as its `TodaLattice` counterpart —
+  would otherwise have lost that coverage entirely, the same trap the linear wave hit above.
+
+  `∇V!` is checked against a central finite difference of `potential`, which shares no code with it,
+  at `N = 1, 2, 3, 5, 12, 64`. The periodic wrap-around `E₀ ≡ E_N` is verified by nothing else, and
+  `N = 1` and `N = 2` are the sizes at which it collapses — at `N = 1` the only neighbour of the only
+  point is itself, so the gradient vanishes identically and the test asserts exactly that. At each of
+  those sizes the kernel is also called with its output aliased onto the state, which its single pass
+  makes correct and a return to a scratch-space formulation would silently break.
 - **`test/eulerlagrange_ensembles_tests.jl` now passes `symbolic = true`** to its three
   `LinearWave` ensemble constructions. Without it that testset would no longer touch EulerLagrange at
   all, which is the one thing the file exists to exercise. A second testset integrates the
@@ -252,9 +334,6 @@ depended on the old form doing what it claimed.
   exactly what EulerLagrange used to return.
 
 ### Known follow-ups
-- `TodaLattice` still has no hand-written vector fields, so at its default `N = 200` its `lodeproblem`
-  pays the same dense-`ω` construction cost the linear wave just shed. It also passes `v̄ = heqs.v`,
-  building an entire extra `HamiltonianSystem` for a function that is just `p`.
 - `LotkaVolterra3d` declares only `h` as an invariant, although `casimir` is conserved too;
   declaring it would make `Diagnostics.plot_invariant_error(sol; invariant = :c)` work out of the
   box.
@@ -320,7 +399,7 @@ depended on the old form doing what it claimed.
 ### Documentation
 - **Outer solar system**: the module described "the five outer planets (Jupiter, Saturn, Uranus,
   Neptune) and Pluto" — four planets and Pluto. Also documented that building the problem is very
-  slow (see *Known follow-ups*). `src/outer_solar_system.jl`.
+  slow, which 0.8.0's hand-written vector fields have since fixed. `src/outer_solar_system.jl`.
 - Moved the `plot_*` docstrings of the point-vortex and massless-charged-particle extensions from
   the private `_plot_*` helpers onto the public `Module.plot_*` methods, so that `?` and
   `@autodocs` find them. `ext/PointVorticesPlots.jl`, `ext/MasslessChargedParticlePlots.jl`.
