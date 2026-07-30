@@ -13,6 +13,110 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ## [Unreleased]
 
+### Model fixes
+- **Symplectic two-form `ω` of a regular Lagrangian**: `ω` is now the full ``2n × 2n`` Lagrange
+  two-form on `(q, q̇)`, not the ``n × n`` `q`–`q` block. A regular Lagrangian is a second-order
+  system of `n` equations, equivalently first order in `2n`; a degenerate one is already first order
+  in `n` and keeps its ``n × n`` form. This makes the convention consistent within this package and
+  with EulerLagrange, which had generated an identically-zero `ω` (it antisymmetrised `∂L/∂z`, giving
+  `d(dL) ≡ 0`) until JuliaGNI/EulerLagrange.jl#24.
+
+  **This supersedes the `ω!` entry under Bug fixes below**, which recorded `Ω = 0` for the regular
+  harmonic oscillator. That was right for the `q`–`q` block but is not the two-form the LODE wants:
+  `HarmonicOscillator.ω!` now returns the ``2 × 2`` canonical `[0 -m; m 0]`. `degenerate_ω!` is
+  unchanged. `src/harmonic_oscillator.jl`.
+
+- **Three-body default initial condition and window**: the default is now the figure-eight
+  choreography over one of its periods, not a member of the collisional `initial_conditions` grid.
+
+  The previous default, `initial_conditions[1]`, **ends in a collision** at `t ≈ 0.08867`, where the
+  solution ceases to exist. Successive RK4 refinements resolve a smallest mutual distance of
+  `1.95e-3`, `5.39e-4`, `4.78e-5`, `2.93e-6` for `Δt = 1e-4 … 1e-7` — collapsing at a fixed time
+  rather than bottoming out — and two RK4 references at `Δt = 1e-6` and `5e-7` disagree by 36 in
+  position, so there is no computable trajectory to compare against either. The old default window
+  `(0, 5)` at `Δt = 0.5` ran straight through it, committing an energy error of `+35.7` on a total
+  energy of `-10.6`; that is where the ~5400 solver warnings of the Euler-Lagrange ensembles test
+  came from. Around the collision the nonlinear system of the implicit step has no root the Newton
+  iteration can reach, so its line search collapses to `α = eps` and the solver exhausts its
+  1000-iteration budget on every step.
+
+  Nothing rescues that configuration short of regularization (Kustaanheimo–Stiefel, Levi-Civita) or
+  an adaptive time transformation, neither of which this package provides. Refining the step does not
+  resolve a `1/r` singularity; no benign member of the grid exists (all 4096 come within `0.04` of a
+  collision within `t ∈ [0, 5]`); and exchanging the nonlinear solver only changes how loudly it
+  fails — over `t ∈ [0, 1]` the default Newton method with a backtracking line search emits 596,
+  1346, 390, 321, 361 warnings for `Δt = 0.5, 0.05, 0.01, 0.005, 0.001` while the trust-region
+  `DogLeg` solver emits 1–2, yet both commit an energy error of 12 to 45 and disagree on where the
+  bodies end up. The default Newton solver is therefore kept; on problems that *are* solvable the two
+  agree bit for bit, with `DogLeg` about 20% faster.
+
+  `initial_conditions` is unchanged and `initial_conditions[1]` is still available, renamed to
+  `sympnets_initial_condition` (see *Changed*). `src/three_body_problem.jl`.
+
+### Added
+- **Three-body figure-eight choreography**: `ThreeBody.figure_eight` and
+  `ThreeBody.figure_eight_period`, the equal-mass periodic solution of Chenciner & Montgomery,
+  *Ann. Math.* 152 (2000) (`chenciner2000remarkable`), newly added to the bibliography. It is now the
+  default initial condition, aliased as `initial_condition`, and `DEFAULT_TIMESPAN`/`DEFAULT_TIMESTEP`
+  are one of its periods in 400 steps. Unlike every member of `initial_conditions` it has no close
+  encounters — the smallest mutual distance over a period is `0.69` — so it can be integrated
+  indefinitely: over one period `ImplicitMidpoint` conserves energy to `4.4e-9` and `Gauss(2)` to
+  `2.7e-15`, closing the orbit to `1.3e-7`. `src/three_body_problem.jl`.
+- **Outer solar system**: hand-written vector fields. `hodeproblem`/`lodeproblem` no longer generate
+  the equations of motion symbolically by default; they use in-place `v`, `f`, `ϑ`, `g` and `ω!`
+  built on a shared `∇V!` kernel that computes each of the `N(N-1)/2 = 15` pairwise distances once
+  per force evaluation. The generated force was 2.7× slower. `hamiltonian_system` and
+  `lagrangian_system` remain, and `symbolic = true` routes the problems through them for
+  cross-checking; the two agree to one ulp. `src/outer_solar_system.jl`.
+- **Linear wave**: hand-written vector fields. `hodeproblem`, `lodeproblem`, `hodeensemble` and
+  `lodeensemble` no longer generate the equations of motion symbolically by default; they use
+  in-place `v`, `f`, `ϑ`, `g` and `ω!` built on a shared `∇V!` kernel. `hamiltonian_system` and
+  `lagrangian_system` remain, and `symbolic = true` routes all four constructors through them for
+  cross-checking; the two agree to round-off.
+
+  Writing ``V`` as a sum over the *interior* points counts every interior difference twice, so the
+  stencil weights at the two boundary points are `1` rather than `2`. Substituting
+  `w_k = 2 - [k=1] - [k=N+1]` into `∂V/∂q_j = c (w_{j-1} d_{j-1} - w_j d_j)` splits the gradient into
+  a uniform weight-two stencil plus four scalar boundary corrections, which is how `∇V!` is written:
+  branch-free, one write per output, and correct for every `N ≥ 1` without edge cases. The
+  alternative of accumulating difference by difference (`dV[i] += a; dV[i-1] -= a`) needs no weight
+  bookkeeping either but reads and writes adjacent elements, so it does not vectorize and measured
+  ~2× slower than both this kernel and the generated code.
+
+  Unlike the outer solar system, the win here is overwhelmingly in *setup*. EulerLagrange builds the
+  ``2n × 2n`` Lagrange two-form by symbolically differentiating a dense matrix — 266 k entries at the
+  default `Ñ = 256` — so `lagrangian_system(256, …)` takes **155 s** and emits **14 MB** of code for
+  an `ω` whose first evaluation costs a further **147 s**, all for a two-form that no integrator in
+  GeometricIntegrators evaluates and that `check_methods` skips. Construction grows as `n^2.5`
+  (0.12 s at `n = 18`, 2.8 s at `n = 66`, 20 s at `n = 130`, 155 s at `n = 258`) and the generated `ω`
+  as `n^2` (66 k characters at `n = 18`, 3.5 M at `n = 130`, 14.0 M at `n = 258`); `hamiltonian_system`
+  stays cheap throughout, 1.9 s at `n = 258`. The hand-written problems build in a tenth of a
+  millisecond at any size.
+
+  Per call the hand-written code is the faster one too, at every size that matters: 1.4× for the force
+  at `n = 10` rising to 1.9× at `n = 130`, and 6–8× for `H` and `L`, because each writes its output
+  once over a vectorizable loop while the generated code is one enormous unrolled expression. So there
+  is no break-even — the symbolic route never earns its setup cost back, however long the run. (At
+  `n = 10` the generated `v`, `ϑ` and `g` do win, being ten unrolled assignments against a broadcast;
+  by `n = 130` they have lost that too.) `src/linear_wave.jl`.
+- `benchmark/outer_solar_system.jl` and `benchmark/simplify_evaluation.jl`, backing the two changes
+  above with construction time, generated-code size and per-call evaluation cost.
+- `benchmark/linear_wave.jl`, backing the linear-wave numbers above, and `benchmark/timing.jl`, the
+  shared `SINK`/`percall`/`elapsed` helpers that `simplify_evaluation.jl` used to carry privately.
+  (There is no `benchmark/Project.toml`, so BenchmarkTools is not available to these scripts.) The
+  construction sweep runs **one fresh process per lattice size**: the cost of a generated function's
+  first call is badly order-dependent within a single process — once anything has driven Julia through
+  that call path, later first calls come back in nanoseconds — so an in-process sweep reports a 3.5 MB
+  `ω` as free to compile. A subprocess per size is what a user actually pays in a fresh session.
+- **All symbolically generated problems now pass `nanmath = true`** to
+  `LagrangianSystem`/`HamiltonianSystem`/`DegenerateLagrangianSystem` (25 call sites across 13
+  modules). The generated code uses the `NaNMath` variants of `log`, `sqrt`, `^` and friends, so an
+  inadmissible state returns `NaN` instead of throwing a `DomainError`. Implicit integrators solve a
+  nonlinear system per step and can probe states outside a model's domain — a negative population in
+  Lotka-Volterra, a non-positive radius in Lennard-Jones or Morse — where an exception aborts the run
+  while a `NaN` lets the solver reject the trial step and continue. The keyword is new in
+  EulerLagrange 0.5; before that the behaviour was hardcoded off.
+
 ### Bug fixes
 - **Lotka-Volterra 2D**: `ldaeproblem` and `ldaeproblem_slrk` passed the symplectic matrix `ω` and
   the Lagrangian `l` to `LDAEProblem` in the wrong positional order, so `functions(prob).ω` *was*
@@ -42,10 +146,47 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   against the parameters actually passed. `src/harmonic_oscillator.jl`.
 
 ### Changed
+- **`ThreeBody.initial_condition` is a different configuration**, and the old one is renamed. This is
+  a deliberate API change, unlike the three entries below. `initial_condition` now aliases
+  `figure_eight`; `initial_conditions[1]`, which it used to alias, is available as
+  `sympnets_initial_condition`. Code that called `hodeproblem()`/`lodeproblem()`/`hodeensemble()`/
+  `lodeensemble()` with no arguments now integrates the choreography over one period instead of a
+  collision orbit over `(0, 5)`, and code that referenced `initial_condition` explicitly gets the
+  choreography. To recover the previous behaviour exactly:
+  `hodeproblem(sympnets_initial_condition.q, sympnets_initial_condition.p; timespan = (0.0, 5.0), timestep = 0.5)`
+  — though the result was never meaningful, for the reasons under *Model fixes*.
+  `src/three_body_problem.jl`.
 
-The three entries below alter a public signature, but each one repairs behaviour that never worked
+The entries below alter a public signature, but each one repairs behaviour that never worked
 as documented, so they are bug fixes rather than deliberate API changes: nothing could have
 depended on the old form doing what it claimed.
+
+- **Linear wave**: `lodeproblem` and `lodeensemble` now pass a velocity initial guess `v̄`
+  (`q̇ = p`, the mass matrix being the identity) to `LODEProblem`/`LODEEnsemble`, in the symbolic
+  branch as well as the new hand-written one, matching `TodaLattice` and `OuterSolarSystem`. It was
+  omitted, so it defaulted to `GeometricEquations._lode_default_v̄`, which returns `nothing` without
+  writing anything: the velocity buffer was left untouched and implicit integrators began their Newton
+  iteration from a zero velocity instead of the exact one. `hasinitialguess` reported `true`
+  regardless, so nothing anywhere complained. Iteration counts drop and results can differ in the
+  last few digits. `src/linear_wave.jl`.
+- **Linear wave**: `hamiltonian` and `lagrangian` gained the four-argument methods
+  `(t, q, p, params)` / `(t, q, q̇, params)` that GeometricEquations requires of a problem's `H` and
+  `l` (see `check_methods`); they recover the lattice size from the state, `N = length(q) - 2`. The
+  five-argument methods with the trailing `N` are unchanged and are still what the symbolic
+  construction uses, since `symbolize` needs the summation bounds to be a plain integer. The four
+  constructors now also assert that the initial condition has `N + 2` components: the hand-written
+  fields read the size off the state while the symbolic ones bake it in, so a mismatched `N` would
+  otherwise mean two different systems depending on `symbolic`. `src/linear_wave.jl`.
+
+- **Requires EulerLagrange 0.5.** That release stops calling `Symbolics.simplify` on the
+  Lagrangian/Hamiltonian by default, which was never a win: measured over all 13 EulerLagrange-based
+  problems here (88 generated functions), `simplify = true` was faster **zero** times, slower up to
+  15× (`OuterSolarSystem`'s Hamiltonian force), and cost 17.5 s against 0.75 s to build in
+  aggregate. Three local workarounds for the old default are therefore gone: the explicit
+  `simplify = false` in `src/linear_wave.jl`, the `simplify = N ≤ 10` size heuristic in
+  `src/toda_lattice.jl`, and the explicit setting in `src/outer_solar_system.jl`. EulerLagrange 0.5
+  also generates code with common subexpression elimination, so results may differ from 0.4 in the
+  last bit.
 
 - **Linear wave**: the number of interior points `N` was carried in `default_parameters()` but
   **silently ignored** — `hamiltonian`, `lagrangian` and the symbolic system all sized themselves
@@ -80,8 +221,95 @@ depended on the old form doing what it claimed.
   GeometricEquations exports `SDEEnsemble`/`PSDEEnsemble`/`SPSDEEnsemble` only as type aliases,
   without the convenience constructors that `ODEEnsemble` and friends have.
 - Restructured this changelog into released versions with a migration guide (below).
+- **Three-body problem**: the page now plots the figure-eight choreography instead of
+  `hodeproblem(; timestep = .2)`. That call inherited the old default timespan `(0, 5)`, so every
+  docs build integrated through the near-collision — 2554 solver warnings and an energy drift of
+  `18.4`, with the plot showing three bodies flung apart by a numerical artefact rather than an
+  orbit. The choreography builds quietly with a drift of `2.1e-7`. `docs/src/three_body_problem.md`.
+- **Linear wave**: the page has a runnable figure again — six snapshots of the travelling pulse over
+  the spatial domain, plus a heatmap of `q` over the whole ``(ξ, t)`` plane, which shows the
+  one-directional travel that the snapshots only hint at. The pulse keeps its shape and moves at the
+  speed `μ = 0.6` set by the initial momentum, from `ξ = -0.30` to `ξ = +0.29` over the default
+  window.
+
+  This restores, in CairoMakie, the Plots.jl example that commit `1679378` cut from the page for
+  being too slow; it had been sitting unreferenced in `docs/src/linear_wave_plots` (extensionless, so
+  Documenter copied it into `build/` as a static asset) and could no longer have run in any case,
+  since `Plots` is not in `docs/Project.toml`. With the hand-written vector fields, construction is
+  no longer what costs — `hodeproblem(N)` returns in 0.01 ms — but the *integration* still grows as
+  ``n^3``, since an implicit step solves a dense `2n`-dimensional nonlinear system: 0.24 s at
+  `N = 64`, 2.9 s at `N = 128`, 27.6 s at the default `Ñ = 256`. The figure is visually
+  indistinguishable across all three (peak positions agree to better than 0.01), so it uses
+  `N = 128`, as `docs/src/initial_condition.md` uses `Ñ = 128` and `docs/src/toda_lattice.md` shrinks
+  its window. This is also the first `heatmap` in `docs/src/`. `docs/src/linear_wave.md`.
 
 ### Tests
+- **`test/linear_wave_tests.jl`: 2 assertions in ~160 s → 56 assertions in ~26 s.** It built the
+  default `Ñ = 256` problems and checked only their types; `lodeproblem()` alone was 155 s of symbolic
+  construction. Those two constructions are kept, because they are now instantaneous and the
+  function-identity assertions added alongside them (`functions(prob).f === LinearWave.linear_wave_f`
+  and friends, plus `initialguess(lode).v === LinearWave.v̄`) make them the cheapest possible guard
+  that the default path never routes through EulerLagrange again.
+
+  Two testsets added, mirroring `outer_solar_system_tests.jl`: a cross-check at `N = 5` comparing every
+  generated function against its hand-written counterpart (`v`, both `f` arities, `ϑ`, both `g`
+  arities, `ω`, `H`, `L`, and the four-argument `H`/`L` against the five-argument ones), and an
+  integration-agreement testset comparing `hodeproblem`/`lodeproblem` against each other and against
+  their `symbolic = true` counterparts under `ImplicitMidpoint`. `∇V!` is checked against a central
+  finite difference of `potential`, which shares no code with it, at `N = 1, 2, 3, 5, 12` — the signs
+  of its four boundary corrections are verified by nothing else, and `N = 1` is exactly the case a
+  peeled-boundary stencil gets wrong, since there the second and second-to-last points coincide.
+
+  `LinearAlgebra` is now a declared dependency in `test/Project.toml`, for the same reason `Logging`
+  had to be: the new `Ω ≈ [0 -I; I 0]` assertion needs `I`, and although an undeclared stdlib resolves
+  under `julia --project=test` when it is already in the manifest, `Pkg.test` resolves a fresh
+  environment in which it is not on the load path — so the suite passed one way and failed the other.
+- **`LinearWave.lodeproblem` added to `test/lode_wiring_tests.jl`** as a regular Lagrangian
+  (`2n × 2n` two-form), on a `N = 5` lattice. That file asks for every new `lodeproblem` to be listed;
+  `LinearWave` was absent only because constructing it symbolically was too slow.
+- **`test/eulerlagrange_ensembles_tests.jl` now passes `symbolic = true`** to its three
+  `LinearWave` ensemble constructions. Without it that testset would no longer touch EulerLagrange at
+  all, which is the one thing the file exists to exercise. A second testset integrates the
+  hand-written ensembles at the same lattice size, which is now cheap enough to do.
+- **`test/eulerlagrange_ensembles_tests.jl`: 5453 solver warnings → 0, and 4m21s → 55s.** The
+  warnings all came from the three-body defaults fixed above. The runtime came from somewhere else
+  entirely: 3m12s of the 4m21s was the linear-wave testset, which integrates nothing but generated
+  the equations of motion for the default `Ñ = 256` (258 degrees of freedom) three times. It now
+  passes `N = 20` to the `N`-first `hodeensemble`/`lodeensemble` methods, the way
+  `toda_lattice_tests.jl` already did, covering the same construction plumbing in 1.0s.
+
+  Two gaps closed while in there. Every integration now runs through a helper that fails if the
+  nonlinear solver emitted a warning: a stalling implicit solve still returns a solution, so it
+  previously passed every assertion — the suite used `@test_nowarn` only on problem *construction*.
+  Warnings are attributed by originating module rather than caught with `@test_nowarn`, so that the
+  unrelated `GeometricEquations` warning about single-sample ensembles does not trip it and
+  SimpleSolvers (an indirect dependency) need not be imported. And the initial-condition ensembles
+  now also integrate a `lodeensemble`; that path covered only `hodeensemble`, leaving `p₀_vec` built
+  and unused. 75 assertions, up from 39.
+
+  `Logging` is now a declared dependency in `test/Project.toml`. The warning guard needs
+  `with_logger`, and although an undeclared stdlib resolves under `julia --project=test` when it is
+  already in the manifest, `Pkg.test` resolves a fresh environment in which it is not on the load
+  path — so the suite passed one way and failed the other.
+- **`test/three_body_tests.jl`: 1341 solver warnings → 0, and real assertions instead of
+  `all(isfinite, …)`.** Its `timespan = (0.0, 1.0), timestep = 0.05` pair reached past the collision,
+  and the comment claiming that window "keeps the stiff implicit solves well-behaved" had it
+  backwards. It now uses the module defaults, i.e. the choreography over one period, which is a
+  closed collision-free orbit — so the test can assert what the old default could not support: that
+  the trajectory returns to its initial condition after a period (`< 1E-6` in both `q` and `p`, the
+  residual being the eight-digit precision of the tabulated constants rather than integrator error),
+  that energy is conserved (`< 1E-12`), and that the Hamiltonian and Lagrangian forms agree to
+  `< 1E-14` in both `q` and `p`. A sign or factor error anywhere in the vector fields breaks the
+  closure outright. 8 assertions, up from 4. The unequal-mass check keeps an explicit short window,
+  since unequal masses destroy the choreography.
+- **`test/outer_solar_system_tests.jl` is now part of `runtests.jl`**, which the note at the end of
+  that file had deferred until the problem stopped taking minutes to construct. It runs in ~12 s and
+  gained a second testset checking the hand-written vector fields against the generated ones and
+  `∇V!` against an independent body-by-body double sum.
+- **`test/lode_wiring_tests.jl`**: each problem now carries whether its Lagrangian is regular, and
+  the expected `ω` is sized accordingly (``2n × 2n`` regular, ``n × n`` degenerate). Added an
+  `any(!iszero, Ω)` assertion — antisymmetry alone is satisfied vacuously by a zero matrix, which is
+  exactly what EulerLagrange used to return.
 - **`test/lode_wiring_tests.jl`** (new, wired into `runtests.jl`): asserts for *every*
   `lodeproblem`/`ldaeproblem` in the package that `functions(prob).ω` accepts the velocity slot the
   LODE/LDAE evaluate it with and yields an antisymmetric matrix of the right size, and that
@@ -106,11 +334,9 @@ depended on the old form doing what it claimed.
   root and shipping in the released tarball.
 
 ### Known follow-ups
-- **`OuterSolarSystem` needs to be reformulated without symbolic code generation.** Building
-  `hodeproblem`/`lodeproblem` runs EulerLagrange over all 18 degrees of freedom and takes many
-  minutes, which is why `test/outer_solar_system_tests.jl` exists but is deliberately *not* part of
-  `runtests.jl` (see the note at the end of that file). Hand-written vector fields, as used by the
-  other N-body problems here, would fix it and let the test be wired in.
+- `TodaLattice` still has no hand-written vector fields, so at its default `N = 200` its `lodeproblem`
+  pays the same dense-`ω` construction cost the linear wave just shed. It also passes `v̄ = heqs.v`,
+  building an entire extra `HamiltonianSystem` for a function that is just `p`.
 - `LotkaVolterra3d` declares only `h` as an invariant, although `casimir` is conserved too;
   declaring it would make `Diagnostics.plot_invariant_error(sol; invariant = :c)` work out of the
   box.

@@ -43,13 +43,13 @@ const Ω = compute_domain(Ñ, typeof(μ))
 function hamiltonian_system(N, parameters)
     t, q, p = hamiltonian_variables(N)
     sparams = symbolize(parameters)
-    HamiltonianSystem(hamiltonian(t, q, p, sparams, N), t, q, p, sparams; simplify=N ≤ 10)
+    HamiltonianSystem(hamiltonian(t, q, p, sparams, N), t, q, p, sparams; nanmath = true)
 end
 
 function lagrangian_system(N, parameters)
     t, x, v = lagrangian_variables(N)
     sparams = symbolize(parameters)
-    LagrangianSystem(lagrangian(t, x, v, sparams, N), t, x, v, sparams; simplify=N ≤ 10)
+    LagrangianSystem(lagrangian(t, x, v, sparams, N), t, x, v, sparams; nanmath = true)
 end
 
 _parameters(p::NamedTuple) = p

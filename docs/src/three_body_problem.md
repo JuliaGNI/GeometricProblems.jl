@@ -1,5 +1,14 @@
 # Three Body Problem
 
+The default initial condition is the figure-eight choreography of [chenciner2000remarkable](@cite),
+in which the three equal masses chase one another along a single closed curve — all three orbits
+below lie on top of each other. The default window is one of its periods, so the plot closes.
+
+The 4096-member initial-condition grid of [jin2020sympnets](@cite) is available as
+`initial_conditions`, but every one of its members ends in a collision, so those are usable only on a
+window that stops short of it — see
+[`GeometricProblems.ThreeBody.sympnets_initial_condition`](@ref).
+
 ```@example
 using GeometricProblems.ThreeBody: hodeproblem
 using GeometricIntegrators: ImplicitMidpoint, integrate
@@ -12,7 +21,7 @@ mpurple = RGBf(148 / 256, 103 / 256, 189 / 256)
 mblue = RGBf(31 / 256, 119 / 256, 180 / 256)
 mgreen = RGBf(44 / 256, 160 / 256, 44 / 256)
 
-pr = hodeproblem(; timestep = .2)
+pr = hodeproblem()
 sol = integrate(pr, ImplicitMidpoint())
 first_body = zeros(2, length(sol.q))
 second_body = zeros(2, length(sol.q))
@@ -59,5 +68,6 @@ Order   = [:constant, :type, :macro, :function]
 ```@bibliography
 Pages = []
 
+chenciner2000remarkable
 jin2020sympnets
 ```

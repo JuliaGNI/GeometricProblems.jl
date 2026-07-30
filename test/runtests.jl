@@ -1,6 +1,6 @@
 using SafeTestsets
 
-@safetestset "Default timespan/timestep constants (#83, #82)                                  " begin
+@safetestset "Default timespan/timestep constants                                             " begin
     include("default_timespan_timestep_tests.jl")
 end
 @safetestset "Bump initial condition: test derivative.                                        " begin
@@ -60,6 +60,9 @@ end
 @safetestset "Lotka-Volterra 4D (Lagrangian)                                                  " begin
     include("lotka_volterra_4d_lagrangian_tests.jl")
 end
+@safetestset "Outer Solar System                                                              " begin
+    include("outer_solar_system_tests.jl")
+end
 @safetestset "Pendulum                                                                        " begin
     include("pendulum_tests.jl")
 end
@@ -81,7 +84,7 @@ end
 @safetestset "Henon Heiles Potential                                                          " begin
     include("henon_heiles_potential_tests.jl")
 end
-@safetestset "EulerLagrange ensembles (#64)                                                   " begin
+@safetestset "Euler-Lagrange ensembles                                                        " begin
     include("eulerlagrange_ensembles_tests.jl")
 end
 @safetestset "LODE/LDAE ω and l wiring                                                        " begin
@@ -90,15 +93,3 @@ end
 @safetestset "Plotting extensions                                                             " begin
     include("plots_tests.jl")
 end
-
-# NOTE: `outer_solar_system_tests.jl` is intentionally NOT included here.
-#
-# `OuterSolarSystem.hodeproblem`/`lodeproblem` build the equations of motion symbolically with
-# EulerLagrange for all 18 degrees of freedom, which takes many minutes — far too slow for CI. The
-# problem needs to be refactored to use hand-written vector fields (like the other N-body problems
-# in this package) instead of symbolic code generation; once that is done, add:
-#
-#     @safetestset "Outer Solar System" begin include("outer_solar_system_tests.jl") end
-#
-# Until then the test can be run manually with
-# `julia --project=test test/outer_solar_system_tests.jl`.
