@@ -1,4 +1,4 @@
-using GeometricEquations: HODEProblem, LODEProblem, functions, initialguess
+using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem, functions, initialguess
 using GeometricIntegrators
 using GeometricProblems.LinearWave
 using GeometricSolutions
@@ -175,4 +175,26 @@ end
     # two different systems depending on `symbolic`.
     @test_throws AssertionError hodeproblem(N + 1, q₀, p₀)
     @test_throws AssertionError lodeproblem(N + 1, q₀, p₀)
+
+    # ...and every *sample* of an ensemble is checked, not just the first. A ragged ensemble is
+    # accepted by neither branch on its own merits: the hand-written fields would integrate sample 2
+    # as a lattice of its own size, and the generated ones — which have N baked in — would write only
+    # the first N + 2 components of its force and leave the rest at whatever the buffer held. Both run
+    # to completion without complaint, which is what makes the check the only thing standing here.
+    q₁ = [q₀; 0.1]      # one component too many
+    p₁ = [p₀; 0.0]
+
+    @test_throws AssertionError hodeensemble(N, [q₀, q₁], [p₀, p₀])
+    @test_throws AssertionError lodeensemble(N, [q₀, q₁], [p₀, p₀])
+    @test_throws AssertionError hodeensemble(N, [q₀, q₀], [p₀, p₁])
+    @test_throws AssertionError lodeensemble(N, [q₀, q₀], [p₀, p₁])
+
+    # The two-argument forms infer N from the first sample, so a ragged tail has to be caught there
+    # too rather than defining the lattice size out from under the rest.
+    @test_throws AssertionError hodeensemble([q₀, q₁], [p₀, p₀])
+    @test_throws AssertionError lodeensemble([q₀, q₁], [p₀, p₀])
+
+    # ...while a well-formed ensemble is of course still accepted, in both branches.
+    @test hodeensemble(N, [q₀, q₀ .+ 0.1], [p₀, p₀]) isa HODEEnsemble
+    @test lodeensemble(N, [q₀, q₀ .+ 0.1], [p₀, p₀]; symbolic = true) isa LODEEnsemble
 end
