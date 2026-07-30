@@ -269,9 +269,25 @@ _length(q::AbstractVector{<:AbstractArray}) = length(q[begin])
 # The hand-written vector fields read the lattice size off the state while the symbolic ones have it
 # baked in, so an `N` that disagrees with the initial condition would silently mean two different
 # systems depending on `symbolic`. Reject it up front.
+#
+# *Every* sample of an ensemble is checked, not just the first one `_length` reports on: the
+# hand-written fields read the size off each state individually, so a ragged ensemble would integrate
+# its samples as lattices of different sizes, while the generated ones have one size baked in and
+# would leave the components past `N` of an oversized sample without a force. Neither errors on its
+# own, and neither is what was asked for.
 function _check_size(N, q₀, p₀)
-    @assert _length(q₀) == N "initial condition has $(_length(q₀)) components, expected N = $N"
-    @assert _length(p₀) == N "initial condition has $(_length(p₀)) components, expected N = $N"
+    _check_components(N, q₀, "q₀")
+    _check_components(N, p₀, "p₀")
+    nothing
+end
+
+_check_components(N, x::AbstractArray{<:Number}, name) =
+    @assert length(x) == N "$name has $(length(x)) components, expected N = $N"
+
+function _check_components(N, x::AbstractVector{<:AbstractArray}, name)
+    for (i, sample) in pairs(x)
+        @assert length(sample) == N "$name sample $i has $(length(sample)) components, expected N = $N"
+    end
     nothing
 end
 

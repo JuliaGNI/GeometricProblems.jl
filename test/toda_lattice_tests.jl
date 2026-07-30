@@ -263,6 +263,28 @@ end
     # two different systems depending on `symbolic`.
     @test_throws AssertionError hodeproblem(M + 1, qM, pM)
     @test_throws AssertionError lodeproblem(M + 1, qM, pM)
+
+    # ...and every *sample* of an ensemble is checked, not just the first. A ragged ensemble is
+    # accepted by neither branch on its own merits: the hand-written fields would integrate sample 2
+    # as a lattice of its own size, and the generated ones — which have N baked in — would write only
+    # the first N components of its force and leave the rest at whatever the buffer held. Both run to
+    # completion without complaint, which is what makes the check the only thing standing here.
+    qM1 = [qM; 0.1]     # one component too many
+    pM1 = [pM; 0.0]
+
+    @test_throws AssertionError hodeensemble(M, [qM, qM1], [pM, pM])
+    @test_throws AssertionError lodeensemble(M, [qM, qM1], [pM, pM])
+    @test_throws AssertionError hodeensemble(M, [qM, qM], [pM, pM1])
+    @test_throws AssertionError lodeensemble(M, [qM, qM], [pM, pM1])
+
+    # The two-argument forms infer N from the first sample, so a ragged tail has to be caught there
+    # too rather than defining the lattice size out from under the rest.
+    @test_throws AssertionError hodeensemble([qM, qM1], [pM, pM])
+    @test_throws AssertionError lodeensemble([qM, qM1], [pM, pM])
+
+    # ...while a well-formed ensemble is of course still accepted, in both branches.
+    @test hodeensemble(M, [qM, qM .+ 0.1], [pM, pM]) isa HODEEnsemble
+    @test lodeensemble(M, [qM, qM .+ 0.1], [pM, pM]; symbolic = true) isa LODEEnsemble
 end
 
 # The ensembles above are hand-written now, so the symbolic branch of `hodeensemble`/`lodeensemble` —

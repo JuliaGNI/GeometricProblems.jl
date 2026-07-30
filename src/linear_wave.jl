@@ -273,9 +273,25 @@ module LinearWave
     # The hand-written vector fields read the lattice size off the state while the symbolic ones have
     # it baked in, so an `N` that disagrees with the initial condition would silently mean two
     # different systems depending on `symbolic`. Reject it up front.
+    #
+    # *Every* sample of an ensemble is checked, not just the first one `_nint` reports on: the
+    # hand-written fields read the size off each state individually, so a ragged ensemble would
+    # integrate its samples as lattices of different sizes, while the generated ones have one size
+    # baked in and would leave the components past `N + 2` of an oversized sample without a force.
+    # Neither errors on its own, and neither is what was asked for.
     function _check_size(N, q₀, p₀)
-        @assert _nint(q₀) == N "initial condition has $(_nint(q₀) + 2) components, expected N + 2 = $(N + 2)"
-        @assert _nint(p₀) == N "initial condition has $(_nint(p₀) + 2) components, expected N + 2 = $(N + 2)"
+        _check_components(N, q₀, "q₀")
+        _check_components(N, p₀, "p₀")
+        nothing
+    end
+
+    _check_components(N, x::AbstractArray{<:Number}, name) =
+        @assert length(x) == N + 2 "$name has $(length(x)) components, expected N + 2 = $(N + 2)"
+
+    function _check_components(N, x::AbstractVector{<:AbstractArray}, name)
+        for (i, sample) in pairs(x)
+            @assert length(sample) == N + 2 "$name sample $i has $(length(sample)) components, expected N + 2 = $(N + 2)"
+        end
         nothing
     end
 

@@ -211,6 +211,18 @@ depended on the old form doing what it claimed.
   passed `parameters` raw to `lagrangian_system`/`hamiltonian_system` in one place and
   `_parameters(parameters)` in another, so a vector of parameter sets reached `symbolize`
   asymmetrically; both now use `_parameters`. `src/toda_lattice.jl`.
+- **Linear wave and Toda lattice**: the size assertion now checks **every sample** of an ensemble, not
+  just the first. `_nint`/`_length` report on `q₀[begin]`, so `hodeensemble(5, [q5, q7], …)` passed —
+  and so did a `p₀` whose samples disagreed with each other. Neither branch then complains: the
+  hand-written fields read the size off each state individually, so sample 2 is integrated as a
+  lattice of *its own* size, while the generated ones have one size baked in and write only the first
+  `N` components of an oversized sample's force, leaving the rest at whatever the buffer held. Measured
+  on a `[q5, q7]` ensemble at `t = 0.1`: the hand-written branch reproduces the true 7-site trajectory
+  exactly (so the samples are two different physical systems, silently), and the symbolic branch
+  departs from it by only `1.5e-6` — small enough to read as round-off, and growing with the window.
+  That is the failure mode the assertion was added to prevent, surviving for samples 2…n. Messages now
+  name the offending array and sample, `"q₀ sample 2 has 7 components, expected N = 5"`.
+  `src/linear_wave.jl`, `src/toda_lattice.jl`.
 - **Toda lattice**: removed the unused module-level `const Ω = compute_domain(Ñ, typeof(μ))`. It was
   a plot domain, referenced nowhere in `src/`, `test/`, `docs/` or `benchmark/`, and a module-level
   `Ω` that is *not* the two-form sitting next to the new `ω!` is a trap worth not setting.
