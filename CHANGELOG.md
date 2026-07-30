@@ -11,7 +11,7 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
-## [Unreleased]
+## [0.8.0] — 2026-07-30
 
 ### Model fixes
 - **Symplectic two-form `ω` of a regular Lagrangian**: `ω` is now the full ``2n × 2n`` Lagrange
@@ -21,7 +21,7 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   with EulerLagrange, which had generated an identically-zero `ω` (it antisymmetrised `∂L/∂z`, giving
   `d(dL) ≡ 0`) until JuliaGNI/EulerLagrange.jl#24.
 
-  **This supersedes the `ω!` entry under Bug fixes below**, which recorded `Ω = 0` for the regular
+  **This supersedes the `ω!` entry under 0.7.4's Bug fixes below**, which recorded `Ω = 0` for the regular
   harmonic oscillator. That was right for the `q`–`q` block but is not the two-form the LODE wants:
   `HarmonicOscillator.ω!` now returns the ``2 × 2`` canonical `[0 -m; m 0]`. `degenerate_ω!` is
   unchanged. `src/harmonic_oscillator.jl`.
@@ -117,37 +117,9 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   while a `NaN` lets the solver reject the trial step and continue. The keyword is new in
   EulerLagrange 0.5; before that the behaviour was hardcoded off.
 
-### Bug fixes
-- **Lotka-Volterra 2D**: `ldaeproblem` and `ldaeproblem_slrk` passed the symplectic matrix `ω` and
-  the Lagrangian `l` to `LDAEProblem` in the wrong positional order, so `functions(prob).ω` *was*
-  the Lagrangian and vice versa. 0.7.2 fixed this in `lodeproblem` but not in the two `LDAE`
-  constructors. `src/lotka_volterra_2d_equations.jl`.
-- **Harmonic oscillator**: `ω!` had no `(Ω, t, q, v, params)` method, so evaluating the symplectic
-  matrix of `lodeproblem`, `degenerate_lodeproblem` or `ldaeproblem` raised a `MethodError`; it also
-  wrote a 2×2 matrix into the 1×1 one the single-degree-of-freedom forms allocate, and its
-  hard-coded value `[0 -1; +1 0]` was neither the mass-aware nor the sign-correct two-form. It is
-  now split in two: `ω!` for the regular Lagrangian (`Ω = 0`, since `ϑ = m v` does not depend on
-  `q`, and size-agnostic) and `degenerate_ω!` for the degenerate formulation
-  (`Ω = [0 m; -m 0]`, so that `Ω v = -∇H` reproduces the degenerate velocity field). Both gained
-  the five-argument method. `degenerate_lodeproblem` now also passes `degenerate_lagrangian`
-  instead of the regular `lagrangian`, which was dead code. `src/harmonic_oscillator.jl`.
-- **Lotka-Volterra 4D**: added the missing `(Ω, t, q, v, params)` method of
-  `lotka_volterra_4d_ω`, which `lodeproblem`/`ldaeproblem`/`ldaeproblem_secondary` evaluate.
-  `src/lotka_volterra_4d.jl`.
-- **Harmonic oscillator**: the energy constraint of the differential-algebraic forms
-  (`daeproblem`, `pdaeproblem`, `hdaeproblem`, `idaeproblem`, `ldaeproblem`) referenced the
-  *module-level default* initial condition, so `ϕ = H - H₀` did not vanish at `t₀` for any other
-  initial data. `H₀` is now captured per problem from the problem's own initial condition.
-  `src/harmonic_oscillator.jl`.
-- **Harmonic oscillator**: the default initial momentum of `degenerate_iodeproblem` /
-  `degenerate_lodeproblem` was built from a mass-free `ϑ`, while the problems' own `ϑ` returns
-  `m·q₂` since 0.7.0. The two disagreed by a factor `m`, masked only because the default initial
-  condition has zero velocity. `ϑ`/`ϑ₁`/`ϑ₂` now take the parameters, and the default is resolved
-  against the parameters actually passed. `src/harmonic_oscillator.jl`.
-
 ### Changed
 - **`ThreeBody.initial_condition` is a different configuration**, and the old one is renamed. This is
-  a deliberate API change, unlike the three entries below. `initial_condition` now aliases
+  a deliberate API change, unlike the two signature repairs below. `initial_condition` now aliases
   `figure_eight`; `initial_conditions[1]`, which it used to alias, is available as
   `sympnets_initial_condition`. Code that called `hodeproblem()`/`lodeproblem()`/`hodeensemble()`/
   `lodeensemble()` with no arguments now integrates the choreography over one period instead of a
@@ -157,7 +129,17 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   — though the result was never meaningful, for the reasons under *Model fixes*.
   `src/three_body_problem.jl`.
 
-The entries below alter a public signature, but each one repairs behaviour that never worked
+- **Requires EulerLagrange 0.5.** That release stops calling `Symbolics.simplify` on the
+  Lagrangian/Hamiltonian by default, which was never a win: measured over all 13 EulerLagrange-based
+  problems here (88 generated functions), `simplify = true` was faster **zero** times, slower up to
+  15× (`OuterSolarSystem`'s Hamiltonian force), and cost 17.5 s against 0.75 s to build in
+  aggregate. Three local workarounds for the old default are therefore gone: the explicit
+  `simplify = false` in `src/linear_wave.jl`, the `simplify = N ≤ 10` size heuristic in
+  `src/toda_lattice.jl`, and the explicit setting in `src/outer_solar_system.jl`. EulerLagrange 0.5
+  also generates code with common subexpression elimination, so results may differ from 0.4 in the
+  last bit.
+
+The two entries below alter a public signature, but each one repairs behaviour that never worked
 as documented, so they are bug fixes rather than deliberate API changes: nothing could have
 depended on the old form doing what it claimed.
 
@@ -178,49 +160,7 @@ depended on the old form doing what it claimed.
   fields read the size off the state while the symbolic ones bake it in, so a mismatched `N` would
   otherwise mean two different systems depending on `symbolic`. `src/linear_wave.jl`.
 
-- **Requires EulerLagrange 0.5.** That release stops calling `Symbolics.simplify` on the
-  Lagrangian/Hamiltonian by default, which was never a win: measured over all 13 EulerLagrange-based
-  problems here (88 generated functions), `simplify = true` was faster **zero** times, slower up to
-  15× (`OuterSolarSystem`'s Hamiltonian force), and cost 17.5 s against 0.75 s to build in
-  aggregate. Three local workarounds for the old default are therefore gone: the explicit
-  `simplify = false` in `src/linear_wave.jl`, the `simplify = N ≤ 10` size heuristic in
-  `src/toda_lattice.jl`, and the explicit setting in `src/outer_solar_system.jl`. EulerLagrange 0.5
-  also generates code with common subexpression elimination, so results may differ from 0.4 in the
-  last bit.
-
-- **Linear wave**: the number of interior points `N` was carried in `default_parameters()` but
-  **silently ignored** — `hamiltonian`, `lagrangian` and the symbolic system all sized themselves
-  from the module constant `Ñ = 256`, so passing a different `N` changed nothing at all. It cannot
-  be a system parameter: it fixes the number of degrees of freedom and the summation bounds, so it
-  does not survive `symbolize`. Following `TodaLattice`, it is now a leading positional argument of
-  `hodeproblem`/`lodeproblem`/`hodeensemble`/`lodeensemble` (defaulting to `Ñ`), `hamiltonian` and
-  `lagrangian` take it as a trailing argument, and `default_parameters()` is `(μ = 0.6,)`. The
-  two-argument `hodeproblem(q₀, p₀)` form still works and infers `N` from `length(q₀) - 2`.
-  `src/linear_wave.jl`.
-- **Plotting**: `LotkaVolterra3d.plot_traces` and `LotkaVolterra4d.plot_traces` took the parameter
-  tuple as their second argument, while the Lotka-Volterra 2D, massless-charged-particle and
-  point-vortex versions took the problem — an inconsistency across five extensions that are
-  otherwise identical in shape. All five now take the problem, which lets them read both the `:h`
-  invariant and the parameters from it and allows dispatch on the problem type. Call
-  `plot_traces(sol, ode)` instead of `plot_traces(sol, parameters(ode))`.
-  `ext/LotkaVolterra3dPlots.jl`, `ext/LotkaVolterra4dPlots.jl`.
-- **Perturbed pendulum**: the derived perturbation coefficient
-  `A = 0.3ϵ sin(2ϕ) + 0.7ϵ sin(3ϕ)` was stored in `default_parameters()` next to `ϵ` and `ϕ`, so
-  overriding either silently kept a stale `A` and produced an inconsistent system. It is computed
-  from `ϵ` and `ϕ` by the new `perturbation(params)`, which `symbolize` handles, so the symbolic
-  Hamiltonian and Lagrangian now track the dependence correctly. `src/perturbed_pendulum.jl`.
-
 ### Documentation
-- **Outer solar system**: the module described "the five outer planets (Jupiter, Saturn, Uranus,
-  Neptune) and Pluto" — four planets and Pluto. Also documented that building the problem is very
-  slow (see *Known follow-ups*). `src/outer_solar_system.jl`.
-- Moved the `plot_*` docstrings of the point-vortex and massless-charged-particle extensions from
-  the private `_plot_*` helpers onto the public `Module.plot_*` methods, so that `?` and
-  `@autodocs` find them. `ext/PointVorticesPlots.jl`, `ext/MasslessChargedParticlePlots.jl`.
-- Noted in `src/kubo_oscillator.jl` why the ensembles assemble `EnsembleProblem` by hand:
-  GeometricEquations exports `SDEEnsemble`/`PSDEEnsemble`/`SPSDEEnsemble` only as type aliases,
-  without the convenience constructors that `ODEEnsemble` and friends have.
-- Restructured this changelog into released versions with a migration guide (below).
 - **Three-body problem**: the page now plots the figure-eight choreography instead of
   `hodeproblem(; timestep = .2)`. That call inherited the old default timespan `(0, 5)`, so every
   docs build integrated through the near-collision — 2554 solver warnings and an energy drift of
@@ -310,6 +250,86 @@ depended on the old form doing what it claimed.
   the expected `ω` is sized accordingly (``2n × 2n`` regular, ``n × n`` degenerate). Added an
   `any(!iszero, Ω)` assertion — antisymmetry alone is satisfied vacuously by a zero matrix, which is
   exactly what EulerLagrange used to return.
+
+### Known follow-ups
+- `TodaLattice` still has no hand-written vector fields, so at its default `N = 200` its `lodeproblem`
+  pays the same dense-`ω` construction cost the linear wave just shed. It also passes `v̄ = heqs.v`,
+  building an entire extra `HamiltonianSystem` for a function that is just `p`.
+- `LotkaVolterra3d` declares only `h` as an invariant, although `casimir` is conserved too;
+  declaring it would make `Diagnostics.plot_invariant_error(sol; invariant = :c)` work out of the
+  box.
+- No documentation navigation pages yet for some models; see `docs/make.jl`.
+
+## [0.7.4] — 2026-07-25
+
+### Bug fixes
+- **Lotka-Volterra 2D**: `ldaeproblem` and `ldaeproblem_slrk` passed the symplectic matrix `ω` and
+  the Lagrangian `l` to `LDAEProblem` in the wrong positional order, so `functions(prob).ω` *was*
+  the Lagrangian and vice versa. 0.7.2 fixed this in `lodeproblem` but not in the two `LDAE`
+  constructors. `src/lotka_volterra_2d_equations.jl`.
+- **Harmonic oscillator**: `ω!` had no `(Ω, t, q, v, params)` method, so evaluating the symplectic
+  matrix of `lodeproblem`, `degenerate_lodeproblem` or `ldaeproblem` raised a `MethodError`; it also
+  wrote a 2×2 matrix into the 1×1 one the single-degree-of-freedom forms allocate, and its
+  hard-coded value `[0 -1; +1 0]` was neither the mass-aware nor the sign-correct two-form. It is
+  now split in two: `ω!` for the regular Lagrangian (`Ω = 0`, since `ϑ = m v` does not depend on
+  `q`, and size-agnostic) and `degenerate_ω!` for the degenerate formulation
+  (`Ω = [0 m; -m 0]`, so that `Ω v = -∇H` reproduces the degenerate velocity field). Both gained
+  the five-argument method. `degenerate_lodeproblem` now also passes `degenerate_lagrangian`
+  instead of the regular `lagrangian`, which was dead code. `src/harmonic_oscillator.jl`.
+- **Lotka-Volterra 4D**: added the missing `(Ω, t, q, v, params)` method of
+  `lotka_volterra_4d_ω`, which `lodeproblem`/`ldaeproblem`/`ldaeproblem_secondary` evaluate.
+  `src/lotka_volterra_4d.jl`.
+- **Harmonic oscillator**: the energy constraint of the differential-algebraic forms
+  (`daeproblem`, `pdaeproblem`, `hdaeproblem`, `idaeproblem`, `ldaeproblem`) referenced the
+  *module-level default* initial condition, so `ϕ = H - H₀` did not vanish at `t₀` for any other
+  initial data. `H₀` is now captured per problem from the problem's own initial condition.
+  `src/harmonic_oscillator.jl`.
+- **Harmonic oscillator**: the default initial momentum of `degenerate_iodeproblem` /
+  `degenerate_lodeproblem` was built from a mass-free `ϑ`, while the problems' own `ϑ` returns
+  `m·q₂` since 0.7.0. The two disagreed by a factor `m`, masked only because the default initial
+  condition has zero velocity. `ϑ`/`ϑ₁`/`ϑ₂` now take the parameters, and the default is resolved
+  against the parameters actually passed. `src/harmonic_oscillator.jl`.
+
+### Changed
+The three entries below alter a public signature, but each one repairs behaviour that never worked
+as documented, so they are bug fixes rather than deliberate API changes: nothing could have
+depended on the old form doing what it claimed.
+
+- **Linear wave**: the number of interior points `N` was carried in `default_parameters()` but
+  **silently ignored** — `hamiltonian`, `lagrangian` and the symbolic system all sized themselves
+  from the module constant `Ñ = 256`, so passing a different `N` changed nothing at all. It cannot
+  be a system parameter: it fixes the number of degrees of freedom and the summation bounds, so it
+  does not survive `symbolize`. Following `TodaLattice`, it is now a leading positional argument of
+  `hodeproblem`/`lodeproblem`/`hodeensemble`/`lodeensemble` (defaulting to `Ñ`), `hamiltonian` and
+  `lagrangian` take it as a trailing argument, and `default_parameters()` is `(μ = 0.6,)`. The
+  two-argument `hodeproblem(q₀, p₀)` form still works and infers `N` from `length(q₀) - 2`.
+  `src/linear_wave.jl`.
+- **Plotting**: `LotkaVolterra3d.plot_traces` and `LotkaVolterra4d.plot_traces` took the parameter
+  tuple as their second argument, while the Lotka-Volterra 2D, massless-charged-particle and
+  point-vortex versions took the problem — an inconsistency across five extensions that are
+  otherwise identical in shape. All five now take the problem, which lets them read both the `:h`
+  invariant and the parameters from it and allows dispatch on the problem type. Call
+  `plot_traces(sol, ode)` instead of `plot_traces(sol, parameters(ode))`.
+  `ext/LotkaVolterra3dPlots.jl`, `ext/LotkaVolterra4dPlots.jl`.
+- **Perturbed pendulum**: the derived perturbation coefficient
+  `A = 0.3ϵ sin(2ϕ) + 0.7ϵ sin(3ϕ)` was stored in `default_parameters()` next to `ϵ` and `ϕ`, so
+  overriding either silently kept a stale `A` and produced an inconsistent system. It is computed
+  from `ϵ` and `ϕ` by the new `perturbation(params)`, which `symbolize` handles, so the symbolic
+  Hamiltonian and Lagrangian now track the dependence correctly. `src/perturbed_pendulum.jl`.
+
+### Documentation
+- **Outer solar system**: the module described "the five outer planets (Jupiter, Saturn, Uranus,
+  Neptune) and Pluto" — four planets and Pluto. Also documented that building the problem is very
+  slow (see *Known follow-ups*). `src/outer_solar_system.jl`.
+- Moved the `plot_*` docstrings of the point-vortex and massless-charged-particle extensions from
+  the private `_plot_*` helpers onto the public `Module.plot_*` methods, so that `?` and
+  `@autodocs` find them. `ext/PointVorticesPlots.jl`, `ext/MasslessChargedParticlePlots.jl`.
+- Noted in `src/kubo_oscillator.jl` why the ensembles assemble `EnsembleProblem` by hand:
+  GeometricEquations exports `SDEEnsemble`/`PSDEEnsemble`/`SPSDEEnsemble` only as type aliases,
+  without the convenience constructors that `ODEEnsemble` and friends have.
+- Restructured this changelog into released versions with a migration guide (below).
+
+### Tests
 - **`test/lode_wiring_tests.jl`** (new, wired into `runtests.jl`): asserts for *every*
   `lodeproblem`/`ldaeproblem` in the package that `functions(prob).ω` accepts the velocity slot the
   LODE/LDAE evaluate it with and yields an antisymmetric matrix of the right size, and that
@@ -332,15 +352,6 @@ depended on the old form doing what it claimed.
 - Archived the 0.7.0 audit working files (`bugs.md`, `plan.md`, `memory.md`) under `docs/dev/`,
   with a `README.md` explaining what they are. They were agent working logs sitting in the package
   root and shipping in the released tarball.
-
-### Known follow-ups
-- `TodaLattice` still has no hand-written vector fields, so at its default `N = 200` its `lodeproblem`
-  pays the same dense-`ω` construction cost the linear wave just shed. It also passes `v̄ = heqs.v`,
-  building an entire extra `HamiltonianSystem` for a function that is just `p`.
-- `LotkaVolterra3d` declares only `h` as an invariant, although `casimir` is conserved too;
-  declaring it would make `Diagnostics.plot_invariant_error(sol; invariant = :c)` work out of the
-  box.
-- No documentation navigation pages yet for some models; see `docs/make.jl`.
 
 ## [0.7.3] — 2026-07-25
 
