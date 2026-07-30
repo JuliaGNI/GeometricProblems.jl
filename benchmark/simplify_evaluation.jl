@@ -32,70 +32,7 @@ import GeometricProblems.PerturbedPendulum as pp
 import GeometricProblems.ThreeBody as tb
 import GeometricProblems.TodaLattice as toda
 
-# A sink for the results of the timed calls. Without consuming the output, a cheap generated
-# function inlined into the timing loop can be optimised away entirely, which is what produced
-# sub-nanosecond "0.0000 µs" readings and meaningless NaN/Inf ratios in an earlier version of this
-# script. `donotdelete` keeps the accumulation itself from being elided.
-const SINK = Ref(0.0)
-
-@noinline sink!(x::Number) = (SINK[] += x; nothing)
-@noinline sink!(x::AbstractArray) = (SINK[] += @inbounds x[begin]; nothing)
-@noinline sink!(::Nothing) = nothing
-
-"The wall-clock resolution these measurements are built on, estimated empirically."
-function timer_resolution(samples=1000)
-    smallest = Inf
-    for _ in 1:samples
-        a = time()
-        b = time()
-        d = b - a
-        d > 0 && (smallest = min(smallest, d))
-    end
-    return smallest
-end
-
-const TIMER_RES = timer_resolution()
-
-"""
-    percall(f; target_seconds, samples) -> (seconds_per_call, reliable)
-
-Seconds per call to `f`, the best of `samples` batches.
-
-The number of repetitions per batch is calibrated so that each batch runs for at least
-`target_seconds`, which keeps the measured interval far above the timer resolution — a single
-evaluation of these functions is a few nanoseconds, so a fixed repetition count is not enough.
-`reliable` is false when even the calibrated batch could not be made long enough to trust.
-"""
-function percall(f; target_seconds=0.05, samples=7)
-    # calibrate the repetition count
-    reps = 64
-    while reps < 1 << 30
-        start = time()
-        for _ in 1:reps
-            sink!(f())
-        end
-        elapsed = time() - start
-        elapsed >= target_seconds && break
-        # grow by the shortfall, with headroom, rather than doubling blindly
-        factor = elapsed <= 0 ? 16 : clamp(ceil(Int, 1.5 * target_seconds / elapsed), 2, 64)
-        reps *= factor
-    end
-
-    best = Inf
-    total = 0.0
-    for _ in 1:samples
-        GC.gc()
-        start = time()
-        for _ in 1:reps
-            sink!(f())
-        end
-        elapsed = time() - start
-        total = max(total, elapsed)
-        best = min(best, elapsed / reps)
-    end
-    # a batch must span many timer ticks for the per-call figure to mean anything
-    return best, total > 1000 * TIMER_RES
-end
+include("timing.jl")
 
 # ------------------------------------------------------------------------------------------------
 # Builders. Every module wraps `LagrangianSystem`/`HamiltonianSystem` the same way; `TodaLattice`
@@ -123,8 +60,9 @@ build_degenerate(params) = simplify -> begin
     DegenerateLagrangianSystem(Ks, Hs, t, x, v, sp; simplify=simplify)
 end
 
-# `TodaLattice` already switches to `simplify=false` above N = 10 and `LinearWave` hardcodes it, so
-# both are measured at a size where `simplify=true` is still the status quo.
+# `simplify=false` has been the EulerLagrange default since 0.5, and these two are the only problems
+# here whose size is a free parameter. Both are measured on a small lattice, because construction
+# cost grows steeply with it — see `benchmark/linear_wave.jl` for how steeply.
 const TODA_N = 8
 const WAVE_N = 8
 

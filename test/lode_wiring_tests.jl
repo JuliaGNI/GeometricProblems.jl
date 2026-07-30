@@ -3,6 +3,7 @@ using GeometricEquations: functions, parameters
 using Test
 
 import GeometricProblems.HarmonicOscillator as ho
+import GeometricProblems.LinearWave as lw
 import GeometricProblems.LotkaVolterra2d as lv2
 import GeometricProblems.LotkaVolterra2dGauge as lv2gauge
 import GeometricProblems.LotkaVolterra2dSingular as lv2sing
@@ -42,10 +43,19 @@ import GeometricProblems.PointVorticesLinear as pvl
 # The initial data has to be admissible for the model: the Lotka-Volterra Hamiltonians take
 # `log(q)`, so `q > 0`, and the point-vortex Hamiltonians take the logarithm of the distance
 # between the two vortices, so the two positions must differ.
+#
+# `LinearWave` is entered on a small lattice rather than at its default Ñ = 256: this list is a
+# `const` evaluated at load time, and allocating a 516×516 `ones` per assertion would serve no
+# purpose. Its state has N + 2 components, so N = 5 gives d = 7 and a 14×14 two-form.
+const WAVE_N = 5
+const wave_q = lw.compute_initial_condition2(lw.μ̃, WAVE_N + 2).q
+const wave_v = lw.compute_initial_condition2(lw.μ̃, WAVE_N + 2).p
+
 const LODE_PROBLEMS = (
     ("HarmonicOscillator.lodeproblem",              ho.lodeproblem(),               1, true,  ([0.7], [0.3])),
     ("HarmonicOscillator.ldaeproblem",              ho.ldaeproblem(),               1, true,  ([0.7], [0.3])),
     ("HarmonicOscillator.degenerate_lodeproblem",   ho.degenerate_lodeproblem(),    2, false, ([0.7, 0.3], [0.3, -0.2])),
+    ("LinearWave.lodeproblem",                      lw.lodeproblem(WAVE_N),         WAVE_N + 2, true,  (wave_q, wave_v)),
     ("LotkaVolterra2d.lodeproblem",                 lv2.lodeproblem(),              2, false, ([2.0, 1.0], [0.3, -0.2])),
     ("LotkaVolterra2d.ldaeproblem",                 lv2.ldaeproblem(),              2, false, ([2.0, 1.0], [0.3, -0.2])),
     ("LotkaVolterra2d.ldaeproblem_slrk",            lv2.ldaeproblem_slrk(),         2, false, ([2.0, 1.0], [0.3, -0.2])),

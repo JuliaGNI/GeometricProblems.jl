@@ -70,16 +70,38 @@ end
 @testset "Double pendulum ensembles"               begin test_ensembles(dp,      :g, 0.5, dp.θ₀,      dp.p₀)      end
 @testset "Three-body ensembles"                    begin test_ensembles(tb,      :G, 0.2, tb.figure_eight.q, tb.figure_eight.p)          end
 
-# The linear wave is a high-dimensional system: generating the equations of motion for the
-# default Ñ = 256 (258 degrees of freedom) takes minutes, and construction is all this testset
-# checks, so it runs on a small lattice — as `toda_lattice_tests.jl` does for the same reason.
+# `LinearWave` builds its equations of motion by hand *by default*, so `symbolic = true` is required
+# here — without it these three calls would not touch EulerLagrange at all and this testset would
+# silently stop testing what the file is about.
+#
+# It still runs on a small lattice: `lagrangian_system` grows as n^2.5 and the generated `ω` as n^2,
+# so the default Ñ = 256 (258 degrees of freedom) costs minutes. Construction is all this testset
+# checks, as in `toda_lattice_tests.jl`.
 const N_wave = 20
 
 @testset "Linear wave ensembles (construction)" begin
     param_vec = [lw.default_parameters(), merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
     q₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).q
     p₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).p
-    @test lw.hodeensemble(N_wave; parameters = param_vec) !== nothing
-    @test lw.lodeensemble(N_wave; parameters = param_vec) !== nothing
-    @test lw.hodeensemble([q₀, q₀ .+ 0.01], [p₀, p₀]) !== nothing
+    @test lw.hodeensemble(N_wave; parameters = param_vec, symbolic = true) !== nothing
+    @test lw.lodeensemble(N_wave; parameters = param_vec, symbolic = true) !== nothing
+    @test lw.hodeensemble([q₀, q₀ .+ 0.01], [p₀, p₀]; symbolic = true) !== nothing
+end
+
+# The hand-written ensembles are cheap enough to actually integrate, at the same lattice size.
+@testset "Linear wave ensembles (hand-written)" begin
+    param_vec = [lw.default_parameters(), merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
+    q₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).q
+    p₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).p
+
+    hsol = integrate_quietly(lw.hodeensemble(N_wave; parameters = param_vec), ImplicitMidpoint())
+    lsol = integrate_quietly(lw.lodeensemble(N_wave; parameters = param_vec), ImplicitMidpoint())
+    @test length(hsol.s) == 2
+    @test length(lsol.s) == 2
+    @test hsol.s[2].q.d.parent ≉ hsol.s[1].q.d.parent
+    @test lsol.s[2].q.d.parent ≉ lsol.s[1].q.d.parent
+
+    hsol_ic = integrate_quietly(lw.hodeensemble([q₀, q₀ .+ 0.01], [p₀, p₀]), ImplicitMidpoint())
+    @test length(hsol_ic.s) == 2
+    @test hsol_ic.s[2].q.d.parent ≉ hsol_ic.s[1].q.d.parent
 end
