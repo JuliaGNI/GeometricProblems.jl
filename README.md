@@ -17,7 +17,7 @@
 - [x] ABC Flow,
 - [x] Exponential Growth,
 - [ ] Fermi-Pasta-Ulam Problem,
-- [ ] Hénon-Heiles System,
+- [ ] Hénon-Heiles System,
 - [ ] Kepler Problem,
 - [x] Lorenz Attractor in 3D,
 - [x] Lotka-Volterra in 2D,

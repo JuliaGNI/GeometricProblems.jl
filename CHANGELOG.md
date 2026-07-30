@@ -11,6 +11,36 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [Unreleased]
+
+### Repository hygiene
+- **Every source file is now NFC-normalized**, and `test/unicode_normalization_tests.jl` keeps it that
+  way. Accented identifiers had drifted into both legal spellings: `ū` as U+016B in some files and as
+  `u` + U+0304 COMBINING MACRON in others, likewise `ḡ`, `ṗ`, `ñ` and the `é` of *Hénon* in
+  `README.md` and `docs/make.jl`. Julia's parser NFC-normalizes identifiers, so the two spellings are
+  the same binding and no test of behaviour could ever tell them apart — but they are not the same
+  text. `grep ū` typed one way silently finds nothing while the identifier sits plainly on screen, and
+  an exact-string edit fails for no visible reason. Files drift between the forms without anyone
+  touching a character, since macOS filesystem APIs hand back decomposed text and some editors
+  recompose on save.
+
+  Seven files changed, 31 lines in all, folding away 44 combining marks — every line canonically
+  equivalent to the one it replaces: `src/harmonic_oscillator.jl`, `src/lotka_volterra_2d_common.jl`,
+  `src/lotka_volterra_2d_equations.jl`, `src/lotka_volterra_2d_symmetric.jl`,
+  `src/lotka_volterra_4d.jl`, `README.md`, `docs/make.jl`. `src/toda_lattice.jl` was the eighth until
+  0.8.0's hand-written Toda vector fields rewrote its `Ñ` lines into NFC as a side effect, which is
+  what leaves `Ñ` off the list above.
+
+  The test asserts the normal form of each file rather than any particular character, so there is no
+  list of accented identifiers to maintain, and characters with no precomposed form pass untouched —
+  `q̇` is `q` + U+0307 and has no single codepoint, so it is already in normal form. `obsolete/` is
+  excluded, being kept for reference and not edited.
+
+  `Unicode` is now a declared dependency in `test/Project.toml`, for the third time the same reason
+  applies after `Logging` and `LinearAlgebra`: an undeclared stdlib resolves under
+  `julia --project=test` but not inside the sandbox `Pkg.test` builds from that file, where it fails
+  with *"Package Unicode not found in current path"*. `test/Project.toml`.
+
 ## [0.8.0] — 2026-07-30
 
 ### Model fixes
