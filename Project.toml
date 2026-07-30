@@ -15,19 +15,6 @@ Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 
-[compat]
-Documenter = "1"
-EulerLagrange = "0.4"
-GeometricBase = "0.14"
-GeometricEquations = "0.21"
-GeometricSolutions = "0.6.5"
-NaNMath = "1"
-Parameters = "0.12, 0.13"
-Reexport = "1"
-Makie = "0.21, 0.22, 0.23, 0.24"
-Requires = "1"
-julia = "1.10"
-
 [weakdeps]
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
 
@@ -40,6 +27,19 @@ LotkaVolterra4dPlots = "Makie"
 MasslessChargedParticlePlots = "Makie"
 PendulumPlots = "Makie"
 PointVorticesPlots = "Makie"
+
+[compat]
+Documenter = "1"
+EulerLagrange = "0.4, 0.5"
+GeometricBase = "0.14"
+GeometricEquations = "0.21"
+GeometricSolutions = "0.6.5"
+Makie = "0.21, 0.22, 0.23, 0.24"
+NaNMath = "1"
+Parameters = "0.12, 0.13"
+Reexport = "1"
+Requires = "1"
+julia = "1.10"
 
 [extras]
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
