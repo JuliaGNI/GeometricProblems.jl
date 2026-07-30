@@ -1,5 +1,8 @@
 using SafeTestsets
 
+@safetestset "Unicode normalization (NFC)                                                     " begin
+    include("unicode_normalization_tests.jl")
+end
 @safetestset "Default timespan/timestep constants                                             " begin
     include("default_timespan_timestep_tests.jl")
 end

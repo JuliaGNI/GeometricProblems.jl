@@ -363,15 +363,15 @@ end
 
 lotka_volterra_4d_ϕ(ϕ, t, q, v, p, params) = lotka_volterra_4d_ϕ(ϕ, t, q, p, params)
 
-function lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
-    ψ[1] = ṗ[1] - g₁(t, q, q̇)
-    ψ[2] = ṗ[2] - g₂(t, q, q̇)
-    ψ[3] = ṗ[3] - g₃(t, q, q̇)
-    ψ[4] = ṗ[4] - g₄(t, q, q̇)
+function lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
+    ψ[1] = ṗ[1] - g₁(t, q, q̇)
+    ψ[2] = ṗ[2] - g₂(t, q, q̇)
+    ψ[3] = ṗ[3] - g₃(t, q, q̇)
+    ψ[4] = ṗ[4] - g₄(t, q, q̇)
     nothing
 end
 
-lotka_volterra_4d_ψ(ψ, t, q, v, p, q̇, ṗ, params) = lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
+lotka_volterra_4d_ψ(ψ, t, q, v, p, q̇, ṗ, params) = lotka_volterra_4d_ψ(ψ, t, q, p, q̇, ṗ, params)
 
 
 function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())

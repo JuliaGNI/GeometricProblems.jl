@@ -23,7 +23,7 @@ makedocs(;
              "Double Pendulum"             => "double_pendulum.md",
              "Harmonic Oscillator"         => "harmonic_oscillator.md",
              "Kubo Oscillator"             => "kubo_oscillator.md",
-             "Hénon-Heiles System"         => "henon_heiles.md",
+             "Hénon-Heiles System"         => "henon_heiles.md",
              "Kepler Problem"              => "kepler_problem.md",
              "Linear Wave Equation"        => "linear_wave.md",
              "Lorenz Attractor"            => "lorenz_attractor.md",

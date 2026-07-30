@@ -459,22 +459,22 @@ function oscillator_pdae_g(g, t, q, p, λ, params)
     nothing
 end
 
-function oscillator_pdae_ū(u, t, q, p, λ, params)
+function oscillator_pdae_ū(u, t, q, p, λ, params)
     @unpack k = params
     u[1] = k * q[1] * λ[1]
     nothing
 end
 
-function oscillator_pdae_ḡ(g, t, q, p, λ, params)
+function oscillator_pdae_ḡ(g, t, q, p, λ, params)
     g[1] = p[1] * λ[1] / params.m
     nothing
 end
 
 # The energy constraint is built per problem, see `_pdae_energy_constraint`.
 
-function oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
+function oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
     @unpack k = params
-    ψ[1] = p[1] * ṗ[1] / params.m + k * q[1] * q̇[1]
+    ψ[1] = p[1] * ṗ[1] / params.m + k * q[1] * q̇[1]
     nothing
 end
 
@@ -491,18 +491,18 @@ function hdaeproblem(q₀=q₀, p₀=p₀, λ₀=zero(q₀); timespan=DEFAULT_TI
     constraint = _pdae_energy_constraint(hamiltonian(timespan[begin], q₀, p₀, parameters))
     HDAEProblem(oscillator_pdae_v, oscillator_pdae_f,
         oscillator_pdae_u, oscillator_pdae_g, constraint,
-        oscillator_pdae_ū, oscillator_pdae_ḡ, oscillator_pdae_ψ,
+        oscillator_pdae_ū, oscillator_pdae_ḡ, oscillator_pdae_ψ,
         hamiltonian, timespan, timestep, q₀, p₀, λ₀; parameters=parameters)
 end
 
 
 oscillator_idae_u(u, t, q, v, p, λ, params) = oscillator_pdae_u(u, t, q, p, λ, params)
 oscillator_idae_g(g, t, q, v, p, λ, params) = oscillator_pdae_g(g, t, q, p, λ, params)
-oscillator_idae_ū(u, t, q, v, p, λ, params) = oscillator_pdae_ū(u, t, q, p, λ, params)
-oscillator_idae_ḡ(g, t, q, v, p, λ, params) = oscillator_pdae_ḡ(g, t, q, p, λ, params)
+oscillator_idae_ū(u, t, q, v, p, λ, params) = oscillator_pdae_ū(u, t, q, p, λ, params)
+oscillator_idae_ḡ(g, t, q, v, p, λ, params) = oscillator_pdae_ḡ(g, t, q, p, λ, params)
 # The energy constraint of the implicit/variational forms is the same closure as for the
 # partitioned ones; it already accepts the extra velocity slot.
-oscillator_idae_ψ(ψ, t, q, v, p, q̇, ṗ, params) = oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
+oscillator_idae_ψ(ψ, t, q, v, p, q̇, ṗ, params) = oscillator_pdae_ψ(ψ, t, q, p, q̇, ṗ, params)
 
 function idaeproblem(q₀=q₀, p₀=p₀, λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
     @assert length(q₀) == length(p₀) == length(λ₀) == 1

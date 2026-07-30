@@ -8,7 +8,7 @@ H(q) &= a_1 \, q_1 + a_2 \, q_2 + b_1 \, \log q_1 + b_2 \, \log q_2
 \end{aligned}
 ```
 
-This Lagrangian is a slight generalization of Equation (5) in José Fernández-Núñez,
+This Lagrangian is a slight generalization of Equation (5) in José Fernández-Núñez,
 Lagrangian Structure of the Two-Dimensional Lotka-Volterra System, International
 Journal of Theoretical Physics, Vol. 37, No. 9, pp. 2457-2462, 1998.
 
