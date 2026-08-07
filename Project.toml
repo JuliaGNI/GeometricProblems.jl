@@ -25,12 +25,18 @@ NaNMath = "1"
 Parameters = "0.12, 0.13"
 Reexport = "1"
 Makie = "0.21, 0.22, 0.23, 0.24"
+PoincareInvariants = "0.5"
 Requires = "1"
 julia = "1.10"
 
 [weakdeps]
 Makie = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
+PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4"
 
+# PoincareInvariants has no extension: `LotkaVolterra2d`'s Poincaré-invariant constructors are
+# still wired through `Requires.@require` in `src/lotka_volterra_2d_equations.jl`. It is declared
+# here rather than in `[extras]` so that the optional dependency is resolvable and can carry a
+# compat bound; the `@require` block fires on the package being loaded either way.
 [extensions]
 DiagnosticsPlots = "Makie"
 HarmonicOscillatorPlots = "Makie"
@@ -40,11 +46,3 @@ LotkaVolterra4dPlots = "Makie"
 MasslessChargedParticlePlots = "Makie"
 PendulumPlots = "Makie"
 PointVorticesPlots = "Makie"
-
-[extras]
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
-GeometricSolutions = "7843afe4-64f4-4df4-9231-049495c56661"
-PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4"
-SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

@@ -107,6 +107,16 @@ numerical and observational, and it invalidated three things the repository had 
 
   The five scratch variants — `lotka_volterra_2d_{debug,regression,simplified,test}.jl` and
   `harmonic_oscillator_legacy.jl` — were left untouched and remain broken.
+- **The root `Project.toml`'s `[extras]` block is gone.** It listed `ForwardDiff`,
+  `GeometricIntegrators`, `GeometricSolutions`, `SafeTestsets` and `Test` but there was no
+  `[targets]` section, and `test/Project.toml` takes precedence over `[targets]` anyway, so the
+  block did nothing; all five are properly declared in `test/Project.toml`. `PoincareInvariants`
+  moved to `[weakdeps]` with a `PoincareInvariants = "0.5"` compat bound, which is where an
+  optional dependency belongs in this package — `Makie` is already there — and unlike `[extras]`
+  it is actually resolved, so the bound is enforced. There is no accompanying `[extensions]` entry
+  because the Poincaré-invariant constructors are still wired through `Requires.@require`; that
+  mechanism fires on the package being loaded regardless of how it is declared. Verified that
+  GeometricProblems and PoincareInvariants 0.5.0 still co-resolve.
 
 ## [0.8.1] — 2026-07-30
 
