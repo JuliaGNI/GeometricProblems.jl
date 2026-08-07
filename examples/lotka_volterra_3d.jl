@@ -24,5 +24,5 @@ const problem = odeproblem(; timespan, timestep)
 for (name, method) in runs
     println("Integrating lotka_volterra_3d with $(name) ...")
     solution = integrate(problem, method)
-    save("lotka_volterra_3d-$(name).pdf", plot_traces(solution, problem))
+    save(joinpath(@__DIR__, "lotka_volterra_3d-$(name).pdf"), plot_traces(solution, problem))
 end

@@ -25,5 +25,5 @@ const runs = (
 for (name, problem, method) in runs
     println("Integrating point_vortices with $(name) ...")
     solution = integrate(problem, method)
-    save("point_vortices-$(name).pdf", plot_traces(solution, problem))
+    save(joinpath(@__DIR__, "point_vortices-$(name).pdf"), plot_traces(solution, problem))
 end

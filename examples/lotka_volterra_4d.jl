@@ -28,5 +28,5 @@ const runs = (
 for (name, problem, method) in runs
     println("Integrating lotka_volterra_4d with $(name) ...")
     solution = integrate(problem, method)
-    save("lotka_volterra_4d-$(name).pdf", plot_traces(solution, problem))
+    save(joinpath(@__DIR__, "lotka_volterra_4d-$(name).pdf"), plot_traces(solution, problem))
 end
