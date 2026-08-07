@@ -60,4 +60,16 @@ include("integrate_quietly.jl")
     h = integrate(hodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
     l = integrate(lodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
     @test relative_maximum_error(h.q, l.q) < 1E-6
+
+    # Positive control for `integrate_quietly`. The suite emits no SimpleSolvers messages at all, so
+    # the silence assertions elsewhere cannot themselves distinguish "quiet" from "the filter matches
+    # nothing" — were those messages to move out of the `SimpleSolvers` module, all 33 call sites
+    # would keep passing vacuously. This integration is known to complain: the collisional
+    # `sympnets_initial_condition` cannot be integrated past its close encounter at any step size
+    # (see `ThreeBody.DEFAULT_TIMESTEP`), so the same expression that asserts silence there must
+    # report messages here.
+    collisional = hodeproblem(ThreeBody.sympnets_initial_condition.q,
+        ThreeBody.sympnets_initial_condition.p;
+        timespan = (0.0, 1.0), timestep = 0.5)
+    @test !isempty(simplesolvers_messages(collisional, Gauss(2)))
 end
