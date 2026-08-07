@@ -1,6 +1,7 @@
-using GeometricIntegrators: ImplicitMidpoint, integrate
-using Logging: Warn, with_logger
+using GeometricIntegrators: ImplicitMidpoint
 using Test
+
+include("integrate_quietly.jl")
 
 # Tests for issue #64: parameter-varying (and initial-condition-varying) ensembles for the
 # EulerLagrange-generated HODE/LODE problems. These complement the existing ensemble tests
@@ -14,23 +15,6 @@ import GeometricProblems.MathewsLakshmananOscillator as ml
 import GeometricProblems.DoublePendulum as dp
 import GeometricProblems.ThreeBody as tb
 import GeometricProblems.LinearWave as lw
-
-# Integrate and assert that the nonlinear solver stayed quiet. An implicit step whose Newton
-# iteration cannot reach a root — as every ThreeBody step used to do when the default initial
-# condition was still a member of the collisional `initial_conditions` grid, see
-# `ThreeBody.sympnets_initial_condition` — still returns a solution, so it fails no assertion here
-# while flooding the log with line-search warnings. Warnings are attributed by originating module
-# rather than caught with `@test_nowarn`, both to ignore the unrelated `GeometricEquations` warning
-# about single-sample ensembles and because SimpleSolvers is only an indirect dependency (via
-# GeometricIntegrators), so it must not be imported.
-function integrate_quietly(problem, method)
-    logger = TestLogger(min_level = Warn)
-    solution = with_logger(() -> integrate(problem, method), logger)
-    # Assert on the distinct messages rather than their count, so that a failure reports what the
-    # solver actually complained about.
-    @test isempty(unique(l.message for l in logger.logs if nameof(l._module) === :SimpleSolvers))
-    solution
-end
 
 # Perturb a single parameter of the module's default parameter set.
 _perturbed(M, field, δ) = merge(M.default_parameters(),

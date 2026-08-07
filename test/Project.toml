@@ -13,3 +13,19 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [sources]
 GeometricProblems = {path = ".."}
+
+# GeometricIntegrators is a test-only dependency, so its bound belongs here, where it is
+# resolved, and not in the root project. 0.17 is what pulls in SimpleSolvers 0.10 and
+# GeometricIntegratorsBase 0.5.1; everything below 0.17 pins SimpleSolvers to 0.9.
+[compat]
+CairoMakie = "0.15"
+ForwardDiff = "0.10, 1"
+GeometricEquations = "0.21"
+GeometricIntegrators = "0.17"
+GeometricSolutions = "0.6.5"
+LinearAlgebra = "1"
+Logging = "1"
+SafeTestsets = "0.1"
+Test = "1"
+Unicode = "1"
+julia = "1.10"

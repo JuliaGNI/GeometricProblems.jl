@@ -2,6 +2,8 @@ using GeometricIntegrators: Gauss, integrate, relative_maximum_error
 using GeometricProblems.ThreeBody
 using Test
 
+include("integrate_quietly.jl")
+
 # Regression tests for the three-body problem:
 #  * the potential must contain all three pairwise gravitational interactions (previously the
 #    body-1↔body-3 term was missing);
@@ -32,8 +34,8 @@ using Test
 
     # both problem types construct and integrate (B4 regression: `lodeproblem` previously threw an
     # UndefVarError), and agree to roundoff over the default window.
-    hsol = integrate(hodeproblem(), Gauss(2))
-    lsol = integrate(lodeproblem(), Gauss(2))
+    hsol = integrate_quietly(hodeproblem(), Gauss(2))
+    lsol = integrate_quietly(lodeproblem(), Gauss(2))
 
     @test relative_maximum_error(hsol.q, lsol.q) < 1E-14
     @test relative_maximum_error(hsol.p, lsol.p) < 1E-14

@@ -2,6 +2,8 @@ using GeometricIntegrators: ImplicitMidpoint, integrate
 import GeometricProblems.CoupledHarmonicOscillator as cho
 using Test
 
+include("integrate_quietly.jl")
+
 
 q₀_vec = [cho.q₀ .+ α for α in 0. : .4 : .4]
 p₀_vec = [cho.p₀ .+ α for α in 0. : .4 : .4]
@@ -10,7 +12,7 @@ p₀_vec = [cho.p₀ .+ α for α in 0. : .4 : .4]
 epr = cho.hodeensemble(q₀_vec, p₀_vec)
 
 # ensemble solution
-esol = integrate(epr, ImplicitMidpoint())
+esol = integrate_quietly(epr, ImplicitMidpoint())
 
 @test esol.s[2].q.d.parent ≉ esol.s[1].q.d.parent
 
@@ -23,6 +25,6 @@ end
 epr = cho.hodeensemble(; parameters = [_params(i) for i in 0:1])
 
 # ensemble solution
-esol = integrate(epr, ImplicitMidpoint())
+esol = integrate_quietly(epr, ImplicitMidpoint())
 
 @test esol.s[2].q.d.parent ≉ esol.s[1].q.d.parent

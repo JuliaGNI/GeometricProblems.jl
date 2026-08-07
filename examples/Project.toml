@@ -5,3 +5,10 @@ GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
 
 [sources]
 GeometricProblems = {path = ".."}
+
+# The examples are not run by CI, so without a bound here they drifted four minor versions behind
+# `test/` and `docs/`. 0.17 is what pulls in SimpleSolvers 0.10.
+[compat]
+CairoMakie = "0.15"
+GeometricIntegrators = "0.17"
+julia = "1.10"

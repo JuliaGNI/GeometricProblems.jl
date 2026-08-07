@@ -66,8 +66,6 @@ The canonical Hamiltonian dynamics is provided by `hodeproblem`, which can be in
 using GeometricProblems.Pendulum
 using GeometricIntegrators
 using CairoMakie
-using Logging # hide
-Logging.disable_logging(Logging.Warn) # hide
 
 prob = hodeproblem([1.0], [0.0]; timespan = (0.0, 20.0), timestep = 0.05)
 sol = integrate(prob, ImplicitMidpoint())

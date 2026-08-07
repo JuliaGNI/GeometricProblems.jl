@@ -11,6 +11,103 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [0.8.2] — 2026-08-06
+
+Update to GeometricIntegrators 0.17, and with it SimpleSolvers 0.10.1 and
+GeometricIntegratorsBase 0.5.1. None of the breaking changes in that line reach this package —
+`solversize`/`nullvectorsize` flipping to `(method, problem)` and `default_options` becoming a
+required two-argument method affect only code that defines or calls them, and every call site here
+uses the positional `integrate(problem, method)` form, which is unchanged. `src/` and `ext/`
+contain no GeometricIntegrators or SimpleSolvers code at all. What changed for this package is
+numerical and observational, and it invalidated three things the repository had written down.
+
+### Changed
+- **Dependency bounds.** `test/`, `docs/` and `examples/` each gained a `[compat]` section; none of
+  the three had one, so nothing constrained which GeometricIntegrators they resolved and they had
+  drifted apart — `test/` was on 0.16.9, `docs/` on 0.16.7 and `examples/` on 0.16.2 with
+  SimpleSolvers 0.8.4. All three now require `GeometricIntegrators = "0.17"` and resolve
+  SimpleSolvers 0.10.1 and GeometricIntegratorsBase 0.5.1. As in GeometricIntegrators itself, the
+  bound lives where the dependency is resolved rather than in the root project; the root
+  `[extras]` block remains inert, since `test/Project.toml` takes precedence over `[targets]`.
+- **The default residual tolerance moved, and nothing here noticed.** GeometricIntegratorsBase
+  0.5.1 sets `f_abstol = max(8, solversize(method, problem)) * eps(datatype(problem))` —
+  size-dependent, 1.8e-15 … ~1.1e-14 — where 0.16.x used a flat `8eps()`. No test threshold needed
+  re-tuning: the tightest assertions in the suite retain at least a factor of five. Measured on the
+  three-body figure-eight over one period with `Gauss(2)`, the quantities the docstrings quote are
+  unmoved — energy error 2.66e-15 (bound 1e-12, docstring "3e-15") and orbit closure 1.28e-7 in `q`
+  and 1.97e-7 in `p` (bound 1e-6, docstring "1.3e-7") — and the Hamiltonian/Lagrangian agreement
+  sits at 5.4e-17 and 1.03e-16 against a bound of 1e-14.
+
+### Documentation
+- **The three-body warning counts are re-measured.** `src/three_body_problem.jl`'s
+  `DEFAULT_TIMESTEP` docstring recorded that, over `t ∈ [0, 1]` on the collisional
+  `sympnets_initial_condition`, the default Newton method emitted 596, 1346, 390, 321 and 361
+  warnings at `Δt = 0.5, 0.05, 0.01, 0.005, 0.001` against 1–2 for the trust-region `DogLeg`; the
+  paragraph existed to explain that the trust region was merely quieter about the same failure and
+  that the default Newton solver should therefore stay. Under SimpleSolvers 0.10 the counts
+  are 5, 9, 4, 4, 4 for Newton and 6, 1, 1, 5, 6 for `DogLeg` — the asymmetry has gone, because
+  0.10 caps repeated reports with `maxlog` and stops a stagnating solve after `max_stalls` rather
+  than letting it spin to `max_iterations`. The message count now measures how a failure is
+  *reported*, not how badly it fails. The paragraph was rewritten around the energy error instead:
+  19, 15, 36, 399 and 249 for Newton against 9, 45, 12, 1615 and 2.2e6 for `DogLeg`, with the two
+  ending up 0.6, 3.8, 5.0, 50 and 1209 apart in `q`. The conclusion is unchanged — neither solver
+  can integrate the collision, so the default Newton solver is kept — but it now rests on a
+  quantity that means something.
+- **`docs/src/pendulum.md` no longer disables logging.** The `using Logging # hide` /
+  `Logging.disable_logging(Logging.Warn) # hide` pair existed to hide the old SimpleSolvers flood
+  and suppressed every warning on the page along with it. Removed; the docs build is clean without
+  it.
+
+### Tests
+- **`integrate_quietly` extracted to `test/integrate_quietly.jl` and applied sixfold.** It was
+  defined inline in `eulerlagrange_ensembles_tests.jl` and is the one assertion in these packages
+  that asserts SimpleSolvers *silence* rather than suppressing it — which was only worth
+  generalising once 0.10 made a converging solve genuinely silent. Before that, a line search built
+  its own `Options` and never saw the solver's `verbosity`, so a converged solve reported its
+  round-off floor as a warning and which orbits tripped it depended on platform floating-point
+  details. It now also guards `three_body_tests.jl`, `toda_lattice_tests.jl`,
+  `linear_wave_tests.jl`, `coupled_harmonic_oscillator_tests.jl`, `outer_solar_system_tests.jl` and
+  `perturbed_pendulum_tests.jl` — 26 further call sites, all passing.
+
+  It was deliberately *not* applied to the SPARK and VPRK-projection suites
+  (`lotka_volterra_2d*`, `lotka_volterra_4d*`, `massless_charged_particle*`, `point_vortices*`) or
+  to the unequal-mass three-body runs: some of those tableaux are marginal, and a stagnation
+  warning there is information rather than noise.
+
+  The helper filters by originating module (`nameof(l._module) === :SimpleSolvers`) rather than
+  using `@test_nowarn`, both to ignore the unrelated `GeometricEquations` single-sample-ensemble
+  warning and because SimpleSolvers must stay a transitive-only dependency. That makes the
+  `:SimpleSolvers` symbol load-bearing: were those messages to move module, the filter would match
+  nothing and the assertion would pass vacuously. The comment now says so, and the filter was
+  confirmed to actually match by the three-body measurement above, where the same expression
+  counted 5, 9, 4, 4 and 4 messages.
+- **The full suite emits zero SimpleSolvers messages** — 930 assertions, no failures, no errors,
+  and no warnings from any module at all. For scale, the historical counts recorded below (5453 in
+  the Euler-Lagrange ensembles test, 1341 in the three-body test, 2554 in a docs build) were fixed
+  by changing the default initial condition away from the collisional grid, not by fixing the
+  solver; SimpleSolvers 0.10 now reports stagnation properly rather than flooding, so the two
+  effects are no longer confounded.
+
+### Repository hygiene
+- **Seven `examples/*.jl` rewritten against the current API.** `lotka_volterra_2d.jl`,
+  `lotka_volterra_2d_singular.jl`, `lotka_volterra_2d_symmetric.jl`, `lotka_volterra_3d.jl`,
+  `lotka_volterra_4d.jl`, `massless_charged_particle_2d.jl` and `point_vortices_test.jl` had been
+  broken against GeometricIntegrators for years and are invisible to both `runtests.jl` and
+  `docs/make.jl`, so nothing caught it: they used `set_config(:nls_atol, …)`,
+  `GeometricIntegrators.Integrators.VPRK`, the `getTableau*` factories, the `Integrator*` types and
+  `Solution(ode, Δt, nt)` + `integrate!`, and plotted through `Plots` with function names that no
+  longer exist. Each was ~420 lines of which roughly four fifths was a commented-out tableau menu.
+
+  They are now written in the shape of `examples/pendulum.jl` — the one example that had stayed
+  current — as a table of `(name, problem, method)` runs over `integrate(problem, method)`, plotted
+  with the Makie extension functions and saved as one PDF per run. The method/formulation pairings
+  are taken from the corresponding test file, so they are known-good. All seven run to completion.
+  `LotkaVolterra2dSingular` and `LotkaVolterra2dSymmetric` have no plot extension of their own, so
+  they reuse `LotkaVolterra2d`'s, which are generic in the solution and the problem.
+
+  The five scratch variants — `lotka_volterra_2d_{debug,regression,simplified,test}.jl` and
+  `harmonic_oscillator_legacy.jl` — were left untouched and remain broken.
+
 ## [0.8.1] — 2026-07-30
 
 ### Added
