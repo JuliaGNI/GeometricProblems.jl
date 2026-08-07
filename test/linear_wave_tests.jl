@@ -5,6 +5,8 @@ using GeometricSolutions
 using LinearAlgebra
 using Test
 
+include("integrate_quietly.jl")
+
 const LW = LinearWave
 
 # Regression test for the linear wave equation. Previously `lodeproblem` called a lowercase
@@ -144,8 +146,8 @@ end
     hode = hodeproblem(N; timespan = timespan, timestep = timestep)
     lode = lodeproblem(N; timespan = timespan, timestep = timestep)
 
-    hode_sol = integrate(hode, ImplicitMidpoint())
-    lode_sol = integrate(lode, ImplicitMidpoint())
+    hode_sol = integrate_quietly(hode, ImplicitMidpoint())
+    lode_sol = integrate_quietly(lode, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, lode_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, lode_sol.p) < 1E-11
@@ -155,8 +157,8 @@ end
     hode_sym = hodeproblem(N; timespan = timespan, timestep = timestep, symbolic = true)
     lode_sym = lodeproblem(N; timespan = timespan, timestep = timestep, symbolic = true)
 
-    hode_sym_sol = integrate(hode_sym, ImplicitMidpoint())
-    lode_sym_sol = integrate(lode_sym, ImplicitMidpoint())
+    hode_sym_sol = integrate_quietly(hode_sym, ImplicitMidpoint())
+    lode_sym_sol = integrate_quietly(lode_sym, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, hode_sym_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, hode_sym_sol.p) < 1E-11

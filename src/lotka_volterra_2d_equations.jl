@@ -1,7 +1,6 @@
 
 using GeometricEquations
 using GeometricSolutions
-using Requires
 
 export odeproblem,  daeproblem,
        podeproblem, pdaeproblem,
@@ -46,6 +45,9 @@ function f_loop(i, n)
    f_loop(i/n)
 end
 
+# Samples the loop `f_loop` parameterises at `n` equidistant points. Together with `f_loop` this is
+# the live half of the Poincaré-invariant scaffolding, and it depends on nothing optional, so it
+# stays here rather than moving into the extension with the invariants themselves.
 function initial_conditions_loop(n)
    q₀ = zeros(2, n)
 
@@ -156,25 +158,18 @@ function iodeproblem_dg(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPA
 end
 
 
-function ode_loop(n)
-   lotka_volterra_2d_ode(initial_conditions_loop(n))
-end
-
-function iode_loop(n)
-   lotka_volterra_2d_iode(initial_conditions_loop(n))
-end
-
-
-function __init__()
-    @require PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4" begin
-
-        function ode_poincare_invariant_1st(timestep, nloop, ntime, nsave, DT=Float64)
-            PoincareInvariant1st(lotka_volterra_2d_ode, f_loop, ϑ, timestep, 2, nloop, ntime, nsave, DT)
-        end
-
-        function iode_poincare_invariant_1st(timestep, nloop, ntime, nsave, DT=Float64)
-            PoincareInvariant1st(lotka_volterra_2d_iode, f_loop, ϑ, timestep, 2, nloop, ntime, nsave, DT)
-        end
-
-    end
-end
+# The first Poincaré invariant, and the two problem wrappers built on it, are implemented in the
+# `LotkaVolterra2dPoincareInvariants` extension (loaded with PoincareInvariants), in the same shape
+# as the `*Plots` extensions. `f_loop` and `initial_conditions_loop` above stay here instead: they
+# parameterise and sample the loop in phase space, need nothing optional to do it, and are read off
+# the module by the extension.
+#
+# All four names below are **dead** and throw `UndefVarError` when called: the invariants need
+# `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define, and the two `*_loop`
+# wrappers call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are now
+# `odeproblem`/`iodeproblem`. The bodies await a makeover of the Poincaré-invariant support; the
+# extension has the details.
+function ode_loop end
+function iode_loop end
+function ode_poincare_invariant_1st end
+function iode_poincare_invariant_1st end

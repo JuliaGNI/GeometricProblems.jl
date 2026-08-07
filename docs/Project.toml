@@ -10,3 +10,15 @@ LaTeXStrings = "b964fa9f-0449-5b57-a5c2-d3ea65f4040f"
 
 [sources]
 GeometricProblems = {path = ".."}
+
+# As in `test/`, GeometricIntegrators is bounded where it is resolved rather than in the root
+# project. 0.17 is what pulls in SimpleSolvers 0.10.
+[compat]
+CairoMakie = "0.15"
+Documenter = "1"
+DocumenterCitations = "1"
+GeometricEquations = "0.21"
+GeometricIntegrators = "0.17"
+GeometricSolutions = "0.6.5"
+LaTeXStrings = "1"
+julia = "1.10"

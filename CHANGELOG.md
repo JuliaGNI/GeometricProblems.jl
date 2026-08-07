@@ -11,6 +11,161 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [0.8.2] — 2026-08-06
+
+Update to GeometricIntegrators 0.17, and with it SimpleSolvers 0.10.1 and
+GeometricIntegratorsBase 0.5.1. None of the breaking changes in that line reach this package —
+`solversize`/`nullvectorsize` flipping to `(method, problem)` and `default_options` becoming a
+required two-argument method affect only code that defines or calls them, and every call site here
+uses the positional `integrate(problem, method)` form, which is unchanged. `src/` and `ext/`
+contain no GeometricIntegrators or SimpleSolvers code at all. What changed for this package is
+numerical and observational, and it invalidated three things the repository had written down.
+
+### Changed
+- **Dependency bounds.** `test/`, `docs/` and `examples/` each gained a `[compat]` section; none of
+  the three had one, so nothing constrained which GeometricIntegrators they resolved and they had
+  drifted apart — `test/` was on 0.16.9, `docs/` on 0.16.7 and `examples/` on 0.16.2 with
+  SimpleSolvers 0.8.4. All three now require `GeometricIntegrators = "0.17"` and resolve
+  SimpleSolvers 0.10.1 and GeometricIntegratorsBase 0.5.1. As in GeometricIntegrators itself, the
+  bound lives where the dependency is resolved rather than in the root project; the root
+  `[extras]` block remains inert, since `test/Project.toml` takes precedence over `[targets]`.
+- **The default residual tolerance moved, and nothing here noticed.** GeometricIntegratorsBase
+  0.5.1 sets `f_abstol = max(8, solversize(method, problem)) * eps(datatype(problem))` —
+  size-dependent, 1.8e-15 … ~1.1e-14 — where 0.16.x used a flat `8eps()`. No test threshold needed
+  re-tuning: the tightest assertions in the suite retain at least a factor of five. Measured on the
+  three-body figure-eight over one period with `Gauss(2)`, the quantities the docstrings quote are
+  unmoved — energy error 2.66e-15 (bound 1e-12, docstring "3e-15") and orbit closure 1.28e-7 in `q`
+  and 1.97e-7 in `p` (bound 1e-6, docstring "1.3e-7") — and the Hamiltonian/Lagrangian agreement
+  sits at 5.4e-17 and 1.03e-16 against a bound of 1e-14.
+
+### Documentation
+- **The three-body warning counts are re-measured.** `src/three_body_problem.jl`'s
+  `DEFAULT_TIMESTEP` docstring recorded that, over `t ∈ [0, 1]` on the collisional
+  `sympnets_initial_condition`, the default Newton method emitted 596, 1346, 390, 321 and 361
+  warnings at `Δt = 0.5, 0.05, 0.01, 0.005, 0.001` against 1–2 for the trust-region `DogLeg`; the
+  paragraph existed to explain that the trust region was merely quieter about the same failure and
+  that the default Newton solver should therefore stay. Under SimpleSolvers 0.10 the counts
+  are 5, 9, 4, 4, 4 for Newton and 6, 1, 1, 5, 6 for `DogLeg` — the asymmetry has gone, because
+  0.10 caps repeated reports with `maxlog` and stops a stagnating solve after `max_stalls` rather
+  than letting it spin to `max_iterations`. The message count now measures how a failure is
+  *reported*, not how badly it fails. The paragraph was rewritten around the energy error instead:
+  19, 15, 36, 399 and 249 for Newton against 9, 45, 12, 1615 and 2.2e6 for `DogLeg`, with the two
+  ending up 0.6, 3.8, 5.0, 50 and 1209 apart in `q`. The conclusion is unchanged — neither solver
+  can integrate the collision, so the default Newton solver is kept — but it now rests on a
+  quantity that means something.
+- **`docs/src/pendulum.md` no longer disables logging.** The `using Logging # hide` /
+  `Logging.disable_logging(Logging.Warn) # hide` pair existed to hide the old SimpleSolvers flood
+  and suppressed every warning on the page along with it. Removed; the docs build is clean without
+  it.
+
+### Tests
+- **`integrate_quietly` extracted to `test/integrate_quietly.jl` and applied sixfold.** It was
+  defined inline in `eulerlagrange_ensembles_tests.jl` and is the one assertion in these packages
+  that asserts SimpleSolvers *silence* rather than suppressing it — which was only worth
+  generalising once 0.10 made a converging solve genuinely silent. Before that, a line search built
+  its own `Options` and never saw the solver's `verbosity`, so a converged solve reported its
+  round-off floor as a warning and which orbits tripped it depended on platform floating-point
+  details. It now also guards `three_body_tests.jl`, `toda_lattice_tests.jl`,
+  `linear_wave_tests.jl`, `coupled_harmonic_oscillator_tests.jl`, `outer_solar_system_tests.jl` and
+  `perturbed_pendulum_tests.jl` — 26 further call sites, all passing.
+
+  It was deliberately *not* applied to the SPARK and VPRK-projection suites
+  (`lotka_volterra_2d*`, `lotka_volterra_4d*`, `massless_charged_particle*`, `point_vortices*`) or
+  to the unequal-mass three-body runs: some of those tableaux are marginal, and a stagnation
+  warning there is information rather than noise.
+
+  The helper filters by originating module (`nameof(l._module) === :SimpleSolvers`) rather than
+  using `@test_nowarn`, both to ignore the unrelated `GeometricEquations` single-sample-ensemble
+  warning and because SimpleSolvers must stay a transitive-only dependency. Records from every
+  other module are re-emitted to the enclosing logger instead of being swallowed with them, so
+  applying the helper to a call site does not blind it to unrelated warnings.
+- **A positive control keeps the silence assertions from passing vacuously.** Filtering on
+  `:SimpleSolvers` makes that symbol load-bearing: were those messages to move module, the filter
+  would match nothing and all 33 call sites would keep passing while asserting nothing. Since the
+  suite emits zero SimpleSolvers messages, no run of it can tell the two cases apart. The last test
+  in `three_body_tests.jl` closes that gap by integrating the collisional
+  `sympnets_initial_condition` over ``t \in [0, 1]`` at ``\Delta{}t = 0.5`` — the case
+  `DEFAULT_TIMESTEP` documents as unintegrable — and asserting the *same* expression reports
+  something. It currently catches four distinct messages (three line-search reports and one
+  iteration-limit report), and fails if the filter ever stops matching.
+- **The full suite emits zero SimpleSolvers messages** — 972 assertions, no failures, no errors,
+  and no warnings from any module at all. For scale, the historical counts recorded below (5453 in
+  the Euler-Lagrange ensembles test, 1341 in the three-body test, 2554 in a docs build) were fixed
+  by changing the default initial condition away from the collisional grid, not by fixing the
+  solver; SimpleSolvers 0.10 now reports stagnation properly rather than flooding, so the two
+  effects are no longer confounded.
+
+### Repository hygiene
+- **Seven `examples/*.jl` added.** `lotka_volterra_2d.jl`, `lotka_volterra_2d_singular.jl`,
+  `lotka_volterra_2d_symmetric.jl`, `lotka_volterra_3d.jl`, `lotka_volterra_4d.jl`,
+  `massless_charged_particle_2d.jl` and `point_vortices.jl`. Before this the directory held only
+  `pendulum.jl` and `harmonic_oscillator.jl`; scripts for these seven problems existed as untracked
+  local files, never committed, and had rotted against GeometricIntegrators years ago — they used
+  `set_config(:nls_atol, …)`, `GeometricIntegrators.Integrators.VPRK`, the `getTableau*` factories,
+  the `Integrator*` types and `Solution(ode, Δt, nt)` + `integrate!`, and plotted through `Plots`
+  with function names that no longer exist. Each was ~420 lines of which roughly four fifths was a
+  commented-out tableau menu. Nothing would have caught that in any case: `examples/` is invisible
+  to both `runtests.jl` and `docs/make.jl`.
+
+  The committed versions are written in the shape of `examples/pendulum.jl` — the one example that
+  had stayed current — as a table of `(name, problem, method)` runs over `integrate(problem,
+  method)`, plotted with the Makie extension functions and saved as one PDF per run, next to the
+  script via `@__DIR__`. The method/formulation pairings are taken from the corresponding test
+  file, so they are known-good. All seven run to completion. `LotkaVolterra2dSingular` and
+  `LotkaVolterra2dSymmetric` have no plot extension of their own, so they reuse `LotkaVolterra2d`'s,
+  which are generic in the solution and the problem.
+
+  The five scratch variants — `lotka_volterra_2d_{debug,regression,simplified,test}.jl` and
+  `harmonic_oscillator_legacy.jl` — remain untracked and broken.
+- **The root `Project.toml`'s `[extras]` block is gone.** It listed `ForwardDiff`,
+  `GeometricIntegrators`, `GeometricSolutions`, `SafeTestsets` and `Test` but there was no
+  `[targets]` section, and `test/Project.toml` takes precedence over `[targets]` anyway, so the
+  block did nothing; all five are properly declared in `test/Project.toml`. `PoincareInvariants`
+  moved to `[weakdeps]`, which is where an optional dependency belongs in this package — `Makie` is
+  already there — with an accompanying `[extensions]` entry (see below). Its compat bound is
+  `"0.4, 0.5"`: unlike `[extras]`, a weakdep bound is actually resolved and therefore enforced, and
+  bounding to `"0.5"` alone would have excluded 0.4 — the last line on which the extension's bodies
+  would in fact run — while admitting only the line on which they cannot. Both are allowed until
+  the makeover picks a target. Verified that GeometricProblems and PoincareInvariants 0.5.0
+  co-resolve.
+- **`Requires` is gone, replaced by a `LotkaVolterra2dPoincareInvariants` extension.** The first
+  Poincaré invariant was the package's only use of `Requires`, so dropping the `@require` block
+  drops the dependency with it; `ext/LotkaVolterra2dPoincareInvariants.jl` now carries those
+  methods, in the same shape as the `*Plots` extensions, and the parent modules gained
+  `function ode_poincare_invariant_1st end` / `iode_poincare_invariant_1st end` stubs as the plot
+  functions already had.
+
+  **The code is still dead, deliberately.** It calls `PoincareInvariant1st`, removed in
+  PoincareInvariants 0.5.0, on `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are pre-0.7
+  constructor names; calling either method throws `UndefVarError`, exactly as it did before the
+  move. It is carried over unchanged rather than repaired because the Poincaré-invariant support
+  needs a complete makeover and the upstream interface is still being tuned, so 0.5 is not the
+  target to write against.
+
+  What the move buys is visibility. `Requires` defers its block to load time, and since nothing in
+  the suite or the docs loaded PoincareInvariants, both call paths rotted through at least two
+  renames without anything noticing. An extension is precompiled — but only in an environment that
+  has its trigger package, so `test/Project.toml` now lists PoincareInvariants purely as that
+  trigger, and the new `test/poincare_invariants_tests.jl` asserts that the extension resolves,
+  that Pkg attaches it, and that it reaches all four Lotka-Volterra 2d modules. It also pins the
+  dead bodies to the `UndefVarError` they currently throw, so a repair has to come past a test. One
+  small behavioural consequence of the move: the invariant names are now always defined (as
+  functions with no methods) rather than springing into existence when PoincareInvariants is loaded
+  — again matching the plot functions.
+
+  The two problem wrappers moved with it: `ode_loop` and `iode_loop` are unexported, are used by
+  nothing outside this cluster, and are dead for the same reason as the invariants — they call
+  `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`. `f_loop` and `initial_conditions_loop` stay in
+  `src/` instead. They parameterise and sample the loop in phase space, they are the only part of
+  the cluster that works, and they need nothing from PoincareInvariants — moving them would have
+  made a working function raise a `MethodError` unless an unrelated optional dependency happened to
+  be loaded. The extension reads both off the parent module.
+
+  `lotka_volterra_2d_equations.jl` is included into all four Lotka-Volterra 2d modules, so all four
+  export these names and the extension defines methods for all four. That is preserved as-is; if
+  the makeover decides the invariants belong only on `LotkaVolterra2d`, pruning the other three is
+  a separate call.
+
 ## [0.8.1] — 2026-07-30
 
 ### Added

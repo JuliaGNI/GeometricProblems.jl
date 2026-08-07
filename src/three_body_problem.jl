@@ -93,12 +93,18 @@ module ThreeBody
     ``1.3 \times 10^{-3}``; `Gauss(2)` reaches ``3 \times 10^{-15}`` and ``1.3 \times 10^{-7}``.
 
     Neither this nor any other step size makes `sympnets_initial_condition` integrable past its
-    collision, and neither does exchanging the nonlinear solver: over ``t \in [0, 1]`` the default
-    Newton method with a backtracking line search emits 596, 1346, 390, 321 and 361 warnings for
-    ``\Delta{}t = 0.5, 0.05, 0.01, 0.005, 0.001``, while the trust-region `DogLeg` solver emits 1–2
-    — but commits an energy error of 12 to 45 either way, and the two disagree on where the bodies
-    end up. The trust region is merely quieter about the same failure, so the default Newton solver
-    is kept; on problems that *are* solvable the two agree bit for bit.
+    collision, and neither does exchanging the nonlinear solver. Over ``t \in [0, 1]`` at
+    ``\Delta{}t = 0.5, 0.05, 0.01, 0.005, 0.001`` the default Newton method with a backtracking line
+    search commits an energy error of 19, 15, 36, 399 and 249, and the trust-region `DogLeg` solver
+    one of 9, 45, 12, 1615 and ``2.2 \times 10^6`` — with the two ending up 0.6, 3.8, 5.0, 50 and
+    1209 apart in ``q``. Neither is quieter than the other about it — they emit 5, 9, 4, 4, 4 and
+    6, 1, 1, 5, 6 solver messages respectively — though the count is not the thing to compare on:
+    repeated reports are capped by `maxlog` and a stagnating solve stops after `max_stalls`, so it
+    measures how a failure is *reported* rather than how badly it fails. The energy error is, and on
+    it `DogLeg` is not an improvement but a regression: it is worse at the two finest step sizes by
+    factors of 4 and ``9 \times 10^3``, and better nowhere by more than a factor of 3. Since neither
+    solver can integrate the collision and the trust region is the worse of the two where it differs,
+    the default Newton solver is kept; on problems that *are* solvable the two agree bit for bit.
     """
     const DEFAULT_TIMESTEP = figure_eight_period / 400
 

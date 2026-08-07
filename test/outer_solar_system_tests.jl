@@ -3,6 +3,8 @@ using GeometricIntegrators
 using GeometricProblems.OuterSolarSystem
 using GeometricSolutions
 
+include("integrate_quietly.jl")
+
 const OSS = OuterSolarSystem
 
 @testset "$(rpad("Outer Solar System",80))" begin
@@ -14,8 +16,8 @@ const OSS = OuterSolarSystem
     hode = @test_nowarn hodeproblem(timespan=(0.0, 10.0))
     lode = @test_nowarn lodeproblem(timespan=(0.0, 10.0))
 
-    hode_sol = integrate(hode, ImplicitMidpoint())
-    lode_sol = integrate(lode, ImplicitMidpoint())
+    hode_sol = integrate_quietly(hode, ImplicitMidpoint())
+    lode_sol = integrate_quietly(lode, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, lode_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, lode_sol.p) < 1E-11
@@ -23,8 +25,8 @@ const OSS = OuterSolarSystem
     hode_sym = @test_nowarn hodeproblem(timespan=(0.0, 10.0), symbolic=true)
     lode_sym = @test_nowarn lodeproblem(timespan=(0.0, 10.0), symbolic=true)
 
-    hode_sym_sol = integrate(hode_sym, ImplicitMidpoint())
-    lode_sym_sol = integrate(lode_sym, ImplicitMidpoint())
+    hode_sym_sol = integrate_quietly(hode_sym, ImplicitMidpoint())
+    lode_sym_sol = integrate_quietly(lode_sym, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, hode_sym_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, hode_sym_sol.p) < 1E-11

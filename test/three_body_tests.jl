@@ -2,6 +2,8 @@ using GeometricIntegrators: Gauss, integrate, relative_maximum_error
 using GeometricProblems.ThreeBody
 using Test
 
+include("integrate_quietly.jl")
+
 # Regression tests for the three-body problem:
 #  * the potential must contain all three pairwise gravitational interactions (previously the
 #    body-1↔body-3 term was missing);
@@ -32,8 +34,8 @@ using Test
 
     # both problem types construct and integrate (B4 regression: `lodeproblem` previously threw an
     # UndefVarError), and agree to roundoff over the default window.
-    hsol = integrate(hodeproblem(), Gauss(2))
-    lsol = integrate(lodeproblem(), Gauss(2))
+    hsol = integrate_quietly(hodeproblem(), Gauss(2))
+    lsol = integrate_quietly(lodeproblem(), Gauss(2))
 
     @test relative_maximum_error(hsol.q, lsol.q) < 1E-14
     @test relative_maximum_error(hsol.p, lsol.p) < 1E-14
@@ -58,4 +60,16 @@ using Test
     h = integrate(hodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
     l = integrate(lodeproblem(; timespan = (0.0, 0.05), timestep = 0.01, parameters = mparams), Gauss(2))
     @test relative_maximum_error(h.q, l.q) < 1E-6
+
+    # Positive control for `integrate_quietly`. The suite emits no SimpleSolvers messages at all, so
+    # the silence assertions elsewhere cannot themselves distinguish "quiet" from "the filter matches
+    # nothing" — were those messages to move out of the `SimpleSolvers` module, all 33 call sites
+    # would keep passing vacuously. This integration is known to complain: the collisional
+    # `sympnets_initial_condition` cannot be integrated past its close encounter at any step size
+    # (see `ThreeBody.DEFAULT_TIMESTEP`), so the same expression that asserts silence there must
+    # report messages here.
+    collisional = hodeproblem(ThreeBody.sympnets_initial_condition.q,
+        ThreeBody.sympnets_initial_condition.p;
+        timespan = (0.0, 1.0), timestep = 0.5)
+    @test !isempty(simplesolvers_messages(collisional, Gauss(2)))
 end

@@ -4,6 +4,8 @@ using GeometricProblems.TodaLattice
 using LinearAlgebra
 using Test
 
+include("integrate_quietly.jl")
+
 const TL = TodaLattice
 
 
@@ -29,8 +31,8 @@ param_vec = [NamedTuple{keys(params)}(values(params) .+ β) for β in -0.1 : 0.1
 hode_prb = hodeproblem(q₀, p₀)
 lode_prb = lodeproblem(q₀, p₀)
 
-href_sol = integrate(hode_prb, Gauss(1))
-lref_sol = integrate(lode_prb, Gauss(1))
+href_sol = integrate_quietly(hode_prb, Gauss(1))
+lref_sol = integrate_quietly(lode_prb, Gauss(1))
 
 @test relative_maximum_error(href_sol.q, lref_sol.q) < 2E-14
 
@@ -39,8 +41,8 @@ lref_sol = integrate(lode_prb, Gauss(1))
 hode_ens = hodeensemble(N, q₀_vec, p₀_vec)
 lode_ens = lodeensemble(N, q₀_vec, p₀_vec)
 
-hode_sol = integrate(hode_ens, Gauss(1))
-lode_sol = integrate(lode_ens, Gauss(1))
+hode_sol = integrate_quietly(hode_ens, Gauss(1))
+lode_sol = integrate_quietly(lode_ens, Gauss(1))
 
 @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
 @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
@@ -54,8 +56,8 @@ end
 hode_ens = hodeensemble(N; parameters = param_vec)
 lode_ens = lodeensemble(N; parameters = param_vec)
 
-hode_sol = integrate(hode_ens, Gauss(1))
-lode_sol = integrate(lode_ens, Gauss(1))
+hode_sol = integrate_quietly(hode_ens, Gauss(1))
+lode_sol = integrate_quietly(lode_ens, Gauss(1))
 
 @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
 @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
@@ -69,8 +71,8 @@ end
 hode_ens = hodeensemble(q₀_vec, p₀_vec; parameters = param_vec)
 lode_ens = lodeensemble(q₀_vec, p₀_vec; parameters = param_vec)
 
-hode_sol = integrate(hode_ens, Gauss(1))
-lode_sol = integrate(lode_ens, Gauss(1))
+hode_sol = integrate_quietly(hode_ens, Gauss(1))
+lode_sol = integrate_quietly(lode_ens, Gauss(1))
 
 @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
 @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
@@ -225,8 +227,8 @@ end
     hode = hodeproblem(M, qM, pM; timespan = timespan, timestep = timestep)
     lode = lodeproblem(M, qM, pM; timespan = timespan, timestep = timestep)
 
-    hode_sol = integrate(hode, ImplicitMidpoint())
-    lode_sol = integrate(lode, ImplicitMidpoint())
+    hode_sol = integrate_quietly(hode, ImplicitMidpoint())
+    lode_sol = integrate_quietly(lode, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, lode_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, lode_sol.p) < 1E-11
@@ -236,8 +238,8 @@ end
     hode_sym = hodeproblem(M, qM, pM; timespan = timespan, timestep = timestep, symbolic = true)
     lode_sym = lodeproblem(M, qM, pM; timespan = timespan, timestep = timestep, symbolic = true)
 
-    hode_sym_sol = integrate(hode_sym, ImplicitMidpoint())
-    lode_sym_sol = integrate(lode_sym, ImplicitMidpoint())
+    hode_sym_sol = integrate_quietly(hode_sym, ImplicitMidpoint())
+    lode_sym_sol = integrate_quietly(lode_sym, ImplicitMidpoint())
 
     @test relative_maximum_error(hode_sol.q, hode_sym_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, hode_sym_sol.p) < 1E-11
