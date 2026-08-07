@@ -76,12 +76,19 @@ numerical and observational, and it invalidated three things the repository had 
 
   The helper filters by originating module (`nameof(l._module) === :SimpleSolvers`) rather than
   using `@test_nowarn`, both to ignore the unrelated `GeometricEquations` single-sample-ensemble
-  warning and because SimpleSolvers must stay a transitive-only dependency. That makes the
-  `:SimpleSolvers` symbol load-bearing: were those messages to move module, the filter would match
-  nothing and the assertion would pass vacuously. The comment now says so, and the filter was
-  confirmed to actually match by the three-body measurement above, where the same expression
-  counted 5, 9, 4, 4 and 4 messages.
-- **The full suite emits zero SimpleSolvers messages** — 930 assertions, no failures, no errors,
+  warning and because SimpleSolvers must stay a transitive-only dependency. Records from every
+  other module are re-emitted to the enclosing logger instead of being swallowed with them, so
+  applying the helper to a call site does not blind it to unrelated warnings.
+- **A positive control keeps the silence assertions from passing vacuously.** Filtering on
+  `:SimpleSolvers` makes that symbol load-bearing: were those messages to move module, the filter
+  would match nothing and all 33 call sites would keep passing while asserting nothing. Since the
+  suite emits zero SimpleSolvers messages, no run of it can tell the two cases apart. The last test
+  in `three_body_tests.jl` closes that gap by integrating the collisional
+  `sympnets_initial_condition` over ``t \in [0, 1]`` at ``\Delta{}t = 0.5`` — the case
+  `DEFAULT_TIMESTEP` documents as unintegrable — and asserting the *same* expression reports
+  something. It currently catches four distinct messages (three line-search reports and one
+  iteration-limit report), and fails if the filter ever stops matching.
+- **The full suite emits zero SimpleSolvers messages** — 972 assertions, no failures, no errors,
   and no warnings from any module at all. For scale, the historical counts recorded below (5453 in
   the Euler-Lagrange ensembles test, 1341 in the three-body test, 2554 in a docs build) were fixed
   by changing the default initial condition away from the collisional grid, not by fixing the
@@ -89,37 +96,41 @@ numerical and observational, and it invalidated three things the repository had 
   effects are no longer confounded.
 
 ### Repository hygiene
-- **Seven `examples/*.jl` rewritten against the current API.** `lotka_volterra_2d.jl`,
-  `lotka_volterra_2d_singular.jl`, `lotka_volterra_2d_symmetric.jl`, `lotka_volterra_3d.jl`,
-  `lotka_volterra_4d.jl`, `massless_charged_particle_2d.jl` and `point_vortices_test.jl` had been
-  broken against GeometricIntegrators for years and are invisible to both `runtests.jl` and
-  `docs/make.jl`, so nothing caught it: they used `set_config(:nls_atol, …)`,
-  `GeometricIntegrators.Integrators.VPRK`, the `getTableau*` factories, the `Integrator*` types and
-  `Solution(ode, Δt, nt)` + `integrate!`, and plotted through `Plots` with function names that no
-  longer exist. Each was ~420 lines of which roughly four fifths was a commented-out tableau menu.
+- **Seven `examples/*.jl` added.** `lotka_volterra_2d.jl`, `lotka_volterra_2d_singular.jl`,
+  `lotka_volterra_2d_symmetric.jl`, `lotka_volterra_3d.jl`, `lotka_volterra_4d.jl`,
+  `massless_charged_particle_2d.jl` and `point_vortices.jl`. Before this the directory held only
+  `pendulum.jl` and `harmonic_oscillator.jl`; scripts for these seven problems existed as untracked
+  local files, never committed, and had rotted against GeometricIntegrators years ago — they used
+  `set_config(:nls_atol, …)`, `GeometricIntegrators.Integrators.VPRK`, the `getTableau*` factories,
+  the `Integrator*` types and `Solution(ode, Δt, nt)` + `integrate!`, and plotted through `Plots`
+  with function names that no longer exist. Each was ~420 lines of which roughly four fifths was a
+  commented-out tableau menu. Nothing would have caught that in any case: `examples/` is invisible
+  to both `runtests.jl` and `docs/make.jl`.
 
-  They are now written in the shape of `examples/pendulum.jl` — the one example that had stayed
-  current — as a table of `(name, problem, method)` runs over `integrate(problem, method)`, plotted
-  with the Makie extension functions and saved as one PDF per run. The method/formulation pairings
-  are taken from the corresponding test file, so they are known-good. All seven run to completion.
-  `LotkaVolterra2dSingular` and `LotkaVolterra2dSymmetric` have no plot extension of their own, so
-  they reuse `LotkaVolterra2d`'s, which are generic in the solution and the problem.
+  The committed versions are written in the shape of `examples/pendulum.jl` — the one example that
+  had stayed current — as a table of `(name, problem, method)` runs over `integrate(problem,
+  method)`, plotted with the Makie extension functions and saved as one PDF per run, next to the
+  script via `@__DIR__`. The method/formulation pairings are taken from the corresponding test
+  file, so they are known-good. All seven run to completion. `LotkaVolterra2dSingular` and
+  `LotkaVolterra2dSymmetric` have no plot extension of their own, so they reuse `LotkaVolterra2d`'s,
+  which are generic in the solution and the problem.
 
   The five scratch variants — `lotka_volterra_2d_{debug,regression,simplified,test}.jl` and
-  `harmonic_oscillator_legacy.jl` — were left untouched and remain broken.
+  `harmonic_oscillator_legacy.jl` — remain untracked and broken.
 - **The root `Project.toml`'s `[extras]` block is gone.** It listed `ForwardDiff`,
   `GeometricIntegrators`, `GeometricSolutions`, `SafeTestsets` and `Test` but there was no
   `[targets]` section, and `test/Project.toml` takes precedence over `[targets]` anyway, so the
   block did nothing; all five are properly declared in `test/Project.toml`. `PoincareInvariants`
-  moved to `[weakdeps]` with a `PoincareInvariants = "0.5"` compat bound, which is where an
-  optional dependency belongs in this package — `Makie` is already there — and unlike `[extras]`
-  it is actually resolved, so the bound is enforced. There is no accompanying `[extensions]` entry
-  because the Poincaré-invariant constructors are still wired through `Requires.@require`; that
-  mechanism fires on the package being loaded regardless of how it is declared. Verified that
-  GeometricProblems and PoincareInvariants 0.5.0 still co-resolve.
+  moved to `[weakdeps]`, which is where an optional dependency belongs in this package — `Makie` is
+  already there — with an accompanying `[extensions]` entry (see below). Its compat bound is
+  `"0.4, 0.5"`: unlike `[extras]`, a weakdep bound is actually resolved and therefore enforced, and
+  bounding to `"0.5"` alone would have excluded 0.4 — the last line on which the extension's bodies
+  would in fact run — while admitting only the line on which they cannot. Both are allowed until
+  the makeover picks a target. Verified that GeometricProblems and PoincareInvariants 0.5.0
+  co-resolve.
 - **`Requires` is gone, replaced by a `LotkaVolterra2dPoincareInvariants` extension.** The first
   Poincaré invariant was the package's only use of `Requires`, so dropping the `@require` block
-  drops the dependency with it; `ext/LotkaVolterra2dPoincareInvariants.jl` now carries the two
+  drops the dependency with it; `ext/LotkaVolterra2dPoincareInvariants.jl` now carries those
   methods, in the same shape as the `*Plots` extensions, and the parent modules gained
   `function ode_poincare_invariant_1st end` / `iode_poincare_invariant_1st end` stubs as the plot
   functions already had.
@@ -131,22 +142,24 @@ numerical and observational, and it invalidated three things the repository had 
   needs a complete makeover and the upstream interface is still being tuned, so 0.5 is not the
   target to write against.
 
-  What the move buys is the *possibility* of visibility. `Requires` defers its block to load time,
-  and since nothing in the suite or the docs loads PoincareInvariants, both call paths rotted
-  through at least two renames without anything noticing. An extension is precompiled — but only in
-  an environment that has its trigger package, and `test/Project.toml` still does not list
-  PoincareInvariants, so this code is not in front of CI yet either. Adding it there is the
-  remaining step, and is noted as such. One small behavioural consequence of the move: the two
-  names are now always defined (as functions with no methods) rather than springing into existence
-  when PoincareInvariants is loaded — again matching the plot functions.
+  What the move buys is visibility. `Requires` defers its block to load time, and since nothing in
+  the suite or the docs loaded PoincareInvariants, both call paths rotted through at least two
+  renames without anything noticing. An extension is precompiled — but only in an environment that
+  has its trigger package, so `test/Project.toml` now lists PoincareInvariants purely as that
+  trigger, and the new `test/poincare_invariants_tests.jl` asserts that the extension resolves,
+  that Pkg attaches it, and that it reaches all four Lotka-Volterra 2d modules. It also pins the
+  dead bodies to the `UndefVarError` they currently throw, so a repair has to come past a test. One
+  small behavioural consequence of the move: the invariant names are now always defined (as
+  functions with no methods) rather than springing into existence when PoincareInvariants is loaded
+  — again matching the plot functions.
 
-  The loop scaffolding moved with it: `initial_conditions_loop`, `ode_loop` and `iode_loop` are
-  unexported, are used by nothing outside this cluster, and now live in the extension too, leaving
-  the whole Poincaré-invariant surface in one file. `ode_loop`/`iode_loop` are dead for the same
-  reason as the invariants — they call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode` —
-  while `initial_conditions_loop` does work and continues to. Only `f_loop` stays in `src/`: it
-  parameterises the loop in phase space and is handed to the invariant as data, so both the
-  extension's `initial_conditions_loop` and its invariant methods read it off the module.
+  The two problem wrappers moved with it: `ode_loop` and `iode_loop` are unexported, are used by
+  nothing outside this cluster, and are dead for the same reason as the invariants — they call
+  `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`. `f_loop` and `initial_conditions_loop` stay in
+  `src/` instead. They parameterise and sample the loop in phase space, they are the only part of
+  the cluster that works, and they need nothing from PoincareInvariants — moving them would have
+  made a working function raise a `MethodError` unless an unrelated optional dependency happened to
+  be loaded. The extension reads both off the parent module.
 
   `lotka_volterra_2d_equations.jl` is included into all four Lotka-Volterra 2d modules, so all four
   export these names and the extension defines methods for all four. That is preserved as-is; if

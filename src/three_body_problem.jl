@@ -100,9 +100,11 @@ module ThreeBody
     1209 apart in ``q``. Neither is quieter than the other about it — they emit 5, 9, 4, 4, 4 and
     6, 1, 1, 5, 6 solver messages respectively — though the count is not the thing to compare on:
     repeated reports are capped by `maxlog` and a stagnating solve stops after `max_stalls`, so it
-    measures how a failure is *reported* rather than how badly it fails. Since neither solver can
-    integrate the collision and neither is systematically better behaved, the default Newton solver
-    is kept; on problems that *are* solvable the two agree bit for bit.
+    measures how a failure is *reported* rather than how badly it fails. The energy error is, and on
+    it `DogLeg` is not an improvement but a regression: it is worse at the two finest step sizes by
+    factors of 4 and ``9 \times 10^3``, and better nowhere by more than a factor of 3. Since neither
+    solver can integrate the collision and the trust region is the worse of the two where it differs,
+    the default Newton solver is kept; on problems that *are* solvable the two agree bit for bit.
     """
     const DEFAULT_TIMESTEP = figure_eight_period / 400
 
