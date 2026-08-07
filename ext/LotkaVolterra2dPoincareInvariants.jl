@@ -11,7 +11,13 @@ import GeometricProblems.LotkaVolterra2dSymmetric
 # export `ode_poincare_invariant_1st`/`iode_poincare_invariant_1st` and all four need a method here.
 # The bodies are identical up to the module they resolve their equations in, hence the loop.
 #
-# These methods are **dead**, and were dead under the `Requires.@require` block this replaces:
+# `initial_conditions_loop` samples the loop `f_loop` parameterises — `f_loop` itself stays in the
+# parent module, since it is handed to the invariant as data — and `ode_loop`/`iode_loop` wrap it
+# into a problem. They are unexported scaffolding for the invariant and are used by nothing else,
+# which is why they live here rather than in `src/`.
+#
+# The invariant methods and `ode_loop`/`iode_loop` are **dead**, and were dead under the
+# `Requires.@require` block this replaces:
 # `PoincareInvariant1st` was removed in PoincareInvariants 0.5.0, which moved the package from
 # SciML to JuliaGNI and reworked the interface (`FirstPoincareInvariant`/`FirstPI`, in-place forms
 # `form(out, t, z, p)`, and `compute!(pinv, integrate(PIEnsembleProblem(prob, pinv, init), method))`),
@@ -25,6 +31,24 @@ import GeometricProblems.LotkaVolterra2dSymmetric
 # `Requires` deferred to load time and nothing ever triggered.
 for M in (:LotkaVolterra2d, :LotkaVolterra2dGauge, :LotkaVolterra2dSingular, :LotkaVolterra2dSymmetric)
     @eval begin
+        function $M.initial_conditions_loop(n)
+            q₀ = zeros(2, n)
+
+            for i in axes(q₀, 2)
+                q₀[:, i] .= $M.f_loop(i, n)
+            end
+
+            return q₀
+        end
+
+        function $M.ode_loop(n)
+            $M.lotka_volterra_2d_ode($M.initial_conditions_loop(n))
+        end
+
+        function $M.iode_loop(n)
+            $M.lotka_volterra_2d_iode($M.initial_conditions_loop(n))
+        end
+
         function $M.ode_poincare_invariant_1st(timestep, nloop, ntime, nsave, DT = Float64)
             PoincareInvariant1st($M.lotka_volterra_2d_ode, $M.f_loop, $M.ϑ,
                 timestep, 2, nloop, ntime, nsave, DT)

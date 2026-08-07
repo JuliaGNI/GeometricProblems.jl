@@ -138,11 +138,18 @@ numerical and observational, and it invalidated three things the repository had 
   functions with no methods) rather than springing into existence when PoincareInvariants is
   loaded — again matching the plot functions.
 
+  The loop scaffolding moved with it: `initial_conditions_loop`, `ode_loop` and `iode_loop` are
+  unexported, are used by nothing outside this cluster, and now live in the extension too, leaving
+  the whole Poincaré-invariant surface in one file. `ode_loop`/`iode_loop` are dead for the same
+  reason as the invariants — they call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode` —
+  while `initial_conditions_loop` does work and continues to. Only `f_loop` stays in `src/`: it
+  parameterises the loop in phase space and is handed to the invariant as data, so both the
+  extension's `initial_conditions_loop` and its invariant methods read it off the module.
+
   `lotka_volterra_2d_equations.jl` is included into all four Lotka-Volterra 2d modules, so all four
   export these names and the extension defines methods for all four. That is preserved as-is; if
   the makeover decides the invariants belong only on `LotkaVolterra2d`, pruning the other three is
-  a separate call. The neighbouring `ode_loop`/`iode_loop` helpers are dead for the same reason and
-  were left alone — they are unexported and are not used by the invariant code.
+  a separate call.
 
 ## [0.8.1] — 2026-07-30
 
