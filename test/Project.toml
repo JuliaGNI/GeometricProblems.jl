@@ -7,6 +7,7 @@ GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
 GeometricSolutions = "7843afe4-64f4-4df4-9231-049495c56661"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4"
 SafeTestsets = "1bc83da4-3b8d-516f-aca4-4fe02f6d838f"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
@@ -17,6 +18,10 @@ GeometricProblems = {path = ".."}
 # GeometricIntegrators is a test-only dependency, so its bound belongs here, where it is
 # resolved, and not in the root project. 0.17 is what pulls in SimpleSolvers 0.10 and
 # GeometricIntegratorsBase 0.5.1; everything below 0.17 pins SimpleSolvers to 0.9.
+#
+# PoincareInvariants is here only as an extension trigger: it is what makes Pkg precompile
+# `LotkaVolterra2dPoincareInvariants` during the test run, so that a syntax or resolution error in
+# the extension fails CI. See `poincare_invariants_tests.jl`.
 [compat]
 CairoMakie = "0.15"
 ForwardDiff = "0.10, 1"
@@ -25,6 +30,7 @@ GeometricIntegrators = "0.17"
 GeometricSolutions = "0.6.5"
 LinearAlgebra = "1"
 Logging = "1"
+PoincareInvariants = "0.4, 0.5"
 SafeTestsets = "0.1"
 Test = "1"
 Unicode = "1"
