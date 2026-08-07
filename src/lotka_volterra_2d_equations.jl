@@ -147,18 +147,14 @@ end
 # The first Poincaré invariant, and the loop scaffolding it is built on, are implemented in the
 # `LotkaVolterra2dPoincareInvariants` extension (loaded with PoincareInvariants), in the same shape
 # as the `*Plots` extensions. Only `f_loop` above stays here: it parameterises the loop in phase
-# space and is handed to the invariant as data, so both the extension's `initial_conditions_loop`
-# and its invariant methods read it off the module.
+# space and is read off the module by both the extension's `initial_conditions_loop` and its
+# invariant methods.
 #
-# `ode_poincare_invariant_1st`, `iode_poincare_invariant_1st`, `ode_loop` and `iode_loop` are
-# **dead**, and were dead before the move: they call `PoincareInvariant1st`, removed in
-# PoincareInvariants 0.5.0, and `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are pre-0.7
-# constructor names (`odeproblem`/`iodeproblem` today). `initial_conditions_loop` does work, but
-# nothing outside this cluster uses it. All five are carried over unchanged rather than repaired:
-# the whole Poincaré-invariant integration is slated for a makeover, and the PoincareInvariants
-# interface is still being tuned, so 0.5 is not the target to write against. Moving them out of
-# `Requires.@require` and into an extension at least puts them where precompilation — and therefore
-# CI — can see them.
+# Everything except `initial_conditions_loop` is **dead** and throws `UndefVarError` when called:
+# the invariants need `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define, and the
+# two `*_loop` wrappers call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are now
+# `odeproblem`/`iodeproblem`. The bodies await a makeover of the Poincaré-invariant support; the
+# extension has the details.
 function initial_conditions_loop end
 function ode_loop end
 function iode_loop end

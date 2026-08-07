@@ -8,27 +8,24 @@ import GeometricProblems.LotkaVolterra2dSingular
 import GeometricProblems.LotkaVolterra2dSymmetric
 
 # `lotka_volterra_2d_equations.jl` is included into all four Lotka-Volterra 2d modules, so all four
-# export `ode_poincare_invariant_1st`/`iode_poincare_invariant_1st` and all four need a method here.
-# The bodies are identical up to the module they resolve their equations in, hence the loop.
+# declare these five names and all four need methods here. The bodies are identical up to the
+# module they resolve their equations in, hence the loop.
 #
-# `initial_conditions_loop` samples the loop `f_loop` parameterises — `f_loop` itself stays in the
-# parent module, since it is handed to the invariant as data — and `ode_loop`/`iode_loop` wrap it
-# into a problem. They are unexported scaffolding for the invariant and are used by nothing else,
-# which is why they live here rather than in `src/`.
+# `initial_conditions_loop` samples the loop the parent module's `f_loop` parameterises, and
+# `ode_loop`/`iode_loop` wrap it into a problem. All three are unexported scaffolding for the
+# invariants and are used by nothing else.
 #
-# The invariant methods and `ode_loop`/`iode_loop` are **dead**, and were dead under the
-# `Requires.@require` block this replaces:
-# `PoincareInvariant1st` was removed in PoincareInvariants 0.5.0, which moved the package from
-# SciML to JuliaGNI and reworked the interface (`FirstPoincareInvariant`/`FirstPI`, in-place forms
-# `form(out, t, z, p)`, and `compute!(pinv, integrate(PIEnsembleProblem(prob, pinv, init), method))`),
-# and `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode` are pre-0.7 constructor names — they are
-# `odeproblem`/`iodeproblem` now. Calling either method therefore throws `UndefVarError`.
+# Everything except `initial_conditions_loop` is **dead** and throws `UndefVarError` when called:
+# `PoincareInvariant1st` is not defined by PoincareInvariants 0.5 — the first invariant is
+# `FirstPoincareInvariant`/`FirstPI` there, forms are in-place (`form(out, t, z, p)`), and the entry
+# point is `compute!(pinv, integrate(PIEnsembleProblem(prob, pinv, init), method))` — and
+# `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode` are now `odeproblem`/`iodeproblem`.
 #
-# They are carried over unchanged on purpose. The Poincaré-invariant support needs a complete
-# makeover and the upstream interface is still being tuned, so 0.5 is not the target to write
-# against and a port done now would only be rewritten. What the move buys is visibility: an
-# extension is precompiled, so this file is at least loaded and parsed by CI, which is exactly what
-# `Requires` deferred to load time and nothing ever triggered.
+# The bodies are left unrepaired deliberately: the Poincaré-invariant support needs a makeover and
+# the PoincareInvariants interface is still being tuned, so 0.5 is not the interface to target.
+# Nothing exercises this file yet — an extension is precompiled only in an environment that has its
+# trigger package, and `test/Project.toml` does not list PoincareInvariants. Adding it there is what
+# would put this code in front of CI.
 for M in (:LotkaVolterra2d, :LotkaVolterra2dGauge, :LotkaVolterra2dSingular, :LotkaVolterra2dSymmetric)
     @eval begin
         function $M.initial_conditions_loop(n)

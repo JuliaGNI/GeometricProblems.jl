@@ -131,12 +131,14 @@ numerical and observational, and it invalidated three things the repository had 
   needs a complete makeover and the upstream interface is still being tuned, so 0.5 is not the
   target to write against.
 
-  What the move buys is visibility. `Requires` defers its block to load time, and since nothing in
-  the suite or the docs loads PoincareInvariants, both call paths rotted through at least two
-  renames without anything noticing. An extension is precompiled, so the file is now parsed and
-  loaded by CI. One small behavioural consequence: the two names are now always defined (as
-  functions with no methods) rather than springing into existence when PoincareInvariants is
-  loaded — again matching the plot functions.
+  What the move buys is the *possibility* of visibility. `Requires` defers its block to load time,
+  and since nothing in the suite or the docs loads PoincareInvariants, both call paths rotted
+  through at least two renames without anything noticing. An extension is precompiled — but only in
+  an environment that has its trigger package, and `test/Project.toml` still does not list
+  PoincareInvariants, so this code is not in front of CI yet either. Adding it there is the
+  remaining step, and is noted as such. One small behavioural consequence of the move: the two
+  names are now always defined (as functions with no methods) rather than springing into existence
+  when PoincareInvariants is loaded — again matching the plot functions.
 
   The loop scaffolding moved with it: `initial_conditions_loop`, `ode_loop` and `iode_loop` are
   unexported, are used by nothing outside this cluster, and now live in the extension too, leaving

@@ -97,18 +97,12 @@ module ThreeBody
     ``\Delta{}t = 0.5, 0.05, 0.01, 0.005, 0.001`` the default Newton method with a backtracking line
     search commits an energy error of 19, 15, 36, 399 and 249, and the trust-region `DogLeg` solver
     one of 9, 45, 12, 1615 and ``2.2 \times 10^6`` — with the two ending up 0.6, 3.8, 5.0, 50 and
-    1209 apart in ``q``. Neither is quieter than the other about it: they emit 5, 9, 4, 4, 4 and
-    6, 1, 1, 5, 6 solver messages respectively. Since neither solver can integrate the collision and
-    neither is systematically better behaved, the default Newton solver is kept; on problems that
-    *are* solvable the two agree bit for bit.
-
-    Under SimpleSolvers 0.9 the same measurement gave 596, 1346, 390, 321 and 361 messages for
-    Newton against 1–2 for `DogLeg`, and this paragraph existed to explain that the trust region was
-    merely quieter about the same failure. That asymmetry was itself an artefact: 0.10 caps repeated
-    reports with `maxlog` and stops a stagnating solve after `max_stalls` rather than letting it
-    spin to `max_iterations`, so the message count now measures how a failure is *reported*, not how
-    badly it fails. The energy error is the quantity to read, and it says the same thing the old
-    counts were being used to argue.
+    1209 apart in ``q``. Neither is quieter than the other about it — they emit 5, 9, 4, 4, 4 and
+    6, 1, 1, 5, 6 solver messages respectively — though the count is not the thing to compare on:
+    repeated reports are capped by `maxlog` and a stagnating solve stops after `max_stalls`, so it
+    measures how a failure is *reported* rather than how badly it fails. Since neither solver can
+    integrate the collision and neither is systematically better behaved, the default Newton solver
+    is kept; on problems that *are* solvable the two agree bit for bit.
     """
     const DEFAULT_TIMESTEP = figure_eight_period / 400
 
