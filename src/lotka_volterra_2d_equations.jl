@@ -1,7 +1,6 @@
 
 using GeometricEquations
 using GeometricSolutions
-using Requires
 
 export odeproblem,  daeproblem,
        podeproblem, pdaeproblem,
@@ -165,16 +164,15 @@ function iode_loop(n)
 end
 
 
-function __init__()
-    @require PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4" begin
-
-        function ode_poincare_invariant_1st(timestep, nloop, ntime, nsave, DT=Float64)
-            PoincareInvariant1st(lotka_volterra_2d_ode, f_loop, ϑ, timestep, 2, nloop, ntime, nsave, DT)
-        end
-
-        function iode_poincare_invariant_1st(timestep, nloop, ntime, nsave, DT=Float64)
-            PoincareInvariant1st(lotka_volterra_2d_iode, f_loop, ϑ, timestep, 2, nloop, ntime, nsave, DT)
-        end
-
-    end
-end
+# The first Poincaré invariant is implemented in the `LotkaVolterra2dPoincareInvariants` extension
+# (loaded with PoincareInvariants), in the same shape as the `*Plots` extensions.
+#
+# Both methods are **dead** and were dead before the move: their bodies call `PoincareInvariant1st`,
+# removed in PoincareInvariants 0.5.0, on `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which
+# are pre-0.7 constructor names (`odeproblem`/`iodeproblem` today). They are carried over unchanged
+# rather than repaired: the whole Poincaré-invariant integration is slated for a makeover, and the
+# PoincareInvariants interface is still being tuned, so 0.5 is not the target to write against.
+# Moving them out of `Requires.@require` and into an extension at least puts them where
+# precompilation — and therefore CI — can see them.
+function ode_poincare_invariant_1st end
+function iode_poincare_invariant_1st end

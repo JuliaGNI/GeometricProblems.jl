@@ -117,6 +117,32 @@ numerical and observational, and it invalidated three things the repository had 
   because the Poincaré-invariant constructors are still wired through `Requires.@require`; that
   mechanism fires on the package being loaded regardless of how it is declared. Verified that
   GeometricProblems and PoincareInvariants 0.5.0 still co-resolve.
+- **`Requires` is gone, replaced by a `LotkaVolterra2dPoincareInvariants` extension.** The first
+  Poincaré invariant was the package's only use of `Requires`, so dropping the `@require` block
+  drops the dependency with it; `ext/LotkaVolterra2dPoincareInvariants.jl` now carries the two
+  methods, in the same shape as the `*Plots` extensions, and the parent modules gained
+  `function ode_poincare_invariant_1st end` / `iode_poincare_invariant_1st end` stubs as the plot
+  functions already had.
+
+  **The code is still dead, deliberately.** It calls `PoincareInvariant1st`, removed in
+  PoincareInvariants 0.5.0, on `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are pre-0.7
+  constructor names; calling either method throws `UndefVarError`, exactly as it did before the
+  move. It is carried over unchanged rather than repaired because the Poincaré-invariant support
+  needs a complete makeover and the upstream interface is still being tuned, so 0.5 is not the
+  target to write against.
+
+  What the move buys is visibility. `Requires` defers its block to load time, and since nothing in
+  the suite or the docs loads PoincareInvariants, both call paths rotted through at least two
+  renames without anything noticing. An extension is precompiled, so the file is now parsed and
+  loaded by CI. One small behavioural consequence: the two names are now always defined (as
+  functions with no methods) rather than springing into existence when PoincareInvariants is
+  loaded — again matching the plot functions.
+
+  `lotka_volterra_2d_equations.jl` is included into all four Lotka-Volterra 2d modules, so all four
+  export these names and the extension defines methods for all four. That is preserved as-is; if
+  the makeover decides the invariants belong only on `LotkaVolterra2d`, pruning the other three is
+  a separate call. The neighbouring `ode_loop`/`iode_loop` helpers are dead for the same reason and
+  were left alone — they are unexported and are not used by the invariant code.
 
 ## [0.8.1] — 2026-07-30
 
