@@ -45,6 +45,20 @@ function f_loop(i, n)
    f_loop(i/n)
 end
 
+# Samples the loop `f_loop` parameterises at `n` equidistant points. Together with `f_loop` this is
+# the live half of the Poincaré-invariant scaffolding, and it depends on nothing optional, so it
+# stays here rather than moving into the extension with the invariants themselves.
+function initial_conditions_loop(n)
+   q₀ = zeros(2, n)
+
+   for i in axes(q₀,2)
+       q₀[:,i] .= f_loop(i, n)
+   end
+
+   return q₀
+end
+
+
 compute_energy_error(t, q, params) = compute_invariant_error(t, q, params, hamiltonian)
 
 
@@ -144,18 +158,17 @@ function iodeproblem_dg(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPA
 end
 
 
-# The first Poincaré invariant, and the loop scaffolding it is built on, are implemented in the
+# The first Poincaré invariant, and the two problem wrappers built on it, are implemented in the
 # `LotkaVolterra2dPoincareInvariants` extension (loaded with PoincareInvariants), in the same shape
-# as the `*Plots` extensions. Only `f_loop` above stays here: it parameterises the loop in phase
-# space and is read off the module by both the extension's `initial_conditions_loop` and its
-# invariant methods.
+# as the `*Plots` extensions. `f_loop` and `initial_conditions_loop` above stay here instead: they
+# parameterise and sample the loop in phase space, need nothing optional to do it, and are read off
+# the module by the extension.
 #
-# Everything except `initial_conditions_loop` is **dead** and throws `UndefVarError` when called:
-# the invariants need `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define, and the
-# two `*_loop` wrappers call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are now
+# All four names below are **dead** and throw `UndefVarError` when called: the invariants need
+# `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define, and the two `*_loop`
+# wrappers call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are now
 # `odeproblem`/`iodeproblem`. The bodies await a makeover of the Poincaré-invariant support; the
 # extension has the details.
-function initial_conditions_loop end
 function ode_loop end
 function iode_loop end
 function ode_poincare_invariant_1st end
