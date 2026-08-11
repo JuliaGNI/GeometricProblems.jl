@@ -61,3 +61,19 @@ Makie backend such as `CairoMakie` is loaded.
 Modules = [GeometricProblems.LotkaVolterra2d]
 Order   = [:constant, :type, :macro, :function]
 ```
+
+## Poincaré invariants
+
+The Poincaré invariants are provided by the `LotkaVolterra2dPoincareInvariants`
+extension and become available once `PoincareInvariants` is loaded. Each of the
+four sub-models carries its own pair, built over its own one- and two-form. The
+pair belonging to `LotkaVolterra2d` is listed under User Functions above.
+
+```@docs
+GeometricProblems.LotkaVolterra2dSymmetric.poincare_invariant_1st
+GeometricProblems.LotkaVolterra2dSymmetric.poincare_invariant_2nd
+GeometricProblems.LotkaVolterra2dSingular.poincare_invariant_1st
+GeometricProblems.LotkaVolterra2dSingular.poincare_invariant_2nd
+GeometricProblems.LotkaVolterra2dGauge.poincare_invariant_1st
+GeometricProblems.LotkaVolterra2dGauge.poincare_invariant_2nd
+```

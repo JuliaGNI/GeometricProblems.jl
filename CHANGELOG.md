@@ -28,21 +28,27 @@ and already in exactly the in-place `form(out, t, z, p)` shape PoincareInvariant
 through unwrapped. What was missing was the geometry to integrate over and two constructors.
 
 ### Added
-- **`f_surface(s, t)` for the Lotka-Volterra 2d modules**, the rectangular patch that the existing
-  `f_loop` encircles: `x ∈ 1 ± 0.1`, `y ∈ 1 ± 0.15`. Like `f_loop` it lives in
-  `src/lotka_volterra_2d_equations.jl`, not in the extension — it parameterises a surface in phase
-  space and needs nothing optional to do it.
-- **`f_loop(s)` and `f_surface(s, t)` for both massless charged particles**, a circle and a square
-  of radius 0.2 about the module's own `q₀ = [1.0, 1.0]`, in
+- **`f_surface(s, t)` for the Lotka-Volterra 2d modules**, a rectangular patch concentric with the
+  existing `f_loop` and spanning half its semi-axes: `x ∈ 1 ± 0.1`, `y ∈ 1 ± 0.15`. It lies inside
+  the loop but is not the region the loop bounds, so its invariant is a different number from the
+  loop's. Like `f_loop` it lives in `src/lotka_volterra_2d_equations.jl`, not in the extension — it
+  parameterises a surface in phase space and needs nothing optional to do it.
+- **`f_loop(s)` and `f_surface(s, t)` for both massless charged particles**, the circle of radius 0.2
+  and the concentric square of side 0.2 about the module's own `q₀ = [1.0, 1.0]`, in
   `src/massless_charged_particle_common.jl`. Neither gauge had any loop before, so neither could
   have a first invariant at all.
+- **`loop_centre` and `loop_radii`** in both files, so that `f_loop` and `f_surface` are described by
+  one set of numbers that cannot drift apart, and so that the tests can build the disc the loop
+  bounds from the same constants.
 - **`poincare_invariant_1st(N)` and `poincare_invariant_2nd(N)`** on all six modules, building
-  `FirstPI{T, 2}(ϑ, N, plan)` and `SecondPI{T, 2}(ω, N, plan)` over the module's *own* forms.
-  `D = 2` throughout: these Lagrangians are degenerate, so the loop and the surface live in the
-  two-dimensional configuration space alone, with the momentum determined by `ϑ(q)` — which is also
-  what `PIEnsembleProblem` seeds each ensemble member with. The keyword `plan` defaults to
-  `FirstFourierPlan` and `SecondChebyshevPlan`; the latter samples at Padua points and rounds `N` up
-  to the next Padua number.
+  `FirstPI{T, 2}(ϑ, N, plan)` and `SecondPI{T, 2}(ω, N, plan)` over the module's *own* forms, with
+  docstrings on all six. `D = 2` throughout: these Lagrangians are degenerate, so the loop and the
+  surface live in the two-dimensional configuration space alone, with the momentum determined by
+  `ϑ(q)` — which is also what `PIEnsembleProblem` seeds each ensemble member with. The keyword `plan`
+  defaults to PoincareInvariants' own `DEFAULT_FIRST_PLAN`/`DEFAULT_SECOND_PLAN` rather than naming a
+  plan, so that upstream stays free to change them; today those are `FirstFourierPlan` and
+  `SecondChebyshevPlan`, the latter sampling at Padua points and rounding `N` up to the next Padua
+  number.
 - **`MasslessChargedParticlePoincareInvariants`**, a new extension carrying those two constructors
   for the two charged-particle gauges, in the same shape as the Lotka-Volterra one and as the
   `*Plots` extensions.
@@ -58,21 +64,33 @@ through unwrapped. What was missing was the geometry to integrate over and two c
   replaces them instead of promising a makeover.
 
 ### Tests
-- `test/poincare_invariants_tests.jl` rewritten around the live interface; 160 assertions, up from
-  25. Both extensions are checked to resolve, the constructors to reach all six modules, and — the
-  failure this guards against, since the six gauges differ only in their forms — **each invariant to
-  carry its own module's** `ϑ` **and** `ω`, by identity.
-- **The second invariant is checked against a closed form.** For the singular Lotka-Volterra gauge
-  `ω₁₂ = 1/q₁q₂`, so over `f_surface` the invariant is `log(1.1/0.9) · log(1.15/0.85)` exactly; the
-  computed value matches to `rtol = 1e-10`. This pins parameterisation, two-form and quadrature
-  together against a number that owes nothing to the implementation.
-- **The invariant error is checked to converge at the order of the method**, which is the sharp
-  statement about the wiring: a form belonging to the wrong gauge would still be small but would not
-  converge cleanly. Advecting the loop of the singular gauge with `VPRKGauss(2)` over four steps at
-  `h = 0.02, 0.01, 0.005` gives relative errors `5.1e-6`, `6.5e-7`, `8.2e-8` — ratios 7.8 and 7.9,
-  i.e. third order. Note that the error is *not* zero: a variational integrator preserves the
-  noncanonical `ω(q)` of a degenerate Lagrangian only to its own order, because the solution
-  satisfies `p = ϑ(q)` only up to the truncation error.
+- `test/poincare_invariants_tests.jl` rewritten around the live interface; 208 assertions, up from
+  25. Both extensions are checked to resolve, the constructors to reach all six modules, and each
+  invariant to carry its own module's `ϑ` and `ω`, by identity.
+- **The second invariant is checked against a closed form, sign included.** For the singular
+  Lotka-Volterra gauge `ω₁₂ = 1/q₁q₂`, so over `f_surface` the invariant is
+  `-log(1.1/0.9) · log(1.15/0.85)` exactly; the computed value matches to `rtol = 1e-10`. The minus
+  is this repo's `Ω = -dϑ` convention, and is what gives the second invariant the same sign as the
+  first, as Stokes' theorem demands; asserting the magnitude alone would let an orientation flip in
+  either the plan or the two-form through.
+- **The two invariants are checked against each other by Stokes' theorem.** `∮ ϑ` over `f_loop` and
+  `∫∫ ω` over the disc that loop bounds are the same number, and agree here to a few parts in `10⁶`
+  for the Lotka-Volterra gauges and a few in `10⁸` for the massless charged particles. This is the
+  sharpest value-level check in the file, because it is the only one that has to hold across both
+  invariants, both forms and both plans at once.
+- **The invariant error is checked to converge faster than second order.** Advecting the loop of the
+  singular gauge with `VPRKGauss(2)` over four steps at `h = 0.02, 0.01, 0.005` gives relative errors
+  `5.1e-6`, `6.5e-7`, `8.2e-8` — ratios 7.8 and 7.9, i.e. an observed rate of 3. That rate is
+  empirical and is *not* "the order of the method": `order(VPRKGauss(2))` reports 2, while the
+  underlying Gauss q-tableau is order 4. Hence the one-sided bound. Note that the error is not zero
+  either: a variational integrator preserves the noncanonical `ω(q)` of a degenerate Lagrangian only
+  to its own order, because the solution satisfies `p = ϑ(q)` only up to the truncation error.
+- **What none of this can catch, and why**, is now recorded at the top of the test file. Within a
+  family the gauges differ by a gauge transformation, so their one-forms differ by an exact form,
+  whose integral over a closed loop vanishes — substituting another gauge's `ϑ` reproduces both the
+  invariant and its convergence rate to nine digits. And `ω = -dϑ` is gauge invariant, so the four
+  Lotka-Volterra 2d two-forms are numerically the same function. Form provenance is therefore pinned
+  by identity, not by value.
 - The full advection path — `PIEnsembleProblem` → `integrate` → `compute!` — now runs in the suite
   for all six problems, on both invariants.
 

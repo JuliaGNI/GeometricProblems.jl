@@ -30,11 +30,15 @@ const q₀ = [2.0, 1.0]
 const v₀ = [v₁(0, q₀, default_parameters()), v₂(0, q₀, default_parameters())]
 
 
+# Centre and semi-axes of the ellipse in phase space that `f_loop` traces, for the first Poincaré
+# invariant. `f_surface` reads them too, so that the two parameterisations cannot drift apart, and
+# `test/poincare_invariants_tests.jl` reads them to build the disc that the loop bounds.
+const loop_centre = (1.0, 1.0)
+const loop_radii = (0.2, 0.3)
+
 function f_loop(s)
-   rx = 0.2
-   ry = 0.3
-   x0 = 1.0
-   y0 = 1.0
+   x0, y0 = loop_centre
+   rx, ry = loop_radii
 
    xs = x0 + rx*cos(2π*s)
    ys = y0 + ry*sin(2π*s)
@@ -48,14 +52,15 @@ function f_loop(i, n)
    f_loop(i/n)
 end
 
-# The rectangular patch of phase space that `f_loop` encircles, for the second Poincaré invariant.
+# A rectangular patch of phase space for the second Poincaré invariant, concentric with `f_loop` and
+# spanning half its semi-axes in each direction: x ∈ 1 ± 0.1, y ∈ 1 ± 0.15. It lies inside the loop
+# but is *not* the region the loop bounds, so its invariant is a different number from the loop's;
+# `test/poincare_invariants_tests.jl` integrates over both, and over the disc as well.
 # `PoincareInvariants.getpoints` samples it over the unit square, at the points its plan prescribes
 # (Padua points for the Chebyshev plan, a regular grid for the finite-difference one).
 function f_surface(s, t)
-   rx = 0.2
-   ry = 0.3
-   x0 = 1.0
-   y0 = 1.0
+   x0, y0 = loop_centre
+   rx, ry = loop_radii
 
    xs = x0 + rx*(s - 0.5)
    ys = y0 + ry*(t - 0.5)
@@ -184,16 +189,62 @@ end
 # the loop and the surface in phase space, need nothing optional to do it, and are read off the
 # module by the extension.
 #
-# `poincare_invariant_1st(N)` and `poincare_invariant_2nd(N)` build the invariants of the
-# PoincareInvariants 0.5 interface over the module's own one- and two-form. Advect their points
-# with `PIEnsembleProblem` and evaluate with `compute!`:
-#
-#     pinv = poincare_invariant_1st(200)
-#     prob = iodeproblem(; timespan = (0.0, 1E2), timestep = 1E-1)
-#     sol  = integrate(PIEnsembleProblem(prob, pinv, f_loop), VPRKGauss(2))
-#     I₁   = compute!(pinv, sol, parameters(prob))
-#
+@doc raw"""
+    poincare_invariant_1st(N; DT = Float64, plan = PoincareInvariants.DEFAULT_FIRST_PLAN)
+
+Set up the first Poincaré invariant
+```math
+I_1 (t) = \oint_{\gamma_t} \vartheta ,
+```
+the integral of this module's one-form ``\vartheta`` over a loop ``\gamma_t``, sampled at `N` points.
+The Lagrangian is degenerate, so the momentum is not an independent coordinate but determined by
+``p = \vartheta(q)``, and the loop lives in the two-dimensional configuration space alone.
+
+This is implemented in the `LotkaVolterra2dPoincareInvariants` extension and becomes available once
+PoincareInvariants is loaded. Sample a loop with `f_loop`, advect the sample points with
+`PIEnsembleProblem` and evaluate with `compute!`:
+
+```julia
+pinv = poincare_invariant_1st(200)
+prob = iodeproblem(; timespan = (0.0, 1E2), timestep = 1E-1)
+sol  = integrate(PIEnsembleProblem(prob, pinv, f_loop), VPRKGauss(2))
+I₁   = compute!(pinv, sol, parameters(prob))
+```
+
+Note that `I₁` is preserved by a variational integrator only to the order of the discretisation, not
+exactly: the numerical solution satisfies ``p = \vartheta(q)`` only up to the truncation error.
+
+The four gauges of the Lotka-Volterra 2d model differ by gauge transformations, which change
+``\vartheta`` by an exact form. Since the integral of an exact form over a closed loop vanishes, all
+four give the same ``I_1`` for the same loop.
+
+See also `poincare_invariant_2nd`.
+"""
 function poincare_invariant_1st end
+
+@doc raw"""
+    poincare_invariant_2nd(N; DT = Float64, plan = PoincareInvariants.DEFAULT_SECOND_PLAN)
+
+Set up the second Poincaré invariant
+```math
+I_2 (t) = \int_{\sigma_t} \omega ,
+```
+the integral of this module's two-form ``\omega`` over a surface ``\sigma_t``, sampled at `N` points.
+As for the first invariant the surface lives in the two-dimensional configuration space alone. The
+default plan samples at Padua points and rounds `N` up to the next Padua number, so the invariant
+may use slightly more points than requested; `getpointnum` reports how many.
+
+This is implemented in the `LotkaVolterra2dPoincareInvariants` extension and becomes available once
+PoincareInvariants is loaded. It is used exactly like the first invariant, with `f_surface` in place
+of `f_loop`. If the surface is the region a loop bounds, then ``I_2`` over the surface and ``I_1``
+over the loop agree by Stokes' theorem — `f_surface` is *not* that region for `f_loop`, but lies
+inside it.
+
+Unlike ``\vartheta``, ``\omega = -d\vartheta`` is gauge invariant, so all four gauges of the
+Lotka-Volterra 2d model share the same two-form.
+
+See also `poincare_invariant_1st`.
+"""
 function poincare_invariant_2nd end
 
 
