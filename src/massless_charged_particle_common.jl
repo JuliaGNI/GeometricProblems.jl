@@ -5,6 +5,7 @@ using GeometricSolutions
 export ϑ, ω, A, B, ϕ, E, hamiltonian, lagrangian
 export odeproblem, iodeproblem, lodeproblem, idaeproblem, idaeproblem_spark, ldaeproblem
 export compute_energy_error, compute_momentum_error
+export poincare_invariant_1st, poincare_invariant_2nd
 
 
 # default simulation parameters
@@ -17,6 +18,35 @@ const DEFAULT_TIMESTEP = Δt
 const q₀ = [1.0, 1.0]
 
 default_parameters(::Type{T}=Float64) where {T} = (A₀ = T(1.0), E₀ = T(1.0))
+
+
+# Centre and radii of the circle in phase space that `f_loop` traces around the default initial
+# condition, for the first Poincaré invariant. `f_surface` reads them too, so that the two
+# parameterisations cannot drift apart, and `test/poincare_invariants_tests.jl` reads them to build
+# the disc that the loop bounds. Both are small enough that the sampled orbits stay in the region
+# the default trajectory explores.
+const loop_centre = (q₀[1], q₀[2])
+const loop_radii = (0.2, 0.2)
+
+# The circle of radius 0.2 about `loop_centre`. `PoincareInvariants.getpoints` samples it over the
+# unit interval, at the points its plan prescribes.
+function f_loop(s)
+    x0, y0 = loop_centre
+    rx, ry = loop_radii
+
+    [x0 + rx * cos(2π*s), y0 + ry * sin(2π*s)]
+end
+
+# The concentric square of side 0.2, i.e. spanning half the loop's radius in each direction, sampled
+# over the unit square. It lies inside the loop but is *not* the region the loop bounds, so its
+# invariant is a different number from the loop's; `test/poincare_invariants_tests.jl` integrates
+# over both, and over the disc as well.
+function f_surface(s, t)
+    x0, y0 = loop_centre
+    rx, ry = loop_radii
+
+    [x0 + rx * (s - 0.5), y0 + ry * (t - 0.5)]
+end
 
 # vector potential (components A₁, A₂ are defined by the including module)
 A(q, params) = [A₁(q, params), A₂(q, params)]
@@ -267,3 +297,67 @@ export plot_solution, plot_phase_portrait, plot_traces
 function plot_solution end
 function plot_phase_portrait end
 function plot_traces end
+
+
+# The Poincaré invariants are implemented in the `MasslessChargedParticlePoincareInvariants`
+# extension (loaded with PoincareInvariants); `f_loop` and `f_surface` above stay here, as they
+# need nothing optional.
+
+@doc raw"""
+    poincare_invariant_1st(N; DT = Float64, plan = PoincareInvariants.DEFAULT_FIRST_PLAN)
+
+Set up the first Poincaré invariant
+```math
+I_1 (t) = \oint_{\gamma_t} \vartheta ,
+```
+the integral of this module's one-form ``\vartheta = A(q)`` over a loop ``\gamma_t``, sampled at `N`
+points. The Lagrangian is degenerate, so the momentum is not an independent coordinate but determined
+by ``p = \vartheta(q)``, and the loop lives in the two-dimensional configuration space alone.
+
+This is implemented in the `MasslessChargedParticlePoincareInvariants` extension and becomes
+available once PoincareInvariants is loaded. Sample a loop with `f_loop`, advect the sample points
+with `PIEnsembleProblem` and evaluate with `compute!`:
+
+```julia
+pinv = poincare_invariant_1st(200)
+prob = iodeproblem(; timespan = (0.0, 1E2), timestep = 1E-1)
+sol  = integrate(PIEnsembleProblem(prob, pinv, f_loop), VPRKGauss(2))
+I₁   = compute!(pinv, sol, parameters(prob))
+```
+
+Note that `I₁` is preserved by a variational integrator only to the order of the discretisation, not
+exactly: the numerical solution satisfies ``p = \vartheta(q)`` only up to the truncation error.
+
+The two gauges of the massless charged particle differ by a gauge transformation, which changes
+``\vartheta`` by an exact form. Since the integral of an exact form over a closed loop vanishes, both
+give the same ``I_1`` for the same loop.
+
+See also `poincare_invariant_2nd`.
+"""
+function poincare_invariant_1st end
+
+@doc raw"""
+    poincare_invariant_2nd(N; DT = Float64, plan = PoincareInvariants.DEFAULT_SECOND_PLAN)
+
+Set up the second Poincaré invariant
+```math
+I_2 (t) = \int_{\sigma_t} \omega ,
+```
+the integral of this module's two-form ``\omega``, whose only component is ``\omega_{12} = -B(q)``,
+over a surface ``\sigma_t`` sampled at `N` points. As for the first invariant the surface lives in
+the two-dimensional configuration space alone. The default plan samples at Padua points and rounds
+`N` up to the next Padua number, so the invariant may use slightly more points than requested;
+`getpointnum` reports how many.
+
+This is implemented in the `MasslessChargedParticlePoincareInvariants` extension and becomes
+available once PoincareInvariants is loaded. It is used exactly like the first invariant, with
+`f_surface` in place of `f_loop`. If the surface is the region a loop bounds, then ``I_2`` over the
+surface and ``I_1`` over the loop agree by Stokes' theorem — `f_surface` is *not* that region for
+`f_loop`, but lies inside it.
+
+Unlike ``\vartheta``, ``\omega = -d\vartheta`` is gauge invariant, so both gauges of the massless
+charged particle share the same two-form.
+
+See also `poincare_invariant_1st`.
+"""
+function poincare_invariant_2nd end

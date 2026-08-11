@@ -96,6 +96,6 @@ end
 @safetestset "Plotting extensions                                                             " begin
     include("plots_tests.jl")
 end
-@safetestset "Poincaré invariants extension                                                   " begin
+@safetestset "Poincaré invariants extensions                                                  " begin
     include("poincare_invariants_tests.jl")
 end

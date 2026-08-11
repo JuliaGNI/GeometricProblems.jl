@@ -94,6 +94,10 @@ end
 # end
 
 
+# The one-form of this problem is the κ-dependent closure below, not the module-level
+# `lotka_volterra_2d_ϑ` that `poincare_invariant_1st` integrates. That is not a mismatch: the two
+# differ by an exact form, so the loop integral is the same for every κ (checked numerically to 15
+# digits), and `poincare_invariant_1st` may be paired with this problem as with any other.
 function iodeproblem_dg_gauge(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters(), κ=0)
     lotka_volterra_2d_ϑ = (p, t, q, v, params) -> lotka_volterra_2d_ϑ_κ(p, t, q, v, params, κ)
     lotka_volterra_2d_f = (f, t, q, v, params) -> lotka_volterra_2d_f_κ(f, t, q, v, params, κ)
