@@ -1,6 +1,6 @@
 name = "GeometricProblems"
 uuid = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
-version = "0.8.2"
+version = "0.8.3"
 authors = ["Michael Kraus <michael.kraus@ipp.mpg.de>"]
 
 [deps]
@@ -24,7 +24,10 @@ NaNMath = "1"
 Parameters = "0.12, 0.13"
 Reexport = "1"
 Makie = "0.21, 0.22, 0.23, 0.24"
-PoincareInvariants = "0.4, 0.5"
+# The Poincaré-invariant extensions build `FirstPI`/`SecondPI`, which only 0.5 defines. The 0.4
+# bound covered the pre-0.4 interface that the extensions still carry but that has never worked
+# against a released PoincareInvariants, so nothing is lost by dropping it.
+PoincareInvariants = "0.5"
 julia = "1.10"
 
 [weakdeps]
@@ -39,5 +42,6 @@ LotkaVolterra2dPoincareInvariants = "PoincareInvariants"
 LotkaVolterra3dPlots = "Makie"
 LotkaVolterra4dPlots = "Makie"
 MasslessChargedParticlePlots = "Makie"
+MasslessChargedParticlePoincareInvariants = "PoincareInvariants"
 PendulumPlots = "Makie"
 PointVorticesPlots = "Makie"

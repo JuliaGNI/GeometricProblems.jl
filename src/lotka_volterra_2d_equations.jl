@@ -9,6 +9,9 @@ export odeproblem,  daeproblem,
        hodeproblem, hdaeproblem,
        iodeproblem_dg, ldaeproblem_slrk, idaeproblem_spark
 
+export poincare_invariant_1st,
+       poincare_invariant_2nd
+
 export ode_poincare_invariant_1st,
        iode_poincare_invariant_1st
 
@@ -43,6 +46,23 @@ end
 
 function f_loop(i, n)
    f_loop(i/n)
+end
+
+# The rectangular patch of phase space that `f_loop` encircles, for the second Poincaré invariant.
+# `PoincareInvariants.getpoints` samples it over the unit square, at the points its plan prescribes
+# (Padua points for the Chebyshev plan, a regular grid for the finite-difference one).
+function f_surface(s, t)
+   rx = 0.2
+   ry = 0.3
+   x0 = 1.0
+   y0 = 1.0
+
+   xs = x0 + rx*(s - 0.5)
+   ys = y0 + ry*(t - 0.5)
+
+   qs = [xs, ys]
+
+   return qs
 end
 
 # Samples the loop `f_loop` parameterises at `n` equidistant points. Together with `f_loop` this is
@@ -158,17 +178,30 @@ function iodeproblem_dg(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPA
 end
 
 
-# The first Poincaré invariant, and the two problem wrappers built on it, are implemented in the
-# `LotkaVolterra2dPoincareInvariants` extension (loaded with PoincareInvariants), in the same shape
-# as the `*Plots` extensions. `f_loop` and `initial_conditions_loop` above stay here instead: they
-# parameterise and sample the loop in phase space, need nothing optional to do it, and are read off
-# the module by the extension.
+# The Poincaré invariants are implemented in the `LotkaVolterra2dPoincareInvariants` extension
+# (loaded with PoincareInvariants), in the same shape as the `*Plots` extensions. `f_loop`,
+# `f_surface` and `initial_conditions_loop` above stay here instead: they parameterise and sample
+# the loop and the surface in phase space, need nothing optional to do it, and are read off the
+# module by the extension.
 #
-# All four names below are **dead** and throw `UndefVarError` when called: the invariants need
-# `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define, and the two `*_loop`
-# wrappers call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are now
-# `odeproblem`/`iodeproblem`. The bodies await a makeover of the Poincaré-invariant support; the
-# extension has the details.
+# `poincare_invariant_1st(N)` and `poincare_invariant_2nd(N)` build the invariants of the
+# PoincareInvariants 0.5 interface over the module's own one- and two-form. Advect their points
+# with `PIEnsembleProblem` and evaluate with `compute!`:
+#
+#     pinv = poincare_invariant_1st(200)
+#     prob = iodeproblem(; timespan = (0.0, 1E2), timestep = 1E-1)
+#     sol  = integrate(PIEnsembleProblem(prob, pinv, f_loop), VPRKGauss(2))
+#     I₁   = compute!(pinv, sol, parameters(prob))
+#
+function poincare_invariant_1st end
+function poincare_invariant_2nd end
+
+
+# The four names below are the pre-0.4 interface. They are **dead** and throw `UndefVarError` when
+# called: the invariant needs `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define,
+# and the two `*_loop` wrappers call `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode`, which are now
+# `odeproblem`/`iodeproblem`. They are superseded by the two constructors above and kept only so
+# that the export list stays backwards compatible within 0.8; the extension has the details.
 function ode_loop end
 function iode_loop end
 function ode_poincare_invariant_1st end

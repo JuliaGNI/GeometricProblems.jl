@@ -5,6 +5,7 @@ using GeometricSolutions
 export ϑ, ω, A, B, ϕ, E, hamiltonian, lagrangian
 export odeproblem, iodeproblem, lodeproblem, idaeproblem, idaeproblem_spark, ldaeproblem
 export compute_energy_error, compute_momentum_error
+export poincare_invariant_1st, poincare_invariant_2nd
 
 
 # default simulation parameters
@@ -17,6 +18,23 @@ const DEFAULT_TIMESTEP = Δt
 const q₀ = [1.0, 1.0]
 
 default_parameters(::Type{T}=Float64) where {T} = (A₀ = T(1.0), E₀ = T(1.0))
+
+
+# A loop and a rectangular patch of phase space around the default initial condition, for the
+# first and the second Poincaré invariant. `PoincareInvariants.getpoints` samples them over the
+# unit interval and the unit square, at the points its plan prescribes. Both are small enough
+# that the sampled orbits stay in the region the default trajectory explores.
+function f_loop(s)
+    r = 0.2
+
+    [q₀[1] + r * cos(2π*s), q₀[2] + r * sin(2π*s)]
+end
+
+function f_surface(s, t)
+    r = 0.2
+
+    [q₀[1] + r * (s - 0.5), q₀[2] + r * (t - 0.5)]
+end
 
 # vector potential (components A₁, A₂ are defined by the including module)
 A(q, params) = [A₁(q, params), A₂(q, params)]
@@ -267,3 +285,18 @@ export plot_solution, plot_phase_portrait, plot_traces
 function plot_solution end
 function plot_phase_portrait end
 function plot_traces end
+
+
+# The Poincaré invariants are implemented in the `MasslessChargedParticlePoincareInvariants`
+# extension (loaded with PoincareInvariants); `f_loop` and `f_surface` above stay here, as they
+# need nothing optional. `poincare_invariant_1st(N)` and `poincare_invariant_2nd(N)` build the
+# invariants over the module's own one- and two-form. Advect their points with `PIEnsembleProblem`
+# and evaluate with `compute!`:
+#
+#     pinv = poincare_invariant_1st(200)
+#     prob = iodeproblem(; timespan = (0.0, 1E2), timestep = 1E-1)
+#     sol  = integrate(PIEnsembleProblem(prob, pinv, f_loop), VPRKGauss(2))
+#     I₁   = compute!(pinv, sol, parameters(prob))
+#
+function poincare_invariant_1st end
+function poincare_invariant_2nd end
