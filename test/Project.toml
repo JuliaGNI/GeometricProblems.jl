@@ -3,6 +3,7 @@ CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 GeometricEquations = "c85262ba-a08a-430a-b926-d29770767bf2"
 GeometricIntegrators = "dcce2d33-59f6-5b8d-9047-0defad88ae06"
+GeometricIntegratorsBase = "71212ab4-08a2-48eb-a02b-4cbad0e9c44a"
 GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
 GeometricSolutions = "7843afe4-64f4-4df4-9231-049495c56661"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -16,8 +17,14 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 GeometricProblems = {path = ".."}
 
 # GeometricIntegrators is a test-only dependency, so its bound belongs here, where it is
-# resolved, and not in the root project. 0.17 is what pulls in SimpleSolvers 0.10 and
-# GeometricIntegratorsBase 0.5.1; everything below 0.17 pins SimpleSolvers to 0.9.
+# resolved, and not in the root project. 0.18 is what pulls in SimpleSolvers 0.11 and
+# GeometricIntegratorsBase 0.6; 0.17 pins SimpleSolvers to 0.10 and everything below it to 0.9.
+#
+# GeometricIntegratorsBase is named explicitly, although nothing here loads it, because the bound
+# is what this suite actually depends on: `ImplicitMidpoint` is its method, not a Runge-Kutta one
+# (GeometricIntegrators 0.18 renamed its own to `ImplicitMidpointRK`), and only 0.6.2 implements it
+# for the `PODEProblem`/`HODEProblem`s the tests below integrate. GeometricIntegrators asks for
+# "0.6", so without this entry the resolver is free to settle on 0.6.1 and those tests fail.
 #
 # PoincareInvariants makes Pkg precompile the `LotkaVolterra2dPoincareInvariants` and
 # `MasslessChargedParticlePoincareInvariants` extensions during the test run, so that a syntax or
@@ -27,7 +34,8 @@ GeometricProblems = {path = ".."}
 CairoMakie = "0.15"
 ForwardDiff = "0.10, 1"
 GeometricEquations = "0.21"
-GeometricIntegrators = "0.17"
+GeometricIntegrators = "0.18"
+GeometricIntegratorsBase = "0.6.2"
 GeometricSolutions = "0.6.5"
 LinearAlgebra = "1"
 Logging = "1"
