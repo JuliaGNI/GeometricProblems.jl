@@ -1,4 +1,5 @@
-using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem, functions, initialguess
+using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem, functions,
+                          initialguess
 using GeometricIntegrators
 using GeometricProblems.LinearWave
 using GeometricSolutions
@@ -101,8 +102,10 @@ end
     function reference_∇V!(dV, q, params, N)
         h = 1e-6
         for i in eachindex(q)
-            qp = copy(q); qp[i] += h
-            qm = copy(q); qm[i] -= h
+            qp = copy(q)
+            qp[i] += h
+            qm = copy(q)
+            qm[i] -= h
             dV[i] = (LW.potential(qp, params, N) - LW.potential(qm, params, N)) / 2h
         end
         nothing

@@ -3,9 +3,7 @@ using GeometricIntegrators
 using GeometricProblems.Pendulum
 using GeometricSolutions
 
-
 @testset "$(rpad("Pendulum",80))" begin
-
     @test_nowarn odeproblem()
     @test_nowarn podeproblem()
     @test_nowarn hodeproblem()
@@ -14,13 +12,12 @@ using GeometricSolutions
 
     @test_nowarn hodeensemble()
 
-
-    ode  = odeproblem()
+    ode = odeproblem()
     pode = podeproblem()
     hode = hodeproblem()
     iode = iodeproblem()
 
-    ode_sol  = integrate(ode,  Gauss(2))
+    ode_sol = integrate(ode, Gauss(2))
     pode_sol = integrate(pode, Gauss(2))
     hode_sol = integrate(hode, Gauss(2))
     iode_sol = integrate(iode, MidpointProjection(VPRKGauss(2)))
@@ -38,9 +35,7 @@ using GeometricSolutions
 
     iode_sol2 = integrate(iode, SymmetricProjection(VPRKGauss(2)))
     @test relative_maximum_error(iode_sol.q, iode_sol2.q) < 1E-4
-
 end
-
 
 @testset "$(rpad("Pendulum HODE Ensemble",80))" begin
 
@@ -48,7 +43,8 @@ end
     # conserves the Hamiltonian up to a small bounded error)
     function max_energy_error(sol, params)
         h₀ = hamiltonian(sol[0].t, sol[0].q, sol[0].p, params)
-        maximum(abs((hamiltonian(sol[n].t, sol[n].q, sol[n].p, params) - h₀) / h₀) for n in eachtimestep(sol))
+        maximum(abs((hamiltonian(sol[n].t, sol[n].q, sol[n].p, params) - h₀) / h₀)
+        for n in eachtimestep(sol))
     end
 
     q̄ = [1.0]
@@ -62,12 +58,12 @@ end
 
     sols = integrate(ens, Gauss(2))
     @test length(sols) == length(ens)
-    @test all(max_energy_error(sols[i], ens.parameters[i]) < 1E-4 for i in eachindex(ens.ics))
-
+    @test all(max_energy_error(sols[i], ens.parameters[i]) < 1E-4
+    for i in eachindex(ens.ics))
 
     # (ii) identical initial condition, different parameters (varying length l)
     lengths = [0.5, 1.0, 2.0, 4.0]
-    params  = [(l = L, m = 1.0, g = 1.0) for L in lengths]
+    params = [(l = L, m = 1.0, g = 1.0) for L in lengths]
 
     ens = hodeensemble(q̄, p̄, params)
     @test length(ens) == length(lengths)
@@ -76,20 +72,20 @@ end
 
     sols = integrate(ens, Gauss(2))
     @test length(sols) == length(ens)
-    @test all(max_energy_error(sols[i], ens.parameters[i]) < 1E-4 for i in eachindex(ens.ics))
+    @test all(max_energy_error(sols[i], ens.parameters[i]) < 1E-4
+    for i in eachindex(ens.ics))
     # different lengths must produce different trajectories
     @test length(unique([sols[i].q[end][1] for i in eachindex(ens.ics)])) == length(lengths)
 
-
     # (iii) different initial conditions AND different parameters simultaneously
     #       a 2×2 grid of initial conditions paired with the four parameter sets
-    ens = hodeensemble([0.5], [1.5], [-0.5], [0.5], [2], [2]; parameters=params)
+    ens = hodeensemble([0.5], [1.5], [-0.5], [0.5], [2], [2]; parameters = params)
     @test length(ens) == length(lengths)
     @test length(unique([(ic.q[1], ic.p[1]) for ic in ens.ics])) == length(lengths)    # initial conditions vary
     @test [p.l for p in ens.parameters] == lengths                                     # lengths vary
 
     sols = integrate(ens, Gauss(2))
     @test length(sols) == length(ens)
-    @test all(max_energy_error(sols[i], ens.parameters[i]) < 1E-4 for i in eachindex(ens.ics))
-
+    @test all(max_energy_error(sols[i], ens.parameters[i]) < 1E-4
+    for i in eachindex(ens.ics))
 end

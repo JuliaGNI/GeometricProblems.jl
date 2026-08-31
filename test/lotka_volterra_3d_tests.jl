@@ -3,7 +3,6 @@ using GeometricIntegrators
 using GeometricProblems.LotkaVolterra3d
 using GeometricSolutions
 
-
 @testset "$(rpad("Lotka-Volterra 3D",80))" begin
     ode = odeproblem()
     ref = integrate(ode, Gauss(8))
@@ -25,5 +24,4 @@ using GeometricSolutions
     @test relative_maximum_error(sol.q, ref.q) < 1E-8
     @test ΔH[end] < 5E-11
     @test ΔC[end] < 1E-9
-
 end

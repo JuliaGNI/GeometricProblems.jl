@@ -3,9 +3,7 @@ using GeometricIntegrators
 using GeometricProblems.DoublePendulum
 using GeometricSolutions
 
-
 @testset "$(rpad("Double Pendulum",80))" begin
-
     @test_nowarn hodeproblem()
     @test_nowarn lodeproblem()
 
@@ -17,5 +15,4 @@ using GeometricSolutions
 
     @test relative_maximum_error(hode_sol.q, lode_sol.q) < 1E-12
     @test relative_maximum_error(hode_sol.p, lode_sol.p) < 1E-11
-
 end

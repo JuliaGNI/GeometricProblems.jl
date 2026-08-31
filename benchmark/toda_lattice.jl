@@ -85,21 +85,21 @@ function comparisons(N, hameqs, lageqs)
     λ = collect(range(0.1, 0.7, length = N))
     return (
         ("v = ∂H/∂p", () -> (hameqs.v(gen, 0.0, q, p, PARAMS); gen),
-                      () -> (toda.toda_lattice_v(hand, 0.0, q, p, PARAMS); hand)),
+            () -> (toda.toda_lattice_v(hand, 0.0, q, p, PARAMS); hand)),
         ("f = -∂H/∂q", () -> (hameqs.f(gen, 0.0, q, p, PARAMS); gen),
-                       () -> (toda.toda_lattice_f(hand, 0.0, q, p, PARAMS); hand)),
+            () -> (toda.toda_lattice_f(hand, 0.0, q, p, PARAMS); hand)),
         ("f = ∂L/∂q", () -> (lageqs.f(gen, 0.0, q, v, PARAMS); gen),
-                      () -> (toda.toda_lattice_f(hand, 0.0, q, v, PARAMS); hand)),
+            () -> (toda.toda_lattice_f(hand, 0.0, q, v, PARAMS); hand)),
         ("ϑ = ∂L/∂q̇", () -> (lageqs.ϑ(gen, 0.0, q, v, PARAMS); gen),
-                       () -> (toda.toda_lattice_ϑ(hand, 0.0, q, v, PARAMS); hand)),
+            () -> (toda.toda_lattice_ϑ(hand, 0.0, q, v, PARAMS); hand)),
         ("g = λ", () -> (lageqs.g(gen, 0.0, q, v, λ, PARAMS); gen),
-                  () -> (toda.toda_lattice_g(hand, 0.0, q, v, λ, PARAMS); hand)),
+            () -> (toda.toda_lattice_g(hand, 0.0, q, v, λ, PARAMS); hand)),
         ("ω (2N×2N)", () -> (lageqs.ω(Ωgen, 0.0, q, v, PARAMS); Ωgen),
-                      () -> (toda.ω!(Ωhand, 0.0, q, v, PARAMS); Ωhand)),
+            () -> (toda.ω!(Ωhand, 0.0, q, v, PARAMS); Ωhand)),
         ("H", () -> hameqs.H(0.0, q, p, PARAMS),
-              () -> toda.hamiltonian(0.0, q, p, PARAMS)),
+            () -> toda.hamiltonian(0.0, q, p, PARAMS)),
         ("L", () -> lageqs.L(0.0, q, v, PARAMS),
-              () -> toda.lagrangian(0.0, q, v, PARAMS)),
+            () -> toda.lagrangian(0.0, q, v, PARAMS))
     )
 end
 
@@ -146,8 +146,8 @@ function measure_construction(N)
         startswith(line, "RESULT ") || continue
         f = split(line)[2:end]
         return (t_hsys = parse(Float64, f[1]), t_lsys = parse(Float64, f[2]),
-                t_hand = parse(Float64, f[3]), t_f = parse(Float64, f[4]),
-                t_ω = parse(Float64, f[5]), chars = parse(Int, f[6]))
+            t_hand = parse(Float64, f[3]), t_f = parse(Float64, f[4]),
+            t_ω = parse(Float64, f[5]), chars = parse(Int, f[6]))
     end
     error("worker for N = $N produced no result")
 end
@@ -221,8 +221,10 @@ for N in (1, 2, 3, 5, 12, 64)
     h = 1e-6
     reference = zeros(N)
     for j in 1:N
-        qp = copy(q); qp[j] += h
-        qm = copy(q); qm[j] -= h
+        qp = copy(q)
+        qp[j] += h
+        qm = copy(q)
+        qm[j] -= h
         reference[j] = (toda.potential(qp, PARAMS, N) - toda.potential(qm, PARAMS, N)) / 2h
     end
     kernel = zeros(N)
@@ -232,7 +234,8 @@ for N in (1, 2, 3, 5, 12, 64)
     # `scale` scales the gradient, and scale = -1 is what the force function uses
     negated = zeros(N)
     toda.∇V!(negated, q, PARAMS, N, -1)
-    verdict = relative < 1e-6 ? (negated ≈ -kernel ? "agree" : "[scale = -1 MISMATCH]") : "[MISMATCH]"
+    verdict = relative < 1e-6 ? (negated ≈ -kernel ? "agree" : "[scale = -1 MISMATCH]") :
+              "[MISMATCH]"
     N == 1 && all(iszero, kernel) && (verdict *= "  (∇V ≡ 0 at N = 1)")
     @printf("  %4d %14.3e %14.3e   %s\n", N, relative, scale, verdict)
 end
@@ -249,7 +252,8 @@ println("\n", "="^116)
 println("2. What does the symbolic route cost to build and to compile?  (one fresh process per size)")
 println("="^116)
 @printf("%4s %11s %11s %14s %11s %11s %12s\n",
-        "N", "ham_system", "lag_system", "hand-written", "1st gen f", "1st gen ω", "chars gen ω")
+    "N", "ham_system", "lag_system", "hand-written", "1st gen f", "1st gen ω",
+    "chars gen ω")
 println("-"^116)
 
 const SWEEP_N = Int[]
@@ -263,7 +267,7 @@ for N in (FULL ? vcat(N_SWEEP, N_FULL) : N_SWEEP)
     # The hand-written column is in µs: it builds two problems out of function pointers, which is
     # five orders of magnitude away from everything beside it.
     @printf("%4d %9.3f s %9.3f s %11.1f µs %9.3f s %9.3f s %12d\n",
-            N, r.t_hsys, r.t_lsys, 1e6 * r.t_hand, r.t_f, r.t_ω, r.chars)
+        N, r.t_hsys, r.t_lsys, 1e6 * r.t_hand, r.t_f, r.t_ω, r.chars)
     flush(stdout)
 
     push!(SWEEP_N, N)
@@ -276,7 +280,8 @@ for N in (FULL ? vcat(N_SWEEP, N_FULL) : N_SWEEP)
     # going all the way to the default Ñ = 200 is the whole point of asking for the full sweep.
     total = r.t_hsys + r.t_lsys + r.t_f + r.t_ω
     if !FULL && total > BUDGET
-        @printf("  (stopping the sweep: N = %d alone cost %.0f s, over the %.0f s budget;\n", N, total, BUDGET)
+        @printf("  (stopping the sweep: N = %d alone cost %.0f s, over the %.0f s budget;\n",
+            N, total, BUDGET)
         println("   set TODA_LATTICE_BENCH_FULL=1 to go all the way to N = 200)")
         break
     end
@@ -284,12 +289,13 @@ end
 
 let b_lag = power_law(SWEEP_N, SWEEP_LAG), b_chars = power_law(SWEEP_N, SWEEP_OMEGA_CHARS)
     println()
-    @printf("`lagrangian_system` grows as N^%.2f, the generated `ω` as N^%.2f.\n", b_lag, b_chars)
+    @printf("`lagrangian_system` grows as N^%.2f, the generated `ω` as N^%.2f.\n", b_lag,
+        b_chars)
     if !FULL && !isempty(SWEEP_N)
         scale = toda.Ñ / last(SWEEP_N)
         @printf("Extrapolated to the default Ñ = %d: `lagrangian_system` ≈ %.0f s, `ω` ≈ %.1f MB of code.\n",
-                toda.Ñ, last(SWEEP_LAG) * scale^b_lag,
-                last(SWEEP_OMEGA_CHARS) * scale^b_chars / 1e6)
+            toda.Ñ, last(SWEEP_LAG) * scale^b_lag,
+            last(SWEEP_OMEGA_CHARS) * scale^b_chars / 1e6)
         println("(Measured directly with TODA_LATTICE_BENCH_FULL=1: see the module docstring.)")
     end
 end
@@ -302,11 +308,11 @@ println("\n", "="^116)
 println("3. What does each function cost to call, once built?")
 println("="^116)
 @printf("%4s %-14s %13s %13s %8s %9s   %s\n",
-        "N", "function", "generated", "hand-written", "ratio", "reliable", "verdict")
+    "N", "function", "generated", "hand-written", "ratio", "reliable", "verdict")
 println("-"^116)
 
 # (N, label, ratio, t_generated, t_handwritten) for the break-even analysis below
-const CALLS = Tuple{Int,String,Float64,Float64,Float64}[]
+const CALLS = Tuple{Int, String, Float64, Float64, Float64}[]
 
 # Capped at 128: this section has to build the symbolic systems *in process*, and the per-call ratios
 # are already unambiguous by then. Going to 200 here would add minutes to say the same thing.
@@ -314,7 +320,8 @@ for N in unique([8, isempty(SWEEP_N) ? 8 : min(128, last(SWEEP_N))])
     hameqs = functions(toda.hamiltonian_system(N, PARAMS))
     lageqs = functions(toda.lagrangian_system(N, PARAMS))
     for (label, gen, hand) in comparisons(N, hameqs, lageqs)
-        gen(); hand()   # compile before timing
+        gen()
+        hand()   # compile before timing
         t_gen, ok_gen = percall(gen)
         t_hand, ok_hand = percall(hand)
         ratio = t_gen / t_hand
@@ -329,7 +336,7 @@ for N in unique([8, isempty(SWEEP_N) ? 8 : min(128, last(SWEEP_N))])
         end
         label == "ω (2N×2N)" && (verdict *= "  (never called)")
         @printf("%4d %-14s %10.4f µs %10.4f µs %8.2f %9s   %s\n",
-                N, label, 1e6 * t_gen, 1e6 * t_hand, ratio, ok_gen && ok_hand, verdict)
+            N, label, 1e6 * t_gen, 1e6 * t_hand, ratio, ok_gen && ok_hand, verdict)
         ok_gen && ok_hand && push!(CALLS, (N, label, ratio, t_gen, t_hand))
     end
     flush(stdout)
@@ -350,14 +357,15 @@ let forces = filter(c -> startswith(c[2], "f "), CALLS)
         N, label, ratio, t_gen, t_hand = last(forces)
         Δsetup = last(SWEEP_SETUP)
         @printf("At N = %d, `symbolic = true` costs %.1f s of setup before the first step.\n",
-                last(SWEEP_N), Δsetup)
+            last(SWEEP_N), Δsetup)
         @printf("Its `%s` then costs %.4f µs per call against the hand-written %.4f µs.\n",
-                label, 1e6 * t_gen, 1e6 * t_hand)
+            label, 1e6 * t_gen, 1e6 * t_hand)
         if N != last(SWEEP_N)
             @printf("""
 (Those per-call figures are from N = %d, the largest size section 3 measures in process. The
  per-call difference grows with N, so the break-even below is an over-estimate — by roughly the
- ratio of the two sizes, which leaves its order of magnitude untouched.)\n""", N)
+ ratio of the two sizes, which leaves its order of magnitude untouched.)\n""",
+                N)
         end
         if t_gen < t_hand
             @printf("Break-even: %.3g evaluations.\n", Δsetup / (t_hand - t_gen))
@@ -392,7 +400,7 @@ function integration_section(GI, N; warmup = false)
         t_first, _ = elapsed(() -> GI.integrate(prob, GI.ImplicitMidpoint()))
         t_warm, _ = elapsed(() -> GI.integrate(prob, GI.ImplicitMidpoint()))
         @printf("  N=%3d  symbolic=%-5s  build %8.3f s   integrate %7.3f s (warm %7.3f s)   total %8.3f s\n",
-                N, symbolic, t_build, t_first, t_warm, t_build + t_first)
+            N, symbolic, t_build, t_first, t_warm, t_build + t_first)
         flush(stdout)
     end
 end
@@ -408,4 +416,5 @@ else
     Base.invokelatest(integration_section, GeometricIntegrators, 64)
 end
 
-@printf("\n(sink checksum %g -- printed only so the timed calls cannot be optimised away)\n\n", SINK[])
+@printf("\n(sink checksum %g -- printed only so the timed calls cannot be optimised away)\n\n",
+    SINK[])

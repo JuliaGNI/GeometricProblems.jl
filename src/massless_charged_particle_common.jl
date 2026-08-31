@@ -7,7 +7,6 @@ export odeproblem, iodeproblem, lodeproblem, idaeproblem, idaeproblem_spark, lda
 export compute_energy_error, compute_momentum_error
 export poincare_invariant_1st, poincare_invariant_2nd
 
-
 # default simulation parameters
 const Δt = 0.2
 const nt = 5000
@@ -17,8 +16,7 @@ const DEFAULT_TIMESTEP = Δt
 # default initial conditions and parameters
 const q₀ = [1.0, 1.0]
 
-default_parameters(::Type{T}=Float64) where {T} = (A₀ = T(1.0), E₀ = T(1.0))
-
+default_parameters(::Type{T} = Float64) where {T} = (A₀ = T(1.0), E₀ = T(1.0))
 
 # Centre and radii of the circle in phase space that `f_loop` traces around the default initial
 # condition, for the first Poincaré invariant. `f_surface` reads them too, so that the two
@@ -76,7 +74,7 @@ function ϑ(t, q::AbstractVector, params::NamedTuple, k::Int)
     elseif k == 2
         ϑ₂(t, q, params)
     else
-        throw(BoundsError(ϑ,k))
+        throw(BoundsError(ϑ, k))
     end
 end
 
@@ -115,7 +113,6 @@ end
 dHd₁(t, q, params) = - E₁(q, params)
 dHd₂(t, q, params) = - E₂(q, params)
 
-
 function massless_charged_particle_dH(dH, t, q, params)
     dH[1] = dHd₁(t, q, params)
     dH[2] = dHd₂(t, q, params)
@@ -138,19 +135,23 @@ function massless_charged_particle_ϑ(Θ, t, q, params)
     nothing
 end
 
-massless_charged_particle_ϑ(Θ, t, q, v, params) = massless_charged_particle_ϑ(Θ, t, q, params)
+function massless_charged_particle_ϑ(Θ, t, q, v, params)
+    massless_charged_particle_ϑ(Θ, t, q, params)
+end
 
 function massless_charged_particle_ω(Ω, t, q, params)
     Ω₁₂ = ω₁₂(t, q, params)
-    Ω[1,1] = 0
-    Ω[1,2] = + Ω₁₂
-    Ω[2,1] = - Ω₁₂
-    Ω[2,2] = 0
+    Ω[1, 1] = 0
+    Ω[1, 2] = + Ω₁₂
+    Ω[2, 1] = - Ω₁₂
+    Ω[2, 2] = 0
     nothing
 end
 
 # LODE/LDAE evaluate the symplectic matrix with an extra velocity slot; ω depends only on q.
-massless_charged_particle_ω(Ω, t, q, v, params) = massless_charged_particle_ω(Ω, t, q, params)
+function massless_charged_particle_ω(Ω, t, q, v, params)
+    massless_charged_particle_ω(Ω, t, q, params)
+end
 
 function massless_charged_particle_f(f, t, q, v, params)
     f[1] = f₁(v, t, q, params) - dHd₁(t, q, params)
@@ -170,9 +171,13 @@ function massless_charged_particle_g(g, t, q, v, params)
     nothing
 end
 
-massless_charged_particle_g(g, t, q, p, v, params) = massless_charged_particle_g(g, t, q, v, params)
+function massless_charged_particle_g(g, t, q, p, v, params)
+    massless_charged_particle_g(g, t, q, v, params)
+end
 # IDAE evaluates the constraint force g with the multiplier λ (mirrors LotkaVolterra2d).
-massless_charged_particle_g(g, t, q, v, p, λ, params) = massless_charged_particle_g(g, t, q, λ, params)
+function massless_charged_particle_g(g, t, q, v, p, λ, params)
+    massless_charged_particle_g(g, t, q, λ, params)
+end
 
 # The secondary projection force of the LDAE. In contrast to g, which contracts the columns of ∇ϑ
 # (f₁/f₂), ḡ contracts its rows (g₁/g₂); mirrors LotkaVolterra2d.
@@ -182,17 +187,25 @@ function massless_charged_particle_ḡ(g, t, q, λ, params)
     nothing
 end
 
-massless_charged_particle_ḡ(g, t, q, p, λ, params) = massless_charged_particle_ḡ(g, t, q, λ, params)
-massless_charged_particle_ḡ(g, t, q, v, p, λ, params) = massless_charged_particle_ḡ(g, t, q, λ, params)
+function massless_charged_particle_ḡ(g, t, q, p, λ, params)
+    massless_charged_particle_ḡ(g, t, q, λ, params)
+end
+function massless_charged_particle_ḡ(g, t, q, v, p, λ, params)
+    massless_charged_particle_ḡ(g, t, q, λ, params)
+end
 
 function massless_charged_particle_u(u, t, q, v, params)
     u .= v
     nothing
 end
 
-massless_charged_particle_u(u, t, q, p, v, params) = massless_charged_particle_u(u, t, q, v, params)
+function massless_charged_particle_u(u, t, q, p, v, params)
+    massless_charged_particle_u(u, t, q, v, params)
+end
 # IDAE projects along the multiplier λ (u .= λ), mirroring LotkaVolterra2d.
-massless_charged_particle_u(u, t, q, v, p, λ, params) = massless_charged_particle_u(u, t, q, λ, params)
+function massless_charged_particle_u(u, t, q, v, p, λ, params)
+    massless_charged_particle_u(u, t, q, λ, params)
+end
 
 # The secondary projection of the LDAE, again along the multiplier λ (mirrors LotkaVolterra2d).
 function massless_charged_particle_ū(u, t, q, λ, params)
@@ -200,85 +213,97 @@ function massless_charged_particle_ū(u, t, q, λ, params)
     nothing
 end
 
-massless_charged_particle_ū(u, t, q, p, λ, params) = massless_charged_particle_ū(u, t, q, λ, params)
-massless_charged_particle_ū(u, t, q, v, p, λ, params) = massless_charged_particle_ū(u, t, q, λ, params)
+function massless_charged_particle_ū(u, t, q, p, λ, params)
+    massless_charged_particle_ū(u, t, q, λ, params)
+end
+function massless_charged_particle_ū(u, t, q, v, p, λ, params)
+    massless_charged_particle_ū(u, t, q, λ, params)
+end
 
 function massless_charged_particle_ϕ(ϕ, t, q, p, params)
-    ϕ[1] = p[1] - ϑ₁(t,q,params)
-    ϕ[2] = p[2] - ϑ₂(t,q,params)
+    ϕ[1] = p[1] - ϑ₁(t, q, params)
+    ϕ[2] = p[2] - ϑ₂(t, q, params)
     nothing
 end
 # IDAE calls ϕ with an extra velocity slot; the constraint p = ϑ(q) does not depend on it.
-massless_charged_particle_ϕ(ϕ, t, q, v, p, params) = massless_charged_particle_ϕ(ϕ, t, q, p, params)
+function massless_charged_particle_ϕ(ϕ, t, q, v, p, params)
+    massless_charged_particle_ϕ(ϕ, t, q, p, params)
+end
 
 # The secondary constraint ψ = ṗ - q̇⋅∇ϑ, obtained by differentiating ϕ = p - ϑ(q) in time.
 function massless_charged_particle_ψ(ψ, t, q, p, q̇, ṗ, params)
-    ψ[1] = ṗ[1] - g₁(q̇,t,q,params)
-    ψ[2] = ṗ[2] - g₂(q̇,t,q,params)
+    ψ[1] = ṗ[1] - g₁(q̇, t, q, params)
+    ψ[2] = ṗ[2] - g₂(q̇, t, q, params)
     nothing
 end
 
 # LDAE evaluates ψ with an additional velocity slot (mirrors LotkaVolterra2d).
-massless_charged_particle_ψ(ψ, t, q, v, p, q̇, ṗ, params) = massless_charged_particle_ψ(ψ, t, q, p, q̇, ṗ, params)
-
-
+function massless_charged_particle_ψ(ψ, t, q, v, p, q̇, ṗ, params)
+    massless_charged_particle_ψ(ψ, t, q, p, q̇, ṗ, params)
+end
 
 "Creates an ODE object for the massless charged particle in 2D."
-function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
-    ODEProblem(massless_charged_particle_v, timespan, timestep, q₀; invariants=(h=hamiltonian,), parameters=parameters)
+function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEProblem(massless_charged_particle_v, timespan, timestep, q₀;
+        invariants = (h = hamiltonian,), parameters = parameters)
 end
 
 "Creates an implicit ODE object for the massless charged particle in 2D."
-function iodeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
+function iodeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
-            massless_charged_particle_g,
-            timespan, timestep, q₀, ϑ(0., q₀, parameters);
-            v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-            invariants=(h=hamiltonian,), parameters=parameters)
+        massless_charged_particle_g,
+        timespan, timestep, q₀, ϑ(0.0, q₀, parameters);
+        v̄ = massless_charged_particle_v, f̄ = massless_charged_particle_f,
+        invariants = (h = hamiltonian,), parameters = parameters)
 end
 
 "Creates a variational (Lagrangian) ODE object for the massless charged particle in 2D."
-function lodeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
+function lodeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     LODEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
-            massless_charged_particle_g, massless_charged_particle_ω, lagrangian,
-            timespan, timestep, q₀, ϑ(0., q₀, parameters);
-            v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-            invariants=(h=hamiltonian,), parameters=parameters)
+        massless_charged_particle_g, massless_charged_particle_ω, lagrangian,
+        timespan, timestep, q₀, ϑ(0.0, q₀, parameters);
+        v̄ = massless_charged_particle_v, f̄ = massless_charged_particle_f,
+        invariants = (h = hamiltonian,), parameters = parameters)
 end
 
 "Creates an implicit DAE object for the massless charged particle in 2D."
-function idaeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
+function idaeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
-            massless_charged_particle_u, massless_charged_particle_g,
-            massless_charged_particle_ϕ,
-            timespan, timestep, q₀, ϑ(0., q₀, parameters), zero(q₀);
-            v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-            invariants=(h=hamiltonian,), parameters=parameters)
+        massless_charged_particle_u, massless_charged_particle_g,
+        massless_charged_particle_ϕ,
+        timespan, timestep, q₀, ϑ(0.0, q₀, parameters), zero(q₀);
+        v̄ = massless_charged_particle_v, f̄ = massless_charged_particle_f,
+        invariants = (h = hamiltonian,), parameters = parameters)
 end
 
 "Creates an implicit DAE object for the massless charged particle in 2D."
-function idaeproblem_spark(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
+function idaeproblem_spark(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f̄,
-            massless_charged_particle_u, massless_charged_particle_g,
-            massless_charged_particle_ϕ,
-            timespan, timestep, q₀, ϑ(0., q₀, parameters), zero(q₀);
-            v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-            invariants=(h=hamiltonian,), parameters=parameters)
+        massless_charged_particle_u, massless_charged_particle_g,
+        massless_charged_particle_ϕ,
+        timespan, timestep, q₀, ϑ(0.0, q₀, parameters), zero(q₀);
+        v̄ = massless_charged_particle_v, f̄ = massless_charged_particle_f,
+        invariants = (h = hamiltonian,), parameters = parameters)
 end
 
 "Creates a variational DAE object for the massless charged particle in 2D."
-function ldaeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters = default_parameters())
+function ldaeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     LDAEProblem(massless_charged_particle_ϑ, massless_charged_particle_f,
-            massless_charged_particle_u, massless_charged_particle_g,
-            massless_charged_particle_ϕ,
-            massless_charged_particle_ū, massless_charged_particle_ḡ,
-            massless_charged_particle_ψ,
-            massless_charged_particle_ω, lagrangian,
-            timespan, timestep, q₀, ϑ(0., q₀, parameters), zero(q₀);
-            v̄=massless_charged_particle_v, f̄=massless_charged_particle_f,
-            invariants=(h=hamiltonian,), parameters=parameters)
+        massless_charged_particle_u, massless_charged_particle_g,
+        massless_charged_particle_ϕ,
+        massless_charged_particle_ū, massless_charged_particle_ḡ,
+        massless_charged_particle_ψ,
+        massless_charged_particle_ω, lagrangian,
+        timespan, timestep, q₀, ϑ(0.0, q₀, parameters), zero(q₀);
+        v̄ = massless_charged_particle_v, f̄ = massless_charged_particle_f,
+        invariants = (h = hamiltonian,), parameters = parameters)
 end
-
 
 compute_energy_error(t, q, params) = compute_invariant_error(t, q, params, hamiltonian)
 
@@ -290,14 +315,12 @@ function compute_momentum_error(t, q::DataSeries{T}, p::DataSeries{T}, params::N
     return err
 end
 
-
 export plot_solution, plot_phase_portrait, plot_traces
 
 # Plot functions are implemented in the `MasslessChargedParticlePlots` extension (loaded with Makie).
 function plot_solution end
 function plot_phase_portrait end
 function plot_traces end
-
 
 # The Poincaré invariants are implemented in the `MasslessChargedParticlePoincareInvariants`
 # extension (loaded with PoincareInvariants); `f_loop` and `f_surface` above stay here, as they

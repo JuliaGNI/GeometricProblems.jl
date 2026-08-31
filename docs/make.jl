@@ -1,6 +1,6 @@
 using Documenter
 using GeometricProblems
-using DocumenterCitations 
+using DocumenterCitations
 
 # if the docs are generated with github actions, then this changes the path; see: https://github.com/JuliaDocs/Documenter.jl/issues/921 
 const buildpath = haskey(ENV, "CI") ? ".." : ""
@@ -14,38 +14,38 @@ makedocs(;
         prettyurls = get(ENV, "CI", nothing) == "true",
         assets = [
             "assets/extra_styles.css",
-        ],
+        ]
     ),
     pages = ["Home" => "index.md",
-             "Diagnostics"                 => "diagnostics.md",
-             "ABC Flow"                    => "abc_flow.md",
-             "Coupled Harmonic Oscillator" => "coupled_harmonic_oscillator.md",
-             "Double Pendulum"             => "double_pendulum.md",
-             "Harmonic Oscillator"         => "harmonic_oscillator.md",
-             "Kubo Oscillator"             => "kubo_oscillator.md",
-             "Hénon-Heiles System"         => "henon_heiles.md",
-             "Kepler Problem"              => "kepler_problem.md",
-             "Linear Wave Equation"        => "linear_wave.md",
-             "Lorenz Attractor"            => "lorenz_attractor.md",
-             "Lotka-Volterra 2d"           => "lotka_volterra_2d.md",
-             "Lotka-Volterra 3d"           => "lotka_volterra_3d.md",
-             "Lotka-Volterra 4d"           => "lotka_volterra_4d.md",
-             "Massless Charged Particle"   => "massless_charged_particle.md",
-             "Mathematical Pendulum"       => "pendulum.md",
-             "Nonlinear Oscillators"       => "nonlinear_oscillators.md",
-             "Point Vortices"              => "point_vortices.md",
-             "Point Vortices (linear)"     => "point_vortices_linear.md",
-             "Inner Solar System"          => "inner_solar_system.md",
-             "Outer Solar System"          => "outer_solar_system.md",
-             "Rigid body"                  => "rigid_body.md",
-             "Three Body Problem"          => "three_body_problem.md",
-             "Toda Lattice"                => "toda_lattice.md",
-             "Initial conditions"          => ["bump" => "initial_condition.md",]
-            ]
+        "Diagnostics" => "diagnostics.md",
+        "ABC Flow" => "abc_flow.md",
+        "Coupled Harmonic Oscillator" => "coupled_harmonic_oscillator.md",
+        "Double Pendulum" => "double_pendulum.md",
+        "Harmonic Oscillator" => "harmonic_oscillator.md",
+        "Kubo Oscillator" => "kubo_oscillator.md",
+        "Hénon-Heiles System" => "henon_heiles.md",
+        "Kepler Problem" => "kepler_problem.md",
+        "Linear Wave Equation" => "linear_wave.md",
+        "Lorenz Attractor" => "lorenz_attractor.md",
+        "Lotka-Volterra 2d" => "lotka_volterra_2d.md",
+        "Lotka-Volterra 3d" => "lotka_volterra_3d.md",
+        "Lotka-Volterra 4d" => "lotka_volterra_4d.md",
+        "Massless Charged Particle" => "massless_charged_particle.md",
+        "Mathematical Pendulum" => "pendulum.md",
+        "Nonlinear Oscillators" => "nonlinear_oscillators.md",
+        "Point Vortices" => "point_vortices.md",
+        "Point Vortices (linear)" => "point_vortices_linear.md",
+        "Inner Solar System" => "inner_solar_system.md",
+        "Outer Solar System" => "outer_solar_system.md",
+        "Rigid body" => "rigid_body.md",
+        "Three Body Problem" => "three_body_problem.md",
+        "Toda Lattice" => "toda_lattice.md",
+        "Initial conditions" => ["bump" => "initial_condition.md",]
+    ]
 )
 
 deploydocs(
-    repo   = "github.com/JuliaGNI/GeometricProblems.jl",
+    repo = "github.com/JuliaGNI/GeometricProblems.jl",
     devurl = "latest",
-    devbranch = "main",
+    devbranch = "main"
 )

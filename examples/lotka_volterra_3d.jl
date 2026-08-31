@@ -14,9 +14,9 @@ const timestep = 0.01
 
 const runs = (
     ("implicit-midpoint", ImplicitMidpoint()),
-    ("gauss1",            Gauss(1)),
-    ("gauss2",            Gauss(2)),
-    ("gauss8",            Gauss(8)),
+    ("gauss1", Gauss(1)),
+    ("gauss2", Gauss(2)),
+    ("gauss8", Gauss(8))
 )
 
 const problem = odeproblem(; timespan, timestep)

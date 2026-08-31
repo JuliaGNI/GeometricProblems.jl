@@ -51,15 +51,14 @@ export odeproblem
 export hamiltonian, casimir
 export compute_energy_error, compute_casimir_error
 
-
 const Δt = 0.01
 const nt = 1000
 const DEFAULT_TIMESPAN = (0.0, Δt * nt)
 const DEFAULT_TIMESTEP = Δt
 
-default_parameters(::Type{T}=Float64) where {T} = (A₁=T(1.0), A₂=T(1.0), A₃=T(1.0), B₁=T(0.0), B₂=T(1.0), B₃=T(1.0))
+default_parameters(::Type{T} = Float64) where {T} = (
+    A₁ = T(1.0), A₂ = T(1.0), A₃ = T(1.0), B₁ = T(0.0), B₂ = T(1.0), B₃ = T(1.0))
 const reference_solution = [1.2429313310230237, 2.263720576035246, 0.7108206593932]
-
 
 function v₁(t, q, params)
     @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
@@ -76,13 +75,12 @@ function v₃(t, q, params)
     q[3] * (-A₁ * q[1] + A₂ * q[2] - B₁ + B₂)
 end
 
-
 const X₀ = 1.0
 const Y₀ = 1.0
 const Z₀ = 2.0
 const q₀ = [X₀, Y₀, Z₀]
-const v₀ = [v₁(0, q₀, default_parameters()), v₂(0, q₀, default_parameters()), v₃(0, q₀, default_parameters())]
-
+const v₀ = [v₁(0, q₀, default_parameters()), v₂(0, q₀, default_parameters()),
+    v₃(0, q₀, default_parameters())]
 
 function hamiltonian(t, q, params)
     @unpack A₁, A₂, A₃, B₁, B₂, B₃ = params
@@ -95,7 +93,6 @@ function casimir(t, q, params)
     log(q[1]) + log(q[2]) + log(q[3])
 end
 
-
 function lotka_volterra_3d_v(v, t, q, params)
     v[1] = v₁(t, q, params)
     v[2] = v₂(t, q, params)
@@ -103,13 +100,13 @@ function lotka_volterra_3d_v(v, t, q, params)
     nothing
 end
 
-
-function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
-    ODEProblem(lotka_volterra_3d_v, timespan, timestep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
+function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEProblem(lotka_volterra_3d_v, timespan, timestep, q₀;
+        parameters = parameters, invariants = (h = hamiltonian,))
 end
 
-
-function compute_energy_error(t::Union{TimeSeries{T},ScalarDataSeries{T}}, q::DataSeries{T}, params) where {T}
+function compute_energy_error(t::Union{TimeSeries{T}, ScalarDataSeries{T}}, q::DataSeries{T}, params) where {T}
     h = DataSeries(T, ntime(q))
     e = DataSeries(T, ntime(q))
 
@@ -121,7 +118,7 @@ function compute_energy_error(t::Union{TimeSeries{T},ScalarDataSeries{T}}, q::Da
     (h, e)
 end
 
-function compute_casimir_error(t::Union{TimeSeries{T},ScalarDataSeries{T}}, q::DataSeries{T}, params) where {T}
+function compute_casimir_error(t::Union{TimeSeries{T}, ScalarDataSeries{T}}, q::DataSeries{T}, params) where {T}
     c = DataSeries(T, ntime(q))
     e = DataSeries(T, ntime(q))
 
@@ -132,7 +129,6 @@ function compute_casimir_error(t::Union{TimeSeries{T},ScalarDataSeries{T}}, q::D
 
     (c, e)
 end
-
 
 export plot_phase_portrait, plot_traces
 

@@ -16,10 +16,11 @@ const timespan = (0.0, 10.0)
 const timestep = 0.01
 
 const runs = (
-    ("gauss2",                 odeproblem(;  timespan, timestep), Gauss(2)),
-    ("gauss8",                 odeproblem(;  timespan, timestep), Gauss(8)),
-    ("iode-gauss2",            iodeproblem(; timespan, timestep), Gauss(2)),
-    ("vspark-glrk2-symmetric", idaeproblem(; timespan, timestep), TableauVSPARKGLRKpSymmetric(2)),
+    ("gauss2", odeproblem(; timespan, timestep), Gauss(2)),
+    ("gauss8", odeproblem(; timespan, timestep), Gauss(8)),
+    ("iode-gauss2", iodeproblem(; timespan, timestep), Gauss(2)),
+    ("vspark-glrk2-symmetric", idaeproblem(; timespan, timestep),
+        TableauVSPARKGLRKpSymmetric(2))
 )
 
 for (name, problem, method) in runs

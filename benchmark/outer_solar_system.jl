@@ -30,7 +30,7 @@ const ALL_MASSES = OSS.default_parameters().m
 const G = OSS.default_parameters().G
 
 "Parameters for the first `n` bodies."
-sub_parameters(n) = (G=G, m=ALL_MASSES[1:n])
+sub_parameters(n) = (G = G, m = ALL_MASSES[1:n])
 
 # `OuterSolarSystem.lagrangian` is fixed at `N_BODIES` bodies, so the scaling sweep below needs a
 # version parameterised by `n`. It is otherwise identical, including the explicit scalar indexing
@@ -38,13 +38,14 @@ sub_parameters(n) = (G=G, m=ALL_MASSES[1:n])
 function sub_lagrangian(t, q, w, params, n)
     kinetic = zero(eltype(w))
     for i in 1:n
-        kinetic += params.m[i] * (w[N_DIM*i-2]^2 + w[N_DIM*i-1]^2 + w[N_DIM*i]^2)
+        kinetic += params.m[i] * (w[N_DIM * i - 2]^2 + w[N_DIM * i - 1]^2 + w[N_DIM * i]^2)
     end
     potential = zero(eltype(q))
-    for i in 2:n, j in 1:i-1
-        Δ₁ = q[N_DIM*i-2] - q[N_DIM*j-2]
-        Δ₂ = q[N_DIM*i-1] - q[N_DIM*j-1]
-        Δ₃ = q[N_DIM*i] - q[N_DIM*j]
+    for i in 2:n, j in 1:(i - 1)
+
+        Δ₁ = q[N_DIM * i - 2] - q[N_DIM * j - 2]
+        Δ₂ = q[N_DIM * i - 1] - q[N_DIM * j - 1]
+        Δ₃ = q[N_DIM * i] - q[N_DIM * j]
         potential += params.G * params.m[i] * params.m[j] / sqrt(Δ₁^2 + Δ₂^2 + Δ₃^2)
     end
     return kinetic / 2 + potential
@@ -52,9 +53,9 @@ end
 
 "Initial positions and velocities for the first `n` bodies."
 function sub_state(n)
-    q = OSS.q₀[1:N_DIM*n]
-    p = OSS.p₀[1:N_DIM*n]
-    v = [p[N_DIM*i-2+k] / ALL_MASSES[i] for i in 1:n for k in 0:2]
+    q = OSS.q₀[1:(N_DIM * n)]
+    p = OSS.p₀[1:(N_DIM * n)]
+    v = [p[N_DIM * i - 2 + k] / ALL_MASSES[i] for i in 1:n for k in 0:2]
     return q, p, v
 end
 
@@ -74,7 +75,7 @@ A single force evaluation here is well under a microsecond, which is the resolut
 each batch has to loop inside the timed region. `f` must already have been called once, so that
 compilation is not measured.
 """
-function best_of(f, samples=20, repetitions=10_000)
+function best_of(f, samples = 20, repetitions = 10_000)
     best = Inf
     for _ in 1:samples
         GC.gc()
@@ -95,7 +96,8 @@ let n = 2
     sparams = symbolize(sub_parameters(n))
     lag = sub_lagrangian(t, x, v, sparams, n)
     for simplify in (true, false), cse in (true, false)
-        LagrangianSystem(lag, t, x, v, sparams; simplify=simplify, cse=cse)
+
+        LagrangianSystem(lag, t, x, v, sparams; simplify = simplify, cse = cse)
     end
 end
 
@@ -121,14 +123,16 @@ for n in 2:OSS.N_BODIES
             t, x, v = lagrangian_variables(dof)
             sparams = symbolize(parameters)
             LagrangianSystem(sub_lagrangian(t, x, v, sparams, n), t, x, v, sparams;
-                simplify=simplify, cse=cse)
+                simplify = simplify, cse = cse)
         end
         push!(times, seconds)
     end
     fmt(x) = isnan(x) ? "     skipped" : @sprintf("%12.2f", x)
-    @printf("%8d %8d   %s %s %s %s\n", n, dof, fmt(times[1]), fmt(times[2]), fmt(times[3]), fmt(times[4]))
+    @printf("%8d %8d   %s %s %s %s\n", n, dof, fmt(times[1]), fmt(times[2]), fmt(times[3]),
+        fmt(times[4]))
 end
-println("\n(`simp/nocse` was the default before the code-generation fixes; combinations with",
+println(
+    "\n(`simp/nocse` was the default before the code-generation fixes; combinations with",
     "\n `simplify=true` are skipped above 5 bodies because they take several minutes.)")
 
 # ------------------------------------------------------------------------------------------------
@@ -153,18 +157,21 @@ let n = OSS.N_BODIES, dof = N_DIM * n
     # `EulerLagrange.LagrangianSystem` builds; note that antisymmetrising the *full* gradient ∂L/∂z
     # instead — as EulerLagrange did before 0.5 — yields d(dL) ≡ 0.
     ϑz = vcat(ϑ, zero(ϑ))
-    ω = Symbolics.expand_derivatives.([Dz[i](ϑz[j]) - Dz[j](ϑz[i]) for i in eachindex(Dz, ϑz), j in eachindex(Dz, ϑz)])
+    ω = Symbolics.expand_derivatives.([Dz[i](ϑz[j]) - Dz[j](ϑz[i])
+                                       for i in eachindex(Dz, ϑz), j in eachindex(Dz, ϑz)])
 
     equations = EulerLagrange.substitute_lagrangian_variables(
-        (f=f, ϑ=ϑ, ω=ω), x, collect(Dt.(x)), v)
+        (f = f, ϑ = ϑ, ω = ω), x, collect(Dt.(x)), v)
 
     Symbolics.@variables X[1:dof] V[1:dof]
 
     @printf("%6s %10s   %14s %14s %8s\n", "", "shape", "cse=false", "cse=true", "ratio")
     for key in (:f, :ϑ, :ω)
         expression = getproperty(equations, key)
-        without = Symbolics.build_function(expression, t, X, V, sparams...; nanmath=false, cse=false)[2]
-        with = Symbolics.build_function(expression, t, X, V, sparams...; nanmath=false, cse=true)[2]
+        without = Symbolics.build_function(
+            expression, t, X, V, sparams...; nanmath = false, cse = false)[2]
+        with = Symbolics.build_function(
+            expression, t, X, V, sparams...; nanmath = false, cse = true)[2]
         n_without, n_with = length(string(without)), length(string(with))
         @printf("%6s %10s   %14d %14d %8.2f\n",
             key, string(size(expression)), n_without, n_with, n_without / n_with)
@@ -181,7 +188,8 @@ let n = OSS.N_BODIES, dof = N_DIM * n
     q, p, v = sub_state(n)
 
     build_seconds, lag_sys = elapsed(() -> OSS.lagrangian_system(parameters))
-    @printf("  lagrangian_system(...)              %8.2f s   (simplify=false, cse=true)\n", build_seconds)
+    @printf("  lagrangian_system(...)              %8.2f s   (simplify=false, cse=true)\n",
+        build_seconds)
     build_seconds, ham_sys = elapsed(() -> OSS.hamiltonian_system(parameters))
     @printf("  hamiltonian_system(...)             %8.2f s\n\n", build_seconds)
 
@@ -203,7 +211,7 @@ let n = OSS.N_BODIES, dof = N_DIM * n
             () -> OSS.outer_solar_system_v(out, 0.0, q, p, parameters)),
         ("ϑ  (=∂L/∂q̇)",
             () -> lagrangian_functions.ϑ(out, 0.0, q, v, parameters),
-            () -> OSS.outer_solar_system_ϑ(out, 0.0, q, v, parameters)),
+            () -> OSS.outer_solar_system_ϑ(out, 0.0, q, v, parameters))
     )
 
     for (label, generated, handwritten) in pairs
@@ -234,13 +242,14 @@ let n = OSS.N_BODIES, dof = N_DIM * n
     for (label, gen_call, hand_call, sizes, args) in (
         ("f (Lagrangian)", lagrangian_functions.f, OSS.outer_solar_system_f, dof, (q, v)),
         ("v", hamiltonian_functions.v, OSS.outer_solar_system_v, dof, (q, p)),
-        ("ϑ", lagrangian_functions.ϑ, OSS.outer_solar_system_ϑ, dof, (q, v)),
+        ("ϑ", lagrangian_functions.ϑ, OSS.outer_solar_system_ϑ, dof, (q, v))
     )
         a = zeros(sizes)
         b = zeros(sizes)
         gen_call(a, 0.0, args..., parameters)
         hand_call(b, 0.0, args..., parameters)
-        @printf("%20s   max|Δ| = %.3e   scale = %.3e\n", label, maximum(abs, a - b), maximum(abs, a))
+        @printf("%20s   max|Δ| = %.3e   scale = %.3e\n", label, maximum(abs, a - b),
+            maximum(abs, a))
     end
 end
 

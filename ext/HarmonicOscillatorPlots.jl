@@ -47,7 +47,7 @@ function HarmonicOscillator.plot_spring(
         protrusions = 0,
         xspinesvisible = false,
         yspinesvisible = false,
-        zspinesvisible = false,
+        zspinesvisible = false
     )
     xlims!(ax3, -0.25, +0.25)
     ylims!(ax3, -0.25, +0.25)
@@ -97,7 +97,7 @@ function HarmonicOscillator.plot_solution(
 
     tlims = [
         max(0.0, t[i] - trange),
-        t[end] < trange ? t[end] : max(t[i], trange),
+        t[end] < trange ? t[end] : max(t[i], trange)
     ]
 
     xlim = min(5, maximum(abs.(q)))
@@ -120,7 +120,7 @@ function HarmonicOscillator.plot_solution(
         aspect = 3,
         ylabel = "$(labels.q)($(labels.t))",
         yticks = xticks,
-        xticklabelsvisible = false,
+        xticklabelsvisible = false
     )
     xlims!(ax_solution, tlims...)
     ylims!(ax_solution, min(-1, -xlim), max(+1, +xlim))
@@ -131,11 +131,12 @@ function HarmonicOscillator.plot_solution(
         aspect = 3,
         xlabel = "$(labels.t)",
         ylabel = "$(labels.h)($(labels.t))",
-        yticks = hticks,
+        yticks = hticks
     )
     xlims!(ax_hamiltonian, tlims...)
     ylims!(ax_hamiltonian, 0, hlim)
-    lines!(ax_hamiltonian, t[begin:i], h[begin:i]; linewidth = 2, label = "$(labels.h)($(labels.t))")
+    lines!(ax_hamiltonian, t[begin:i], h[begin:i];
+        linewidth = 2, label = "$(labels.h)($(labels.t))")
 
     if hmod !== nothing
         lines!(ax_hamiltonian, t[begin:i], hmodt[begin:i]; linewidth = 2, label = "H̄(t)")
@@ -147,11 +148,12 @@ function HarmonicOscillator.plot_solution(
         aspect = 1,
         xlabel = "$(labels.q)",
         ylabel = "$(labels.p)",
-        xticks = [-2, -1, 0, +1, +2],
+        xticks = [-2, -1, 0, +1, +2]
     )
     contourf!(ax_phasespace, qs, ps, hs; levels = levels)
     if hmod !== nothing
-        contour!(ax_phasespace, qs, ps, hmods; levels = levels, color = :black, linewidth = 2)
+        contour!(
+            ax_phasespace, qs, ps, hmods; levels = levels, color = :black, linewidth = 2)
     end
     xlims!(ax_phasespace, -2.5, +2.5)
     ylims!(ax_phasespace, -2.0, +2.0)
@@ -193,7 +195,7 @@ harmonic-oscillator solution. Returns a Makie `Figure`.
 """
 function HarmonicOscillator.plot_traces(sol; nplot = 1, nt = :auto)
     idx = _indices(sol, nplot, nt)
-    ts  = [sol.t[k] for k in idx]
+    ts = [sol.t[k] for k in idx]
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1]; xlabel = "t", ylabel = "q, p")
     lines!(ax, ts, [sol.q[k][1] for k in idx]; label = "q")
@@ -225,7 +227,7 @@ function HarmonicOscillator.plot_hamiltonian(;
 
     fig = Figure(size = (600, 600), figure_padding = 5, fontsize = 24)
     ax = Axis(fig[1, 1]; aspect = 1, xlabel = "q", ylabel = "p",
-              xticks = [-2, -1, 0, +1, +2], yticks = [-2, -1, 0, +1, +2])
+        xticks = [-2, -1, 0, +1, +2], yticks = [-2, -1, 0, +1, +2])
     co = contourf!(ax, qs, ps, hs; levels = levels)
     Colorbar(fig[1, 2], co)
     return fig

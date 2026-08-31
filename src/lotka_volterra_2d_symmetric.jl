@@ -15,17 +15,16 @@ Journal of Theoretical Physics, Vol. 37, No. 9, pp. 2457-2462, 1998.
 """
 module LotkaVolterra2dSymmetric
 
-    ϑ₁(t, q) = + log(q[2]) / q[1] / 2
-    ϑ₂(t, q) = - log(q[1]) / q[2] / 2
+ϑ₁(t, q) = + log(q[2]) / q[1] / 2
+ϑ₂(t, q) = - log(q[1]) / q[2] / 2
 
-    dϑ₁dx₁(t, q) = - log(q[2]) / q[1]^2 / 2
-    dϑ₁dx₂(t, q) = + 1 / (q[1] * q[2]) / 2
+dϑ₁dx₁(t, q) = - log(q[2]) / q[1]^2 / 2
+dϑ₁dx₂(t, q) = + 1 / (q[1] * q[2]) / 2
 
-    dϑ₂dx₁(t, q) = - 1 / (q[2] * q[1]) / 2
-    dϑ₂dx₂(t, q) = + log(q[1]) / q[2]^2 / 2
+dϑ₂dx₁(t, q) = - 1 / (q[2] * q[1]) / 2
+dϑ₂dx₂(t, q) = + log(q[1]) / q[2]^2 / 2
 
-
-    include("lotka_volterra_2d_common.jl")
-    include("lotka_volterra_2d_equations.jl")
+include("lotka_volterra_2d_common.jl")
+include("lotka_volterra_2d_equations.jl")
 
 end

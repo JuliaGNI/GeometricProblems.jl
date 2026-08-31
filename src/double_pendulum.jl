@@ -22,152 +22,153 @@ System parameters:
 """
 module DoublePendulum
 
-    using EulerLagrange
-    using LinearAlgebra
-    using Parameters
-    using GeometricEquations: HODEEnsemble, LODEEnsemble
+using EulerLagrange
+using LinearAlgebra
+using Parameters
+using GeometricEquations: HODEEnsemble, LODEEnsemble
 
-    export hamiltonian, lagrangian
-    export hodeproblem, lodeproblem
-    export hodeensemble, lodeensemble
-    export hamiltonian_system, lagrangian_system
+export hamiltonian, lagrangian
+export hodeproblem, lodeproblem
+export hodeensemble, lodeensemble
+export hamiltonian_system, lagrangian_system
 
+ϑ₁(t, q, q̇, params) = (params.m₁ + params.m₂) * params.l₁^2 * q̇[1] +
+                      params.m₂ * params.l₁ * params.l₂ * q̇[2] * cos(q[1] - q[2])
 
-    ϑ₁(t, q, q̇, params) = (params.m₁ + params.m₂) * params.l₁^2 * q̇[1] + 
-        params.m₂ * params.l₁ * params.l₂ * q̇[2] * cos(q[1] - q[2])
-    
-    ϑ₂(t, q, q̇, params) = params.m₂ * params.l₂^2 * q̇[2] +
-        params.m₂ * params.l₁ * params.l₂ * q̇[1] * cos(q[1] - q[2])
+ϑ₂(t, q, q̇, params) = params.m₂ * params.l₂^2 * q̇[2] +
+                      params.m₂ * params.l₁ * params.l₂ * q̇[1] * cos(q[1] - q[2])
 
-    ϑ(t, q, q̇, params) = [ϑ₁(t, q, q̇, params), ϑ₂(t, q, q̇, params)]
+ϑ(t, q, q̇, params) = [ϑ₁(t, q, q̇, params), ϑ₂(t, q, q̇, params)]
 
+function θ̇₁(t, q, p, params)
+    @unpack l₁, l₂, m₁, m₂, g = params
 
-    function θ̇₁(t, q, p, params)
-        @unpack l₁, l₂, m₁, m₂, g = params
-        
-        ( l₂ * p[1] - l₁ * p[2] * cos(q[1] - q[2]) ) /
-        ( l₁^2 * l₂ * ( m₁ + m₂ * sin(q[1] - q[2])^2 ) )
-    end
+    (l₂ * p[1] - l₁ * p[2] * cos(q[1] - q[2])) /
+    (l₁^2 * l₂ * (m₁ + m₂ * sin(q[1] - q[2])^2))
+end
 
-    function θ̇₂(t, q, p, params)
-        @unpack l₁, l₂, m₁, m₂, g = params
-        
-        ( (m₁ + m₂) * l₁ * p[2] - m₂ * l₂ * p[1] * cos(q[1] - q[2]) ) /
-        ( m₂ * l₁ * l₂^2 * ( m₁ + m₂ * sin(q[1] - q[2])^2 ) )
-    end
+function θ̇₂(t, q, p, params)
+    @unpack l₁, l₂, m₁, m₂, g = params
 
-    θ̇(t, q, p, params) = [θ̇₁(t, q, p, params), θ̇₂(t, q, p, params)]
+    ((m₁ + m₂) * l₁ * p[2] - m₂ * l₂ * p[1] * cos(q[1] - q[2])) /
+    (m₂ * l₁ * l₂^2 * (m₁ + m₂ * sin(q[1] - q[2])^2))
+end
 
-    function θ̇(v, t, q, p, params)
-        v[1] = θ̇₁(t, q, p, params)
-        v[2] = θ̇₂(t, q, p, params)
-        nothing
-    end
+θ̇(t, q, p, params) = [θ̇₁(t, q, p, params), θ̇₂(t, q, p, params)]
 
+function θ̇(v, t, q, p, params)
+    v[1] = θ̇₁(t, q, p, params)
+    v[2] = θ̇₂(t, q, p, params)
+    nothing
+end
 
-    const DEFAULT_TIMESTEP = 0.01
-    const DEFAULT_TIMESPAN = (0.0, 10.0)
+const DEFAULT_TIMESTEP = 0.01
+const DEFAULT_TIMESPAN = (0.0, 10.0)
 
-    default_parameters(::Type{T}=Float64) where {T} = (
-        l₁ = T(2.0),
-        l₂ = T(3.0),
-        m₁ = T(1.0),
-        m₂ = T(2.0),
-        g = T(9.80665),
-    )
+default_parameters(::Type{T} = Float64) where {T} = (
+    l₁ = T(2.0),
+    l₂ = T(3.0),
+    m₁ = T(1.0),
+    m₂ = T(2.0),
+    g = T(9.80665)
+)
 
-    const θ₀ = [π/4, π/2]
-    const ω₀ = [0.0, π/8]
-    const p₀ = ϑ(DEFAULT_TIMESPAN[begin], θ₀, ω₀, default_parameters())
+const θ₀ = [π/4, π/2]
+const ω₀ = [0.0, π/8]
+const p₀ = ϑ(DEFAULT_TIMESPAN[begin], θ₀, ω₀, default_parameters())
 
+function hamiltonian(t, q, p, params)
+    @unpack l₁, l₂, m₁, m₂, g = params
 
-    function hamiltonian(t, q, p, params)
-        @unpack l₁, l₂, m₁, m₂, g = params
+    nom = (m₁ + m₂) * l₁^2 * p[2]^2 / 2 +
+          m₂ * l₂^2 * p[1]^2 / 2 -
+          m₂ * l₁ * l₂ * p[1] * p[2] * cos(q[1] - q[2])
 
-        nom = (m₁ + m₂) * l₁^2 * p[2]^2 / 2+ 
-                    m₂  * l₂^2 * p[1]^2 / 2 - 
-              m₂ * l₁ * l₂ * p[1] * p[2] * cos(q[1] - q[2])
-        
-        den = m₂ * l₁^2 * l₂^2 * ( m₁ + m₂ * sin(q[1] - q[2])^2 )
-        
-        nom/den - g * (m₁ + m₂) * l₁ * cos(q[1]) - g * m₂ * l₂ * cos(q[2])
-    end
+    den = m₂ * l₁^2 * l₂^2 * (m₁ + m₂ * sin(q[1] - q[2])^2)
 
+    nom/den - g * (m₁ + m₂) * l₁ * cos(q[1]) - g * m₂ * l₂ * cos(q[2])
+end
 
-    function lagrangian(t, q, q̇, params)
-        @unpack l₁, l₂, m₁, m₂, g = params
+function lagrangian(t, q, q̇, params)
+    @unpack l₁, l₂, m₁, m₂, g = params
 
-        (m₁ + m₂) * l₁^2 * q̇[1]^2 / 2 + 
-              m₂  * l₂^2 * q̇[2]^2 / 2 +
-         m₂ * l₁  * l₂ * q̇[1] * q̇[2] * cos(q[1] - q[2]) +
-        (m₁ + m₂) * l₁ * g * cos(q[1]) +
-              m₂  * l₂ * g * cos(q[2])
-    end
+    (m₁ + m₂) * l₁^2 * q̇[1]^2 / 2 +
+    m₂ * l₂^2 * q̇[2]^2 / 2 +
+    m₂ * l₁ * l₂ * q̇[1] * q̇[2] * cos(q[1] - q[2]) +
+    (m₁ + m₂) * l₁ * g * cos(q[1]) +
+    m₂ * l₂ * g * cos(q[2])
+end
 
-    function hamiltonian_system(parameters::NamedTuple)
-        t, q, p = hamiltonian_variables(2)
-        sparams = symbolize(parameters)
-        HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams; nanmath = true)
-    end
+function hamiltonian_system(parameters::NamedTuple)
+    t, q, p = hamiltonian_variables(2)
+    sparams = symbolize(parameters)
+    HamiltonianSystem(hamiltonian(t, q, p, sparams), t, q, p, sparams; nanmath = true)
+end
 
-    function lagrangian_system(parameters::NamedTuple)
-        t, x, v = lagrangian_variables(2)
-        sparams = symbolize(parameters)
-        LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; nanmath = true)
-    end
+function lagrangian_system(parameters::NamedTuple)
+    t, x, v = lagrangian_variables(2)
+    sparams = symbolize(parameters)
+    LagrangianSystem(lagrangian(t, x, v, sparams), t, x, v, sparams; nanmath = true)
+end
 
-    # Build the symbolic system from a single parameter set, while a vector of parameter
-    # sets is passed on to the ensemble unchanged (see issue #64).
-    _parameters(p::NamedTuple) = p
-    _parameters(p::AbstractVector) = p[begin]
+# Build the symbolic system from a single parameter set, while a vector of parameter
+# sets is passed on to the ensemble unchanged (see issue #64).
+_parameters(p::NamedTuple) = p
+_parameters(p::AbstractVector) = p[begin]
 
+"""
+    Hamiltonian problem for the double pendulum
 
-    """
-        Hamiltonian problem for the double pendulum
+Constructor with default arguments:
+```
+hodeproblem(
+    q₀ = [π/4, π/2],
+    p₀ = $(p₀);
+    timespan = $(DEFAULT_TIMESPAN),
+    timestep = $(DEFAULT_TIMESTEP),
+    parameters = $(default_parameters())
+)
+```
+"""
+function hodeproblem(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    HODEProblem(
+        hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
+end
 
-    Constructor with default arguments:
-    ```
-    hodeproblem(
-        q₀ = [π/4, π/2],
-        p₀ = $(p₀);
-        timespan = $(DEFAULT_TIMESPAN),
-        timestep = $(DEFAULT_TIMESTEP),
-        parameters = $(default_parameters())
-    )
-    ```
-    """
-    function hodeproblem(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        HODEProblem(hamiltonian_system(parameters), timespan, timestep, q₀, p₀; parameters = parameters)
-    end
+"Hamiltonian ensemble for the double pendulum (varying initial conditions and/or parameters)."
+function hodeensemble(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    eqs = functions(hamiltonian_system(_parameters(parameters)))
+    HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
+end
 
-    "Hamiltonian ensemble for the double pendulum (varying initial conditions and/or parameters)."
-    function hodeensemble(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        eqs = functions(hamiltonian_system(_parameters(parameters)))
-        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
-    end
+"""
+    Lagrangian problem for the double pendulum
 
-    """
-        Lagrangian problem for the double pendulum
+Constructor with default arguments:
+```
+lodeproblem(
+    q₀ = [π/4, π/2],
+    p₀ = $(p₀);
+    timespan = $(DEFAULT_TIMESPAN),
+    timestep = $(DEFAULT_TIMESTEP),
+    parameters = $(default_parameters())
+)
+```
+"""
+function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    LODEProblem(lagrangian_system(parameters), timespan,
+        timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+end
 
-    Constructor with default arguments:
-    ```
-    lodeproblem(
-        q₀ = [π/4, π/2],
-        p₀ = $(p₀);
-        timespan = $(DEFAULT_TIMESPAN),
-        timestep = $(DEFAULT_TIMESTEP),
-        parameters = $(default_parameters())
-    )
-    ```
-    """
-    function lodeproblem(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        LODEProblem(lagrangian_system(parameters), timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
-    end
-
-    "Lagrangian ensemble for the double pendulum (varying initial conditions and/or parameters)."
-    function lodeensemble(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        eqs = functions(lagrangian_system(_parameters(parameters)))
-        LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan, timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
-    end
+"Lagrangian ensemble for the double pendulum (varying initial conditions and/or parameters)."
+function lodeensemble(q₀ = θ₀, p₀ = p₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    eqs = functions(lagrangian_system(_parameters(parameters)))
+    LODEEnsemble(eqs.ϑ, eqs.f, eqs.g, eqs.ω, eqs.L, timespan,
+        timestep, q₀, p₀; v̄ = θ̇, parameters = parameters)
+end
 
 end

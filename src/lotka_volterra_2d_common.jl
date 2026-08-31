@@ -5,7 +5,6 @@ import NaNMath: log
 
 export ϑ, ω, hamiltonian
 
-
 function ϑ(Θ::AbstractVector, t, q::AbstractVector)
     Θ[1] = ϑ₁(t, q)
     Θ[2] = ϑ₂(t, q)
@@ -28,7 +27,7 @@ end
 
 ϑ(t, q::AbstractVector, params::NamedTuple, k::Int) = ϑ(t, q, k)
 
-function lotka_volterra_2d_pᵢ(qᵢ, tᵢ=0)
+function lotka_volterra_2d_pᵢ(qᵢ, tᵢ = 0)
     pᵢ = zero(qᵢ)
 
     if ndims(qᵢ) == 1
@@ -51,7 +50,6 @@ function ω(Ω, t, q)
     nothing
 end
 
-
 function hamiltonian(t, q, params)
     @unpack a₁, a₂, b₁, b₂ = params
     a₁ * q[1] + a₂ * q[2] + b₁ * log(q[1]) + b₂ * log(q[2])
@@ -65,7 +63,6 @@ function lagrangian(t, q, v, params)
     ϑ₁(t, q) * v[1] + ϑ₂(t, q) * v[2] - hamiltonian(t, q, params)
 end
 
-
 function dHd₁(t, q, params)
     @unpack a₁, b₁ = params
     a₁ + b₁ / q[1]
@@ -75,7 +72,6 @@ function dHd₂(t, q, params)
     @unpack a₂, b₂ = params
     a₂ + b₂ / q[2]
 end
-
 
 function v₁(t, q, params)
     @unpack a₁, a₂, b₁, b₂ = params
@@ -87,19 +83,16 @@ function v₂(t, q, params)
     -q[2] * (a₁ * q[1] + b₁)
 end
 
-
 f₁(t, q, v) = dϑ₁dx₁(t, q) * v[1] + dϑ₂dx₁(t, q) * v[2]
 f₂(t, q, v) = dϑ₁dx₂(t, q) * v[1] + dϑ₂dx₂(t, q) * v[2]
 
 g₁(t, q, v) = dϑ₁dx₁(t, q) * v[1] + dϑ₁dx₂(t, q) * v[2]
 g₂(t, q, v) = dϑ₂dx₁(t, q) * v[1] + dϑ₂dx₂(t, q) * v[2]
 
-
 lotka_volterra_2d_ϑ(Θ, t, q, params) = ϑ(Θ, t, q)
 lotka_volterra_2d_ϑ(Θ, t, q, v, params) = ϑ(Θ, t, q)
 lotka_volterra_2d_ω(Ω, t, q, params) = ω(Ω, t, q)
 lotka_volterra_2d_ω(Ω, t, q, v, params) = ω(Ω, t, q)
-
 
 function lotka_volterra_2d_dH(dH, t, q, params)
     dH[1] = dHd₁(t, q, params)
@@ -130,7 +123,8 @@ function lotka_volterra_2d_v_dae(v, t, q, params)
     nothing
 end
 
-function lotka_volterra_2d_f(f::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
+function lotka_volterra_2d_f(
+        f::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
     f[1] = f₁(t, q, v) - dHd₁(t, q, params)
     f[2] = f₂(t, q, v) - dHd₂(t, q, params)
     nothing
@@ -142,11 +136,13 @@ function lotka_volterra_2d_f_ham(f::AbstractVector, t, q::AbstractVector, params
     nothing
 end
 
-function lotka_volterra_2d_f_ham(f::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
+function lotka_volterra_2d_f_ham(
+        f::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
     lotka_volterra_2d_f_ham(f, t, q, params)
 end
 
-function lotka_volterra_2d_g(g::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
+function lotka_volterra_2d_g(
+        g::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
     g[1] = f₁(t, q, v)
     g[2] = f₂(t, q, v)
     nothing
@@ -155,7 +151,8 @@ end
 lotka_volterra_2d_g(g, t, q, p, λ, params) = lotka_volterra_2d_g(g, t, q, λ, params)
 lotka_volterra_2d_g(g, t, q, v, p, λ, params) = lotka_volterra_2d_g(g, t, q, p, λ, params)
 
-function lotka_volterra_2d_ḡ(g::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
+function lotka_volterra_2d_ḡ(
+        g::AbstractVector, t, q::AbstractVector, v::AbstractVector, params)
     g[1] = g₁(t, q, v)
     g[2] = g₂(t, q, v)
     nothing
@@ -208,7 +205,9 @@ function lotka_volterra_2d_ψ(ψ, t, q, p, q̇, ṗ, params)
     nothing
 end
 
-lotka_volterra_2d_ψ(ψ, t, q, v, p, q̇, ṗ, params) = lotka_volterra_2d_ψ(ψ, t, q, p, q̇, ṗ, params)
+function lotka_volterra_2d_ψ(ψ, t, q, v, p, q̇, ṗ, params)
+    lotka_volterra_2d_ψ(ψ, t, q, p, q̇, ṗ, params)
+end
 
 function lotka_volterra_2d_ψ_lode(ψ, t, q, v, p, q̇, ṗ, params)
     ψ[1] = f₁(t, q, v) - g₁(t, q, v) - dHd₁(t, q, params)

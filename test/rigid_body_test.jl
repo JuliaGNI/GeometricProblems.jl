@@ -1,5 +1,5 @@
 using GeometricProblems.RigidBody
-using Test 
+using Test
 
 @test_nowarn odeproblem()
 @test_nowarn odeensemble()

@@ -15,43 +15,45 @@ The initial condition and the default parameters are taken from [bajars2023local
 """
 module RigidBody
 
-    using GeometricEquations 
-    using GeometricSolutions
-    using Parameters 
+using GeometricEquations
+using GeometricSolutions
+using Parameters
 
-    export odeproblem, odeensemble
+export odeproblem, odeensemble
 
-    const DEFAULT_TIMESPAN = (0.0, 100.0)
-    const DEFAULT_TIMESTEP = 0.1
+const DEFAULT_TIMESPAN = (0.0, 100.0)
+const DEFAULT_TIMESTEP = 0.1
 
-    default_parameters(::Type{T}=Float64) where {T} = (
-        I₁ = T(2.),
-        I₂ = T(1.),
-        I₃ = T(2. / 3.)
-    )
+default_parameters(::Type{T} = Float64) where {T} = (
+    I₁ = T(2.0),
+    I₂ = T(1.0),
+    I₃ = T(2.0 / 3.0)
+)
 
-    const q₀ = [cos(1.1), 0., sin(1.1)]
-    const q₁ = [cos(2.1), 0., sin(2.1)]
-    const q₂ = [cos(2.2), 0., sin(2.2)]
+const q₀ = [cos(1.1), 0.0, sin(1.1)]
+const q₁ = [cos(2.1), 0.0, sin(2.1)]
+const q₂ = [cos(2.2), 0.0, sin(2.2)]
 
-    function rigid_body_v(v, t, q, params)
-        @unpack I₁, I₂, I₃ = params
-        A = (I₂ - I₃) / (I₂ * I₃)
-        B = (I₃ - I₁) / (I₃ * I₁)
-        C = (I₁ - I₂) / (I₁ * I₂)
-        v[1] = A * q[2] * q[3]
-        v[2] = B * q[1] * q[3]
-        v[3] = C * q[1] * q[2]
-        
-        nothing
-    end
+function rigid_body_v(v, t, q, params)
+    @unpack I₁, I₂, I₃ = params
+    A = (I₂ - I₃) / (I₂ * I₃)
+    B = (I₃ - I₁) / (I₃ * I₁)
+    C = (I₁ - I₂) / (I₁ * I₂)
+    v[1] = A * q[2] * q[3]
+    v[2] = B * q[1] * q[3]
+    v[3] = C * q[1] * q[2]
 
-    function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        ODEProblem(rigid_body_v, timespan, timestep, q₀; parameters = parameters)
-    end
+    nothing
+end
 
-    function odeensemble(samples = [q₀, q₁, q₂]; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        ODEEnsemble(rigid_body_v, timespan, timestep, samples; parameters = parameters)
-    end
+function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEProblem(rigid_body_v, timespan, timestep, q₀; parameters = parameters)
+end
+
+function odeensemble(samples = [q₀, q₁, q₂]; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEEnsemble(rigid_body_v, timespan, timestep, samples; parameters = parameters)
+end
 
 end

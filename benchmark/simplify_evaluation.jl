@@ -38,26 +38,34 @@ include("timing.jl")
 # Builders. Every module wraps `LagrangianSystem`/`HamiltonianSystem` the same way; `TodaLattice`
 # and `LinearWave` take the lattice size as an extra argument to their Lagrangian.
 
-build_lagrangian(mod, d, params, extra...) = simplify -> begin
-    t, x, v = lagrangian_variables(d)
-    sp = symbolize(params)
-    LagrangianSystem(mod.lagrangian(t, x, v, sp, extra...), t, x, v, sp; simplify=simplify)
+function build_lagrangian(mod, d, params, extra...)
+    simplify -> begin
+        t, x, v = lagrangian_variables(d)
+        sp = symbolize(params)
+        LagrangianSystem(
+            mod.lagrangian(t, x, v, sp, extra...), t, x, v, sp; simplify = simplify)
+    end
 end
 
-build_hamiltonian(mod, d, params, extra...) = simplify -> begin
-    t, q, p = hamiltonian_variables(d)
-    sp = symbolize(params)
-    HamiltonianSystem(mod.hamiltonian(t, q, p, sp, extra...), t, q, p, sp; simplify=simplify)
+function build_hamiltonian(mod, d, params, extra...)
+    simplify -> begin
+        t, q, p = hamiltonian_variables(d)
+        sp = symbolize(params)
+        HamiltonianSystem(
+            mod.hamiltonian(t, q, p, sp, extra...), t, q, p, sp; simplify = simplify)
+    end
 end
 
 # `LotkaVolterra4dLagrangian` is the one `DegenerateLagrangianSystem` here, built from a kinetic and
 # a Hamiltonian part rather than from a single Lagrangian.
-build_degenerate(params) = simplify -> begin
-    t, x, v = lagrangian_variables(4)
-    sp = symbolize(params)
-    Ks = lv4l.K(x, v, lv4l.A_default, lv4l.B_default)
-    Hs = lv4l.H(x, lv4l.get_parameters(sp)...)
-    DegenerateLagrangianSystem(Ks, Hs, t, x, v, sp; simplify=simplify)
+function build_degenerate(params)
+    simplify -> begin
+        t, x, v = lagrangian_variables(4)
+        sp = symbolize(params)
+        Ks = lv4l.K(x, v, lv4l.A_default, lv4l.B_default)
+        Hs = lv4l.H(x, lv4l.get_parameters(sp)...)
+        DegenerateLagrangianSystem(Ks, Hs, t, x, v, sp; simplify = simplify)
+    end
 end
 
 # `simplify=false` has been the EulerLagrange default since 0.5, and these two are the only problems
@@ -77,31 +85,63 @@ const wave_q, wave_p = ics(lw.hodeproblem(WAVE_N))
 
 # (label, kind, dimension, builder, params, q, w)  --  `w` is the momentum for :ham, velocity for :lag
 const PROBLEMS = Any[
-    ("CoupledHarmonicOscillator", :lag, 2, build_lagrangian(cho, 2, cho.default_parameters()), cho.default_parameters(), [0.5, 0.7], [0.3, -0.2]),
-    ("CoupledHarmonicOscillator", :ham, 2, build_hamiltonian(cho, 2, cho.default_parameters()), cho.default_parameters(), [0.5, 0.7], [0.3, -0.2]),
-    ("DoublePendulum", :lag, 2, build_lagrangian(dp, 2, dp.default_parameters()), dp.default_parameters(), [0.4, 0.6], [0.3, -0.2]),
-    ("DoublePendulum", :ham, 2, build_hamiltonian(dp, 2, dp.default_parameters()), dp.default_parameters(), [0.4, 0.6], [0.3, -0.2]),
-    ("DuffingOscillator", :lag, 1, build_lagrangian(duff, 1, duff.default_parameters()), duff.default_parameters(), [0.7], [0.3]),
-    ("DuffingOscillator", :ham, 1, build_hamiltonian(duff, 1, duff.default_parameters()), duff.default_parameters(), [0.7], [0.3]),
-    ("HenonHeilesPotential", :lag, 2, build_lagrangian(hh, 2, hh.default_parameters()), hh.default_parameters(), [0.2, 0.3], [0.1, -0.1]),
-    ("HenonHeilesPotential", :ham, 2, build_hamiltonian(hh, 2, hh.default_parameters()), hh.default_parameters(), [0.2, 0.3], [0.1, -0.1]),
-    ("LennardJonesOscillator", :lag, 1, build_lagrangian(lj, 1, lj.default_parameters()), lj.default_parameters(), [1.2], [0.3]),
-    ("LennardJonesOscillator", :ham, 1, build_hamiltonian(lj, 1, lj.default_parameters()), lj.default_parameters(), [1.2], [0.3]),
-    ("MathewsLakshmananOsc.", :lag, 1, build_lagrangian(ml, 1, ml.default_parameters()), ml.default_parameters(), [0.4], [0.3]),
-    ("MathewsLakshmananOsc.", :ham, 1, build_hamiltonian(ml, 1, ml.default_parameters()), ml.default_parameters(), [0.4], [0.3]),
-    ("MorseOscillator", :lag, 1, build_lagrangian(morse, 1, morse.default_parameters()), morse.default_parameters(), [1.1], [0.3]),
-    ("MorseOscillator", :ham, 1, build_hamiltonian(morse, 1, morse.default_parameters()), morse.default_parameters(), [1.1], [0.3]),
-    ("PerturbedPendulum", :lag, 1, build_lagrangian(pp, 1, pp.default_parameters()), pp.default_parameters(), [0.5], [0.3]),
-    ("PerturbedPendulum", :ham, 1, build_hamiltonian(pp, 1, pp.default_parameters()), pp.default_parameters(), [0.5], [0.3]),
-    ("ThreeBody", :lag, 6, build_lagrangian(tb, 6, tb.default_parameters()), tb.default_parameters(), tb.initial_condition.q, tb.initial_condition.p),
-    ("ThreeBody", :ham, 6, build_hamiltonian(tb, 6, tb.default_parameters()), tb.default_parameters(), tb.initial_condition.q, tb.initial_condition.p),
-    ("TodaLattice (N=$TODA_N)", :lag, TODA_N, build_lagrangian(toda, TODA_N, toda.default_parameters(), TODA_N), toda.default_parameters(), toda_q, toda_p .+ 0.1),
-    ("TodaLattice (N=$TODA_N)", :ham, TODA_N, build_hamiltonian(toda, TODA_N, toda.default_parameters(), TODA_N), toda.default_parameters(), toda_q, toda_p .+ 0.1),
-    ("LinearWave (N=$WAVE_N)", :lag, WAVE_N + 2, build_lagrangian(lw, WAVE_N + 2, lw.default_parameters(), WAVE_N), lw.default_parameters(), wave_q, wave_p),
-    ("LinearWave (N=$WAVE_N)", :ham, WAVE_N + 2, build_hamiltonian(lw, WAVE_N + 2, lw.default_parameters(), WAVE_N), lw.default_parameters(), wave_q, wave_p),
-    ("LotkaVolterra4d (degen.)", :deg, 4, build_degenerate(lv4l.default_parameters()), lv4l.default_parameters(), lv4l.q₀, [0.3, -0.2, 0.1, 0.4]),
-    ("OuterSolarSystem", :lag, 18, build_lagrangian(oss, 18, oss.default_parameters()), oss.default_parameters(), oss.q₀, oss.p₀),
-    ("OuterSolarSystem", :ham, 18, build_hamiltonian(oss, 18, oss.default_parameters()), oss.default_parameters(), oss.q₀, oss.p₀),
+    ("CoupledHarmonicOscillator", :lag, 2,
+        build_lagrangian(cho, 2, cho.default_parameters()),
+        cho.default_parameters(), [0.5, 0.7], [0.3, -0.2]),
+    ("CoupledHarmonicOscillator", :ham, 2,
+        build_hamiltonian(cho, 2, cho.default_parameters()),
+        cho.default_parameters(), [0.5, 0.7], [0.3, -0.2]),
+    ("DoublePendulum", :lag, 2, build_lagrangian(dp, 2, dp.default_parameters()),
+        dp.default_parameters(), [0.4, 0.6], [0.3, -0.2]),
+    ("DoublePendulum", :ham, 2, build_hamiltonian(dp, 2, dp.default_parameters()),
+        dp.default_parameters(), [0.4, 0.6], [0.3, -0.2]),
+    ("DuffingOscillator", :lag, 1, build_lagrangian(duff, 1, duff.default_parameters()),
+        duff.default_parameters(), [0.7], [0.3]),
+    ("DuffingOscillator", :ham, 1, build_hamiltonian(duff, 1, duff.default_parameters()),
+        duff.default_parameters(), [0.7], [0.3]),
+    ("HenonHeilesPotential", :lag, 2, build_lagrangian(hh, 2, hh.default_parameters()),
+        hh.default_parameters(), [0.2, 0.3], [0.1, -0.1]),
+    ("HenonHeilesPotential", :ham, 2, build_hamiltonian(hh, 2, hh.default_parameters()),
+        hh.default_parameters(), [0.2, 0.3], [0.1, -0.1]),
+    ("LennardJonesOscillator", :lag, 1, build_lagrangian(lj, 1, lj.default_parameters()),
+        lj.default_parameters(), [1.2], [0.3]),
+    ("LennardJonesOscillator", :ham, 1,
+        build_hamiltonian(lj, 1, lj.default_parameters()),
+        lj.default_parameters(), [1.2], [0.3]),
+    ("MathewsLakshmananOsc.", :lag, 1, build_lagrangian(ml, 1, ml.default_parameters()),
+        ml.default_parameters(), [0.4], [0.3]),
+    ("MathewsLakshmananOsc.", :ham, 1, build_hamiltonian(ml, 1, ml.default_parameters()),
+        ml.default_parameters(), [0.4], [0.3]),
+    ("MorseOscillator", :lag, 1, build_lagrangian(morse, 1, morse.default_parameters()),
+        morse.default_parameters(), [1.1], [0.3]),
+    ("MorseOscillator", :ham, 1, build_hamiltonian(morse, 1, morse.default_parameters()),
+        morse.default_parameters(), [1.1], [0.3]),
+    ("PerturbedPendulum", :lag, 1, build_lagrangian(pp, 1, pp.default_parameters()),
+        pp.default_parameters(), [0.5], [0.3]),
+    ("PerturbedPendulum", :ham, 1, build_hamiltonian(pp, 1, pp.default_parameters()),
+        pp.default_parameters(), [0.5], [0.3]),
+    ("ThreeBody", :lag, 6, build_lagrangian(tb, 6, tb.default_parameters()),
+        tb.default_parameters(), tb.initial_condition.q, tb.initial_condition.p),
+    ("ThreeBody", :ham, 6, build_hamiltonian(tb, 6, tb.default_parameters()),
+        tb.default_parameters(), tb.initial_condition.q, tb.initial_condition.p),
+    ("TodaLattice (N=$TODA_N)", :lag, TODA_N,
+        build_lagrangian(toda, TODA_N, toda.default_parameters(), TODA_N),
+        toda.default_parameters(), toda_q, toda_p .+ 0.1),
+    ("TodaLattice (N=$TODA_N)", :ham, TODA_N,
+        build_hamiltonian(toda, TODA_N, toda.default_parameters(), TODA_N),
+        toda.default_parameters(), toda_q, toda_p .+ 0.1),
+    ("LinearWave (N=$WAVE_N)", :lag, WAVE_N + 2,
+        build_lagrangian(lw, WAVE_N + 2, lw.default_parameters(), WAVE_N),
+        lw.default_parameters(), wave_q, wave_p),
+    ("LinearWave (N=$WAVE_N)", :ham, WAVE_N + 2,
+        build_hamiltonian(lw, WAVE_N + 2, lw.default_parameters(), WAVE_N),
+        lw.default_parameters(), wave_q, wave_p),
+    ("LotkaVolterra4d (degen.)", :deg, 4, build_degenerate(lv4l.default_parameters()),
+        lv4l.default_parameters(), lv4l.q₀, [0.3, -0.2, 0.1, 0.4]),
+    ("OuterSolarSystem", :lag, 18, build_lagrangian(oss, 18, oss.default_parameters()),
+        oss.default_parameters(), oss.q₀, oss.p₀),
+    ("OuterSolarSystem", :ham, 18, build_hamiltonian(oss, 18, oss.default_parameters()),
+        oss.default_parameters(), oss.q₀, oss.p₀)
 ]
 
 """
@@ -143,13 +183,13 @@ println("-"^112)
 const THRESHOLD = 1.15
 
 # (label, kind, fn, ratio) for the summary; only reliable measurements are recorded
-const RATIOS = Tuple{String,String,String,Float64}[]
-const BUILD = Tuple{String,String,Float64,Float64}[]
+const RATIOS = Tuple{String, String, String, Float64}[]
+const BUILD = Tuple{String, String, Float64, Float64}[]
 const SKIPPED = String[]
 
 for (label, kind, d, builder, params, q, w) in PROBLEMS
-    systems = Dict{Bool,Any}()
-    times = Dict{Bool,Float64}()
+    systems = Dict{Bool, Any}()
+    times = Dict{Bool, Float64}()
     failed = false
     for simplify in (true, false)
         try
@@ -171,7 +211,7 @@ for (label, kind, d, builder, params, q, w) in PROBLEMS
 
     for ((fname, fyes), (_, fno)) in zip(with, without)
         ryes, rno = fyes(), fno()   # also warms the compiler
-        agree = isapprox(ryes, rno; rtol=1e-8, atol=1e-14)
+        agree = isapprox(ryes, rno; rtol = 1e-8, atol = 1e-14)
         tyes, ok_yes = percall(fyes)
         tno, ok_no = percall(fno)
         ratio = tyes / tno
@@ -225,7 +265,8 @@ let r = [x[4] for x in RATIOS]
     @printf("  simplify=true:  %8.2f s\n", sum(x[3] for x in BUILD))
     @printf("  simplify=false: %8.2f s\n", sum(x[4] for x in BUILD))
     println()
-    @printf("(sink checksum %g -- printed only so the timed calls cannot be optimised away)\n", SINK[])
+    @printf("(sink checksum %g -- printed only so the timed calls cannot be optimised away)\n",
+        SINK[])
 end
 
 println()

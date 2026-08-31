@@ -34,7 +34,7 @@ import GeometricProblems.MasslessChargedParticleSingular as mcpsi
 # than by value.
 
 const LV2D = (lv2, lv2g, lv2si, lv2sy)
-const MCP  = (mcp, mcpsi)
+const MCP = (mcp, mcpsi)
 const MODULES = (LV2D..., MCP...)
 
 # The loop takes any number of sample points; the surface's Chebyshev plan samples at Padua points
@@ -59,12 +59,12 @@ function f_disc(M)
     (s, t) -> [x0 + rx * s * cos(2π*t), y0 + ry * s * sin(2π*t)]
 end
 
-
 @testset "$(rpad("Poincaré invariants extensions",80))" begin
-
     @testset "extensions are loaded" begin
-        @test Base.get_extension(GeometricProblems, :LotkaVolterra2dPoincareInvariants) !== nothing
-        @test Base.get_extension(GeometricProblems, :MasslessChargedParticlePoincareInvariants) !== nothing
+        @test Base.get_extension(GeometricProblems, :LotkaVolterra2dPoincareInvariants) !==
+              nothing
+        @test Base.get_extension(GeometricProblems, :MasslessChargedParticlePoincareInvariants) !==
+              nothing
     end
 
     @testset "constructors are attached to all six modules" begin
@@ -83,7 +83,8 @@ end
         end
         for M in MCP
             @test getform(M.poincare_invariant_1st(NLOOP)) === M.massless_charged_particle_ϑ
-            @test getform(M.poincare_invariant_2nd(NSURFACE)) === M.massless_charged_particle_ω
+            @test getform(M.poincare_invariant_2nd(NSURFACE)) ===
+                  M.massless_charged_particle_ω
         end
     end
 
@@ -126,6 +127,7 @@ end
             # is a different number — which is why `f_disc` exists for the Stokes check below.
             @test M.f_surface(0.5, 0.5) ≈ [x0, y0]
             for s in (0.0, 1.0), t in (0.0, 1.0)
+
                 x, y = M.f_surface(s, t)
                 @test ((x - x0) / rx)^2 + ((y - y0) / ry)^2 < 1
             end
@@ -177,10 +179,10 @@ end
     # point with a variational integrator, read the invariant off the ensemble solution.
     @testset "$(nameof(M)) — advection conserves the invariants" for M in MODULES
         for (pinv, init) in ((M.poincare_invariant_1st(NLOOP), M.f_loop),
-                             (M.poincare_invariant_2nd(NSURFACE), M.f_surface))
+            (M.poincare_invariant_2nd(NSURFACE), M.f_surface))
             prob = M.iodeproblem(; timespan = TIMESPAN, timestep = TIMESTEP)
             sol = integrate(PIEnsembleProblem(prob, pinv, init), VPRKGauss(2);
-                            f_abstol = 1E-14, f_reltol = 1E-14)
+                f_abstol = 1E-14, f_reltol = 1E-14)
             I = compute!(pinv, sol, parameters(prob))
 
             @test I isa Vector
@@ -212,14 +214,14 @@ end
             pinv = lv2si.poincare_invariant_1st(NLOOP)
             prob = lv2si.iodeproblem(; timespan = (0.0, 4Δt), timestep = Δt)
             sol = integrate(PIEnsembleProblem(prob, pinv, lv2si.f_loop), VPRKGauss(2);
-                            f_abstol = 1E-14, f_reltol = 1E-14)
+                f_abstol = 1E-14, f_reltol = 1E-14)
             I = compute!(pinv, sol, parameters(prob))
             maximum(abs, (I .- I[begin]) ./ I[begin])
         end
 
         hs = [0.02, 0.01, 0.005]
         εs = invariant_error.(hs)
-        orders = [log2(εs[i] / εs[i+1]) for i in 1:(length(εs)-1)]
+        orders = [log2(εs[i] / εs[i + 1]) for i in 1:(length(εs) - 1)]
 
         @test all(o -> o > 2.5, orders)
     end
@@ -235,5 +237,4 @@ end
             @test_throws UndefVarError M.iode_poincare_invariant_1st(0.01, 4, 10, 1)
         end
     end
-
 end

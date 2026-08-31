@@ -51,8 +51,10 @@ end
         @test Ω̃ ≈ Ω
 
         # L = ϑ⋅v - H, with ∂L/∂v = ϑ (degenerate, linear in v)
-        @test mcp.lagrangian(t, q, v, params) ≈ sum(mcp.ϑ(t, q, params) .* v) - mcp.hamiltonian(t, q, params)
-        @test ForwardDiff.gradient(u -> mcp.lagrangian(t, q, u, params), v) ≈ mcp.ϑ(t, q, params) atol = 1e-12
+        @test mcp.lagrangian(t, q, v, params) ≈
+              sum(mcp.ϑ(t, q, params) .* v) - mcp.hamiltonian(t, q, params)
+        @test ForwardDiff.gradient(u -> mcp.lagrangian(t, q, u, params), v) ≈
+              mcp.ϑ(t, q, params) atol = 1e-12
     end
 
     # No integrator in GeometricIntegrators evaluates ω, and `check_methods` skips it, so the

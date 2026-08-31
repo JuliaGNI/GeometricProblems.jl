@@ -32,7 +32,9 @@ function _invariant_error(sol, invariant)
 end
 
 # Compute the relative energy error of a solution from its `:h` invariant.
-_energy_error(sol; energy = nothing) = _invariant_error(sol, energy === nothing ? :h : energy)
+function _energy_error(sol; energy = nothing)
+    _invariant_error(sol, energy === nothing ? :h : energy)
+end
 
 # Default axis labels for the error and the drift of an invariant named `s`, e.g. `:h` → "H".
 # A non-`Symbol` invariant (a bare function) has no name to show, so it falls back to "I".
@@ -50,8 +52,9 @@ function _drift_label(s, latex)
 end
 
 # Stack one axis per component of a per-DOF time series (constraint error, λ, …).
-function _plot_components(t, d, label; nplot = 1, nt = :auto, k = 0, latex = true, plot_title = nothing)
-    r  = _steprange(t, nplot, nt)
+function _plot_components(
+        t, d, label; nplot = 1, nt = :auto, k = 0, latex = true, plot_title = nothing)
+    r = _steprange(t, nplot, nt)
     ts = [t[j] for j in r]
     nd = length(d[begin])
     trange = k == 0 ? (1:nd) : (k:k)
@@ -62,7 +65,7 @@ function _plot_components(t, d, label; nplot = 1, nt = :auto, k = 0, latex = tru
         ax = Axis(fig[row, 1];
             xlabel = islast ? (latex ? L"t" : "t") : "",
             ylabel = label(i, latex),
-            xticklabelsvisible = islast,
+            xticklabelsvisible = islast
         )
         lines!(ax, ts, [d[j][i] for j in r])
         if plot_title !== nothing && row == 1
@@ -85,14 +88,15 @@ Either pass a precomputed error series (`t::TimeSeries`, `Δ::DataSeries`), or a
 also accepted). The axis label is derived from that name and can be overridden with
 `ylabel`. Returns a Makie `Figure`.
 """
-function Diagnostics.plot_invariant_error(t::Union{TimeSeries, ScalarDataSeries}, Δ::DataSeries;
+function Diagnostics.plot_invariant_error(
+        t::Union{TimeSeries, ScalarDataSeries}, Δ::DataSeries;
         ylabel = nothing, invariant = :h, nplot = 1, nt = :auto, latex = true)
-    r  = _steprange(t, nplot, nt)
+    r = _steprange(t, nplot, nt)
     ts = [t[j] for j in r]
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1];
         xlabel = latex ? L"t" : "t",
-        ylabel = ylabel === nothing ? _error_label(invariant, latex) : ylabel,
+        ylabel = ylabel === nothing ? _error_label(invariant, latex) : ylabel
     )
     lines!(ax, ts, [Δ[j] for j in r])
     xlims!(ax, ts[begin], ts[end])
@@ -111,15 +115,16 @@ Scatter plot of the drift of an invariant (the maximum absolute error per interv
 `GeometricSolutions.compute_error_drift`) as a function of time. Keywords are those of
 [`plot_invariant_error`](@ref). Returns a `Figure`.
 """
-function Diagnostics.plot_invariant_drift(t::Union{TimeSeries, ScalarDataSeries}, d::DataSeries;
+function Diagnostics.plot_invariant_drift(
+        t::Union{TimeSeries, ScalarDataSeries}, d::DataSeries;
         ylabel = nothing, invariant = :h, nt = :auto, latex = true)
     # drift data is interval-based; the first entry (index 0) is not part of it.
-    r  = 1:(nt === :auto ? ntime(t) : min(nt, ntime(t)))
+    r = 1:(nt === :auto ? ntime(t) : min(nt, ntime(t)))
     ts = [t[j] for j in r]
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1];
         xlabel = latex ? L"t" : "t",
-        ylabel = ylabel === nothing ? _drift_label(invariant, latex) : ylabel,
+        ylabel = ylabel === nothing ? _drift_label(invariant, latex) : ylabel
     )
     scatter!(ax, ts, [d[j] for j in r])
     xlims!(ax, ts[begin], ts[end])
@@ -181,7 +186,7 @@ solution, one stacked axis per degree of freedom (`k = 0`), or a single componen
 function Diagnostics.plot_constraint_error(t::Union{TimeSeries, ScalarDataSeries}, Δp::DataSeries; kwargs...)
     _plot_components(t, Δp,
         (i, latex) -> latex ? L"p_%$i(t) - \vartheta_%$i(t)" :
-                              "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)";
+                      "p" * subscript(i) * "(t) - ϑ" * subscript(i) * "(t)";
         kwargs...)
 end
 
@@ -229,7 +234,7 @@ function Diagnostics.plot_convergence(h::AbstractVector, ε::AbstractVector;
         xscale = log10,
         yscale = log10,
         xlabel = latex ? L"h" : "h",
-        ylabel = ylabel === nothing ? (latex ? L"\varepsilon" : "ε") : ylabel,
+        ylabel = ylabel === nothing ? (latex ? L"\varepsilon" : "ε") : ylabel
     )
 
     # The reference slope is anchored at twice the first *kept* error, matching the offset
@@ -262,7 +267,7 @@ function Diagnostics.plot_order(h::AbstractVector, p::AbstractVector; latex = tr
     ax = Axis(fig[1, 1];
         xscale = log10,
         xlabel = latex ? L"h" : "h",
-        ylabel = latex ? L"p" : "p",
+        ylabel = latex ? L"p" : "p"
     )
     scatterlines!(ax, h, p)
     return fig

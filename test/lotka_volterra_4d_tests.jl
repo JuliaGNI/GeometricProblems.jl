@@ -4,9 +4,7 @@ using GeometricIntegrators.SPARK
 using GeometricProblems.LotkaVolterra4d
 using GeometricSolutions
 
-
 @testset "$(rpad("Lotka-Volterra 4D",80))" begin
-
     ode = odeproblem()
     iode = iodeproblem()
     lode = lodeproblem()
@@ -18,7 +16,6 @@ using GeometricSolutions
     ldae_secondary = ldaeproblem_secondary()
 
     ref = integrate(ode, Gauss(8))
-
 
     sol = integrate(ode, Gauss(2))
     @test relative_maximum_error(sol.q, ref.q) < 1E-8
@@ -40,7 +37,6 @@ using GeometricSolutions
 
     sol = integrate(pdae, Gauss(2))
     @test relative_maximum_error(sol.q, ref.q) < 1E-8
-
 
     sol = integrate(iode, MidpointProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, ref.q) < 1E-8
@@ -65,7 +61,6 @@ using GeometricSolutions
 
     sol = integrate(ldae, TableauVSPARKGLRKpSymmetric(2))
     @test relative_maximum_error(sol.q, ref.q) < 1E-8
-
 
     sol = integrate(ldae_secondary, TableauVSPARKLobattoIIIE(2))
     @test relative_maximum_error(sol.q, ref.q) < 4E-5

@@ -1,12 +1,11 @@
 using Test
 using GeometricIntegrators
 using GeometricProblems.HarmonicOscillator
-using GeometricProblems.HarmonicOscillator: reference_solution, reference_solution_q, reference_solution_p
+using GeometricProblems.HarmonicOscillator: reference_solution, reference_solution_q,
+                                            reference_solution_p
 using GeometricSolutions
 
-
 @testset "$(rpad("Harmonic Oscillator",80))" begin
-
     @test_nowarn odeproblem()
     @test_nowarn hodeproblem()
     @test_nowarn iodeproblem()
@@ -27,14 +26,12 @@ using GeometricSolutions
     @test_nowarn podeensemble()
     @test_nowarn hodeensemble()
 
-
     ode = odeproblem()
     iode = degenerate_iodeproblem()
     pode = podeproblem()
     hode = hodeproblem()
-    ref  = exact_solution(ode)
-    
-    
+    ref = exact_solution(ode)
+
     sol = integrate(ode, Gauss(2))
     @test relative_maximum_error(sol.q, ref.q) < 1E-4
 
@@ -43,7 +40,6 @@ using GeometricSolutions
 
     sol = integrate(iode, SymmetricProjection(VPRKGauss(2)))
     @test relative_maximum_error(sol.q, ref.q) < 1E-4
-
 
     sol = exact_solution(ode)
     @test sol.q[end] == reference_solution
@@ -55,9 +51,7 @@ using GeometricSolutions
     sol = exact_solution(hode)
     @test sol.q[end] == [reference_solution_q]
     @test sol.p[end] == [reference_solution_p]
-
 end
-
 
 # The mass `m` has to be threaded consistently through every formulation. These tests use a
 # non-unit mass and a non-zero initial velocity, the combination under which the earlier
@@ -75,7 +69,9 @@ end
 
     # The Hamiltonian formulation uses momenta directly.
     q₀, p₀ = [0.7], [0.3]
-    hsol = integrate(hodeproblem(q₀, p₀; timespan = (0.0, 5.0), timestep = 0.001, parameters = params), Gauss(4))
+    hsol = integrate(
+        hodeproblem(q₀, p₀; timespan = (0.0, 5.0), timestep = 0.001, parameters = params),
+        Gauss(4))
     @test hsol.q[end][1] ≈ HarmonicOscillator.exact_solution_q(5.0, q₀, p₀, 0.0, params) atol = 1e-12
     @test hsol.p[end][1] ≈ HarmonicOscillator.exact_solution_p(5.0, q₀, p₀, 0.0, params) atol = 1e-12
 
@@ -99,7 +95,6 @@ end
     ∇H = [params.k * x₀[1], m * x₀[2]]
     @test Ω * v ≈ -∇H atol = 1e-12
 end
-
 
 # The energy constraint of the differential-algebraic forms is ϕ = H - H₀. Its reference energy H₀
 # has to come from the problem's own initial condition: it used to be read from the module-level

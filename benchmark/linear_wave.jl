@@ -70,21 +70,21 @@ function comparisons(N, hameqs, lageqs)
     λ = collect(range(0.1, 0.7, length = n))
     return (
         ("v = ∂H/∂p", () -> (hameqs.v(gen, 0.0, q, p, PARAMS); gen),
-                      () -> (lw.linear_wave_v(hand, 0.0, q, p, PARAMS); hand)),
+            () -> (lw.linear_wave_v(hand, 0.0, q, p, PARAMS); hand)),
         ("f = -∂H/∂q", () -> (hameqs.f(gen, 0.0, q, p, PARAMS); gen),
-                       () -> (lw.linear_wave_f(hand, 0.0, q, p, PARAMS); hand)),
+            () -> (lw.linear_wave_f(hand, 0.0, q, p, PARAMS); hand)),
         ("f = ∂L/∂q", () -> (lageqs.f(gen, 0.0, q, v, PARAMS); gen),
-                      () -> (lw.linear_wave_f(hand, 0.0, q, v, PARAMS); hand)),
+            () -> (lw.linear_wave_f(hand, 0.0, q, v, PARAMS); hand)),
         ("ϑ = ∂L/∂q̇", () -> (lageqs.ϑ(gen, 0.0, q, v, PARAMS); gen),
-                       () -> (lw.linear_wave_ϑ(hand, 0.0, q, v, PARAMS); hand)),
+            () -> (lw.linear_wave_ϑ(hand, 0.0, q, v, PARAMS); hand)),
         ("g = λ", () -> (lageqs.g(gen, 0.0, q, v, λ, PARAMS); gen),
-                  () -> (lw.linear_wave_g(hand, 0.0, q, v, λ, PARAMS); hand)),
+            () -> (lw.linear_wave_g(hand, 0.0, q, v, λ, PARAMS); hand)),
         ("ω (2n×2n)", () -> (lageqs.ω(Ωgen, 0.0, q, v, PARAMS); Ωgen),
-                      () -> (lw.ω!(Ωhand, 0.0, q, v, PARAMS); Ωhand)),
+            () -> (lw.ω!(Ωhand, 0.0, q, v, PARAMS); Ωhand)),
         ("H", () -> hameqs.H(0.0, q, p, PARAMS),
-              () -> lw.hamiltonian(0.0, q, p, PARAMS)),
+            () -> lw.hamiltonian(0.0, q, p, PARAMS)),
         ("L", () -> lageqs.L(0.0, q, v, PARAMS),
-              () -> lw.lagrangian(0.0, q, v, PARAMS)),
+            () -> lw.lagrangian(0.0, q, v, PARAMS))
     )
 end
 
@@ -132,8 +132,8 @@ function measure_construction(N)
         startswith(line, "RESULT ") || continue
         f = split(line)[2:end]
         return (t_hsys = parse(Float64, f[1]), t_lsys = parse(Float64, f[2]),
-                t_hand = parse(Float64, f[3]), t_f = parse(Float64, f[4]),
-                t_ω = parse(Float64, f[5]), chars = parse(Int, f[6]))
+            t_hand = parse(Float64, f[3]), t_f = parse(Float64, f[4]),
+            t_ω = parse(Float64, f[5]), chars = parse(Int, f[6]))
     end
     error("worker for N = $N produced no result")
 end
@@ -208,8 +208,10 @@ for N in (1, 2, 3, 5, 12, 64)
     h = 1e-6
     reference = zeros(n)
     for j in 1:n
-        qp = copy(q); qp[j] += h
-        qm = copy(q); qm[j] -= h
+        qp = copy(q)
+        qp[j] += h
+        qm = copy(q)
+        qm[j] -= h
         reference[j] = (lw.potential(qp, PARAMS, N) - lw.potential(qm, PARAMS, N)) / 2h
     end
     kernel = zeros(n)
@@ -219,7 +221,8 @@ for N in (1, 2, 3, 5, 12, 64)
     # α scales the gradient, and α = -1 is what the force function uses
     negated = zeros(n)
     lw.∇V!(negated, q, PARAMS, N, -1)
-    verdict = relative < 1e-6 ? (negated ≈ -kernel ? "agree" : "[α = -1 MISMATCH]") : "[MISMATCH]"
+    verdict = relative < 1e-6 ? (negated ≈ -kernel ? "agree" : "[α = -1 MISMATCH]") :
+              "[MISMATCH]"
     @printf("  %4d %14.3e %14.3e   %s\n", N, relative, scale, verdict)
 end
 
@@ -235,7 +238,8 @@ println("\n", "="^116)
 println("2. What does the symbolic route cost to build and to compile?  (one fresh process per size)")
 println("="^116)
 @printf("%4s %5s %11s %11s %11s %11s %11s %12s\n",
-        "N", "n", "ham_system", "lag_system", "hand-written", "1st gen f", "1st gen ω", "chars gen ω")
+    "N", "n", "ham_system", "lag_system", "hand-written", "1st gen f", "1st gen ω",
+    "chars gen ω")
 println("-"^116)
 
 const SWEEP_N = Int[]
@@ -249,7 +253,7 @@ for N in (FULL ? vcat(N_SWEEP, N_FULL) : N_SWEEP)
     # The hand-written column is in µs: it builds two problems out of function pointers, which is
     # five orders of magnitude away from everything beside it.
     @printf("%4d %5d %9.3f s %9.3f s %8.1f µs %9.3f s %9.3f s %12d\n",
-            N, N + 2, r.t_hsys, r.t_lsys, 1e6 * r.t_hand, r.t_f, r.t_ω, r.chars)
+        N, N + 2, r.t_hsys, r.t_lsys, 1e6 * r.t_hand, r.t_f, r.t_ω, r.chars)
     flush(stdout)
 
     push!(SWEEP_N, N + 2)
@@ -262,7 +266,8 @@ for N in (FULL ? vcat(N_SWEEP, N_FULL) : N_SWEEP)
     # going all the way to the default Ñ = 256 is the whole point of asking for the full sweep.
     total = r.t_hsys + r.t_lsys + r.t_f + r.t_ω
     if !FULL && total > BUDGET
-        @printf("  (stopping the sweep: N = %d alone cost %.0f s, over the %.0f s budget;\n", N, total, BUDGET)
+        @printf("  (stopping the sweep: N = %d alone cost %.0f s, over the %.0f s budget;\n",
+            N, total, BUDGET)
         println("   set LINEAR_WAVE_BENCH_FULL=1 to go all the way to N = 256)")
         break
     end
@@ -270,13 +275,15 @@ end
 
 let b_lag = power_law(SWEEP_N, SWEEP_LAG), b_chars = power_law(SWEEP_N, SWEEP_OMEGA_CHARS)
     println()
-    @printf("`lagrangian_system` grows as n^%.2f, the generated `ω` as n^%.2f.\n", b_lag, b_chars)
+    @printf("`lagrangian_system` grows as n^%.2f, the generated `ω` as n^%.2f.\n", b_lag,
+        b_chars)
     if !FULL && !isempty(SWEEP_N)
         n_default = lw.Ñ + 2
         scale = (n_default / last(SWEEP_N))
         @printf("Extrapolated to the default Ñ = %d (n = %d): `lagrangian_system` ≈ %.0f s, `ω` ≈ %.1f MB of code.\n",
-                lw.Ñ, n_default, last(SWEEP_LAG) * scale^b_lag,
-                last(SWEEP_OMEGA_CHARS) * scale^b_chars / 1e6)
+            lw.Ñ, n_default,
+            last(SWEEP_LAG) * scale^b_lag,
+            last(SWEEP_OMEGA_CHARS) * scale^b_chars / 1e6)
         println("(Measured directly with LINEAR_WAVE_BENCH_FULL=1: 155 s and 14.0 MB.)")
     end
 end
@@ -289,11 +296,11 @@ println("\n", "="^116)
 println("3. What does each function cost to call, once built?")
 println("="^116)
 @printf("%4s %-14s %13s %13s %8s %9s   %s\n",
-        "N", "function", "generated", "hand-written", "ratio", "reliable", "verdict")
+    "N", "function", "generated", "hand-written", "ratio", "reliable", "verdict")
 println("-"^116)
 
 # (N, label, ratio, t_generated, t_handwritten) for the break-even analysis below
-const CALLS = Tuple{Int,String,Float64,Float64,Float64}[]
+const CALLS = Tuple{Int, String, Float64, Float64, Float64}[]
 
 # Capped at 128: this section has to build the symbolic systems *in process*, and the per-call ratios
 # are already unambiguous by then. Going to 256 here would add five minutes to say the same thing.
@@ -301,7 +308,8 @@ for N in unique([8, isempty(SWEEP_N) ? 8 : min(128, last(SWEEP_N) - 2)])
     hameqs = functions(lw.hamiltonian_system(N, PARAMS))
     lageqs = functions(lw.lagrangian_system(N, PARAMS))
     for (label, gen, hand) in comparisons(N, hameqs, lageqs)
-        gen(); hand()   # compile before timing
+        gen()
+        hand()   # compile before timing
         t_gen, ok_gen = percall(gen)
         t_hand, ok_hand = percall(hand)
         ratio = t_gen / t_hand
@@ -316,7 +324,7 @@ for N in unique([8, isempty(SWEEP_N) ? 8 : min(128, last(SWEEP_N) - 2)])
         end
         label == "ω (2n×2n)" && (verdict *= "  (never called)")
         @printf("%4d %-14s %10.4f µs %10.4f µs %8.2f %9s   %s\n",
-                N, label, 1e6 * t_gen, 1e6 * t_hand, ratio, ok_gen && ok_hand, verdict)
+            N, label, 1e6 * t_gen, 1e6 * t_hand, ratio, ok_gen && ok_hand, verdict)
         ok_gen && ok_hand && push!(CALLS, (N, label, ratio, t_gen, t_hand))
     end
     flush(stdout)
@@ -337,9 +345,9 @@ let forces = filter(c -> startswith(c[2], "f "), CALLS)
         N, label, ratio, t_gen, t_hand = last(forces)
         Δsetup = last(SWEEP_SETUP)
         @printf("At n = %d, `symbolic = true` costs %.1f s of setup before the first step.\n",
-                last(SWEEP_N), Δsetup)
+            last(SWEEP_N), Δsetup)
         @printf("Its `%s` then costs %.4f µs per call against the hand-written %.4f µs.\n",
-                label, 1e6 * t_gen, 1e6 * t_hand)
+            label, 1e6 * t_gen, 1e6 * t_hand)
         if t_gen < t_hand
             @printf("Break-even: %.3g evaluations.\n", Δsetup / (t_hand - t_gen))
         else
@@ -388,7 +396,7 @@ function integration_section(GI, N; warmup = false)
         t_first, _ = elapsed(() -> GI.integrate(prob, GI.ImplicitMidpoint()))
         t_warm, _ = elapsed(() -> GI.integrate(prob, GI.ImplicitMidpoint()))
         @printf("  N=%3d  symbolic=%-5s  build %8.3f s   integrate %7.3f s (warm %7.3f s)   total %8.3f s\n",
-                N, symbolic, t_build, t_first, t_warm, t_build + t_first)
+            N, symbolic, t_build, t_first, t_warm, t_build + t_first)
         flush(stdout)
     end
 end
@@ -404,4 +412,5 @@ else
     Base.invokelatest(integration_section, GeometricIntegrators, 64)
 end
 
-@printf("\n(sink checksum %g -- printed only so the timed calls cannot be optimised away)\n\n", SINK[])
+@printf("\n(sink checksum %g -- printed only so the timed calls cannot be optimised away)\n\n",
+    SINK[])

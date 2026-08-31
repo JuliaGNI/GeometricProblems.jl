@@ -4,12 +4,11 @@ using GeometricIntegrators.SPARK
 using GeometricProblems.LotkaVolterra2dGauge
 using GeometricSolutions
 
-
 @testset "$(rpad("Lotka-Volterra 2D with symmetric Lagrangian with gauge terms",80))" begin
-    ode  = odeproblem()
+    ode = odeproblem()
     iode = iodeproblem()
     idae = idaeproblem()
-    ref  = integrate(ode, Gauss(8))
+    ref = integrate(ode, Gauss(8))
 
     sol = integrate(ode, Gauss(2))
     @test relative_maximum_error(sol.q, ref.q) < 4E-4

@@ -1,5 +1,6 @@
 using GeometricIntegrators: integrate
-using Logging: Warn, current_logger, with_logger, handle_message, min_enabled_level, shouldlog
+using Logging: Warn, current_logger, with_logger, handle_message, min_enabled_level,
+               shouldlog
 using Test
 
 # Integrate, and assert that the nonlinear solver stayed quiet.
@@ -41,7 +42,9 @@ function integrate_capturing_messages(problem, method)
 end
 
 "Distinct SimpleSolvers messages emitted while integrating `problem` with `method`."
-simplesolvers_messages(problem, method) = first(integrate_capturing_messages(problem, method))
+function simplesolvers_messages(problem, method)
+    first(integrate_capturing_messages(problem, method))
+end
 
 function integrate_quietly(problem, method)
     messages, solution = integrate_capturing_messages(problem, method)

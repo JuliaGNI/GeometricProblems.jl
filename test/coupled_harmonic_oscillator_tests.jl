@@ -4,9 +4,8 @@ using Test
 
 include("integrate_quietly.jl")
 
-
-q₀_vec = [cho.q₀ .+ α for α in 0. : .4 : .4]
-p₀_vec = [cho.p₀ .+ α for α in 0. : .4 : .4]
+q₀_vec = [cho.q₀ .+ α for α in 0.0:0.4:0.4]
+p₀_vec = [cho.p₀ .+ α for α in 0.0:0.4:0.4]
 
 # ensemble problem
 epr = cho.hodeensemble(q₀_vec, p₀_vec)
@@ -15,7 +14,6 @@ epr = cho.hodeensemble(q₀_vec, p₀_vec)
 esol = integrate_quietly(epr, ImplicitMidpoint())
 
 @test esol.s[2].q.d.parent ≉ esol.s[1].q.d.parent
-
 
 function _params(i)
     NamedTuple{keys(cho.default_parameters())}(values(cho.default_parameters()) .+ i)

@@ -1,4 +1,5 @@
-using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem, functions, initialguess
+using GeometricEquations: HODEEnsemble, HODEProblem, LODEEnsemble, LODEProblem, functions,
+                          initialguess
 using GeometricIntegrators: Gauss, ImplicitMidpoint, integrate, relative_maximum_error
 using GeometricProblems.TodaLattice
 using LinearAlgebra
@@ -8,7 +9,6 @@ include("integrate_quietly.jl")
 
 const TL = TodaLattice
 
-
 # Parameters and initial conditions
 
 N = 20
@@ -17,14 +17,12 @@ q₀ = TodaLattice.compute_initial_q(μ, N)
 p₀ = zero(q₀)
 params = TodaLattice.default_parameters()
 
-
 # Ensemble initial conditions and parameters
 
-q₀_vec = [q₀ .+ α for α in -0.2 : 0.2 : +0.2]
-p₀_vec = [p₀ .+ α for α in -0.2 : 0.2 : +0.2]
+q₀_vec = [q₀ .+ α for α in -0.2:0.2:+0.2]
+p₀_vec = [p₀ .+ α for α in -0.2:0.2:+0.2]
 
-param_vec = [NamedTuple{keys(params)}(values(params) .+ β) for β in -0.1 : 0.1 : +0.1]
-
+param_vec = [NamedTuple{keys(params)}(values(params) .+ β) for β in -0.1:0.1:+0.1]
 
 # HODE and LODE problems
 
@@ -36,7 +34,6 @@ lref_sol = integrate_quietly(lode_prb, Gauss(1))
 
 @test relative_maximum_error(href_sol.q, lref_sol.q) < 2E-14
 
-
 # Ensemble problems with different initial conditions
 hode_ens = hodeensemble(N, q₀_vec, p₀_vec)
 lode_ens = lodeensemble(N, q₀_vec, p₀_vec)
@@ -47,10 +44,9 @@ lode_sol = integrate_quietly(lode_ens, Gauss(1))
 @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
 @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
 
-for (hsol,lsol) in zip(hode_sol,lode_sol)
+for (hsol, lsol) in zip(hode_sol, lode_sol)
     @test relative_maximum_error(hsol.q, lsol.q) < 2E-14
 end
-
 
 # Ensemble problems with different parameters
 hode_ens = hodeensemble(N; parameters = param_vec)
@@ -62,10 +58,9 @@ lode_sol = integrate_quietly(lode_ens, Gauss(1))
 @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
 @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
 
-for (hsol,lsol) in zip(hode_sol,lode_sol)
+for (hsol, lsol) in zip(hode_sol, lode_sol)
     @test relative_maximum_error(hsol.q, lsol.q) < 2E-14
 end
-
 
 # Ensemble problems with different initial conditions and parameters
 hode_ens = hodeensemble(q₀_vec, p₀_vec; parameters = param_vec)
@@ -77,10 +72,9 @@ lode_sol = integrate_quietly(lode_ens, Gauss(1))
 @test relative_maximum_error(hode_sol[2].q, href_sol.q) < 2E-14
 @test relative_maximum_error(lode_sol[2].q, lref_sol.q) < 2E-14
 
-for (hsol,lsol) in zip(hode_sol,lode_sol)
+for (hsol, lsol) in zip(hode_sol, lode_sol)
     @test relative_maximum_error(hsol.q, lsol.q) < 2E-14
 end
-
 
 # The two default-size constructions below used to generate the equations of motion symbolically for
 # Ñ = 200; `lodeproblem` alone cost minutes there, most of it spent on a dense 400×400 two-form that
@@ -114,7 +108,7 @@ end
     # Small on purpose: `lagrangian_system` grows as N^2.4 and the generated `ω` as N^2.
     M = 5
 
-    q = TL.compute_initial_q(μ, M) .+ 0.05 .* collect(1 : M)
+    q = TL.compute_initial_q(μ, M) .+ 0.05 .* collect(1:M)
     p = collect(range(0.1, 0.4, length = M))
     v = copy(p)                 # the mass matrix is the identity, so q̇ = p
 
@@ -169,8 +163,10 @@ end
     function reference_∇V!(dV, q, params, N)
         h = 1e-6
         for i in eachindex(q)
-            qp = copy(q); qp[i] += h
-            qm = copy(q); qm[i] -= h
+            qp = copy(q)
+            qp[i] += h
+            qm = copy(q)
+            qm[i] -= h
             dV[i] = (TL.potential(qp, params, N) - TL.potential(qm, params, N)) / 2h
         end
         nothing
@@ -183,7 +179,7 @@ end
         reference = zeros(K)
         TL.∇V!(kernel, qK, params, K)
         reference_∇V!(reference, qK, params, K)
-        @test kernel ≈ reference rtol = 1e-6 atol = 1e-8
+        @test kernel≈reference rtol=1e-6 atol=1e-8
         # At K = 1 the only neighbour of the only point is itself, so V is constant and ∇V vanishes
         # identically — the one size at which an all-zero gradient is the right answer.
         K == 1 ? (@test all(iszero, kernel)) : (@test any(!iszero, kernel))
@@ -235,8 +231,10 @@ end
 
     # The hand-written vector fields exist precisely to replace the generated ones, so they have to
     # keep agreeing with them.
-    hode_sym = hodeproblem(M, qM, pM; timespan = timespan, timestep = timestep, symbolic = true)
-    lode_sym = lodeproblem(M, qM, pM; timespan = timespan, timestep = timestep, symbolic = true)
+    hode_sym = hodeproblem(
+        M, qM, pM; timespan = timespan, timestep = timestep, symbolic = true)
+    lode_sym = lodeproblem(
+        M, qM, pM; timespan = timespan, timestep = timestep, symbolic = true)
 
     hode_sym_sol = integrate_quietly(hode_sym, ImplicitMidpoint())
     lode_sym_sol = integrate_quietly(lode_sym, ImplicitMidpoint())

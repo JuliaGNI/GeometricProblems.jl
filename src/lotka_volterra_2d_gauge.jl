@@ -15,17 +15,16 @@ Euler-Lagrange equations but to a different variational integrator.
 """
 module LotkaVolterra2dGauge
 
-    ϑ₁(t, q) = q[2] + log(q[2]) / q[1] / 2
-    ϑ₂(t, q) = q[1] - log(q[1]) / q[2] / 2
+ϑ₁(t, q) = q[2] + log(q[2]) / q[1] / 2
+ϑ₂(t, q) = q[1] - log(q[1]) / q[2] / 2
 
-    dϑ₁dx₁(t, q) = - log(q[2]) / q[1]^2 / 2
-    dϑ₁dx₂(t, q) = 1 + 1 / (q[1] * q[2]) / 2
+dϑ₁dx₁(t, q) = - log(q[2]) / q[1]^2 / 2
+dϑ₁dx₂(t, q) = 1 + 1 / (q[1] * q[2]) / 2
 
-    dϑ₂dx₁(t, q) = 1 - 1 / (q[2] * q[1]) / 2
-    dϑ₂dx₂(t, q) = + log(q[1]) / q[2]^2 / 2
+dϑ₂dx₁(t, q) = 1 - 1 / (q[2] * q[1]) / 2
+dϑ₂dx₂(t, q) = + log(q[1]) / q[2]^2 / 2
 
-
-    include("lotka_volterra_2d_common.jl")
-    include("lotka_volterra_2d_equations.jl")
+include("lotka_volterra_2d_common.jl")
+include("lotka_volterra_2d_equations.jl")
 
 end

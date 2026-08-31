@@ -46,7 +46,7 @@ const PROBLEM_MODULES = (
     :PointVorticesLinear,
     :RigidBody,
     :ThreeBody,
-    :TodaLattice,
+    :TodaLattice
 )
 
 @testset "Default timespan/timestep constants ($name)" for name in PROBLEM_MODULES

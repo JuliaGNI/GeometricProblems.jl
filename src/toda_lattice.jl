@@ -44,8 +44,8 @@ export lodeproblem, lodeensemble, lagrangian, lagrangian_system
 
 include("bump_initial_condition.jl")
 
-default_parameters(::Type{T}=Float64) where {T} = (
-    α=T(0.64),
+default_parameters(::Type{T} = Float64) where {T} = (
+    α = T(0.64),
 )
 
 @doc raw"""
@@ -62,7 +62,7 @@ than reading it from `parameters`: it fixes the number of degrees of freedom and
 bounds, so it has to be a plain integer and cannot survive `symbolize`.
 """
 function potential(q, params, N)
-    params.α * sum(exp(q[n] - q[n%N+1]) for n in 1:N)
+    params.α * sum(exp(q[n] - q[n % N + 1]) for n in 1:N)
 end
 
 @doc raw"""
@@ -107,7 +107,7 @@ function ∇V!(dV, q, parameters, N, scale = 1)
 
         # ∂V/∂q_j = α (E_j - E_{j-1}), carrying E_{j-1} in a scalar
         Eₚ = Eₙ                         # E₀ ≡ E_N
-        for j in 1 : (N - 1)
+        for j in 1:(N - 1)
             Eⱼ = exp(q[j] - q[j + 1])
             dV[j] = c * (Eⱼ - Eₚ)
             Eₚ = Eⱼ
@@ -137,7 +137,6 @@ const μ = 0.3
 
 const q₀ = compute_initial_q(μ, Ñ)
 const p₀ = zero(q₀)
-
 
 # -------------------------------------------------------------------------------------------------
 # Hand-written vector fields
@@ -203,7 +202,7 @@ emits for it at the default size, and the 82 s its first evaluation then costs, 
 function ω!(Ω, t, q, params)
     n = length(q)
     fill!(Ω, zero(eltype(Ω)))
-    @inbounds for i in 1 : n
+    @inbounds for i in 1:n
         Ω[i, n + i] = -one(eltype(Ω))
         Ω[n + i, i] = +one(eltype(Ω))
     end
@@ -212,7 +211,6 @@ end
 
 # LODE/LDAE evaluate the two-form with an extra velocity slot; ω depends on neither q nor q̇.
 ω!(Ω, t, q, w, params) = ω!(Ω, t, q, params)
-
 
 # -------------------------------------------------------------------------------------------------
 # Symbolic formulation (EulerLagrange)
@@ -281,8 +279,7 @@ function _check_size(N, q₀, p₀)
     nothing
 end
 
-_check_components(N, x::AbstractArray{<:Number}, name) =
-    @assert length(x) == N "$name has $(length(x)) components, expected N = $N"
+_check_components(N, x::AbstractArray{<:Number}, name) = @assert length(x) == N "$name has $(length(x)) components, expected N = $N"
 
 function _check_components(N, x::AbstractVector{<:AbstractArray}, name)
     for (i, sample) in pairs(x)
@@ -313,16 +310,17 @@ With `symbolic = true` the equations of motion are generated with EulerLagrange 
 [`hamiltonian_system`](@ref) instead of using the hand-written vector fields. The two agree to
 round-off; the symbolic route is kept for cross-checking and costs 1.2 s to build at `N = 200`.
 """
-function hodeproblem(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀);
-                     timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP,
-                     parameters=default_parameters(), symbolic=false)
+function hodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀);
+        timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP,
+        parameters = default_parameters(), symbolic = false)
     _check_size(N, q₀, p₀)
     if symbolic
-        HODEProblem(hamiltonian_system(N, _parameters(parameters)), timespan, timestep, q₀, p₀;
-                    parameters=parameters)
+        HODEProblem(
+            hamiltonian_system(N, _parameters(parameters)), timespan, timestep, q₀, p₀;
+            parameters = parameters)
     else
         HODEProblem(toda_lattice_v, toda_lattice_f, hamiltonian,
-                    timespan, timestep, q₀, p₀; parameters=parameters)
+            timespan, timestep, q₀, p₀; parameters = parameters)
     end
 end
 
@@ -339,16 +337,17 @@ Hamiltonian ensemble for the Toda lattice (varying initial conditions and/or par
 Takes the same arguments as [`hodeproblem`](@ref), with `q₀`, `p₀` and/or `parameters` given as
 vectors of samples.
 """
-function hodeensemble(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀);
-                      timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP,
-                      parameters=default_parameters(), symbolic=false)
+function hodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀);
+        timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP,
+        parameters = default_parameters(), symbolic = false)
     _check_size(N, q₀, p₀)
     if symbolic
         eqs = functions(hamiltonian_system(N, _parameters(parameters)))
-        HODEEnsemble(eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters=parameters)
+        HODEEnsemble(
+            eqs.v, eqs.f, eqs.H, timespan, timestep, q₀, p₀; parameters = parameters)
     else
         HODEEnsemble(toda_lattice_v, toda_lattice_f, hamiltonian,
-                     timespan, timestep, q₀, p₀; parameters=parameters)
+            timespan, timestep, q₀, p₀; parameters = parameters)
     end
 end
 
@@ -380,16 +379,17 @@ With `symbolic = true` the equations of motion are generated with EulerLagrange 
 round-off, but the symbolic route takes 73 s to build at `N = 200`, and 155 s in all before the
 first step — see the module docstring.
 """
-function lodeproblem(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀);
-                     timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP,
-                     parameters=default_parameters(), symbolic=false)
+function lodeproblem(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀);
+        timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP,
+        parameters = default_parameters(), symbolic = false)
     _check_size(N, q₀, p₀)
     if symbolic
-        LODEProblem(lagrangian_system(N, _parameters(parameters)), timespan, timestep, q₀, p₀;
-                    v̄=v̄, parameters=parameters)
+        LODEProblem(
+            lagrangian_system(N, _parameters(parameters)), timespan, timestep, q₀, p₀;
+            v̄ = v̄, parameters = parameters)
     else
         LODEProblem(toda_lattice_ϑ, toda_lattice_f, toda_lattice_g, ω!, lagrangian,
-                    timespan, timestep, q₀, p₀; v̄=v̄, parameters=parameters)
+            timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 end
 
@@ -406,17 +406,17 @@ Lagrangian ensemble for the Toda lattice (varying initial conditions and/or para
 Takes the same arguments as [`lodeproblem`](@ref), with `q₀`, `p₀` and/or `parameters` given as
 vectors of samples.
 """
-function lodeensemble(N::Int=Ñ, q₀=compute_initial_q(μ, N), p₀=zero(q₀);
-                      timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP,
-                      parameters=default_parameters(), symbolic=false)
+function lodeensemble(N::Int = Ñ, q₀ = compute_initial_q(μ, N), p₀ = zero(q₀);
+        timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP,
+        parameters = default_parameters(), symbolic = false)
     _check_size(N, q₀, p₀)
     if symbolic
         leqs = functions(lagrangian_system(N, _parameters(parameters)))
         LODEEnsemble(leqs.ϑ, leqs.f, leqs.g, leqs.ω, leqs.L, timespan, timestep, q₀, p₀;
-                     v̄=v̄, parameters=parameters)
+            v̄ = v̄, parameters = parameters)
     else
         LODEEnsemble(toda_lattice_ϑ, toda_lattice_f, toda_lattice_g, ω!, lagrangian,
-                     timespan, timestep, q₀, p₀; v̄=v̄, parameters=parameters)
+            timespan, timestep, q₀, p₀; v̄ = v̄, parameters = parameters)
     end
 end
 

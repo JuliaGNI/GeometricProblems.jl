@@ -10,7 +10,6 @@ const Δt = 0.1
 const tspan_short = (0.0, 50.0)
 const tspan_long = (0.0, 1000.0)
 
-
 # Extract (t, q, p, h) arrays from an ODE solution where state = [angle, angular velocity]
 function ode_arrays(sol)
     t = sol.t
@@ -54,24 +53,20 @@ function save_solution(t, q, p, h, name, labels, hmod = nothing)
     end
 end
 
-
 ## Explicit Euler (ODE)
 sol_ee = integrate(odeproblem(timespan = tspan_short, timestep = Δt), ExplicitEuler())
 t_ee, q_ee, p_ee, h_ee = ode_arrays(sol_ee)
 save_solution(t_ee, q_ee, p_ee, h_ee, "pendulum-explicit-euler", labels_ode)
-
 
 ## Implicit Euler (ODE)
 sol_ie = integrate(odeproblem(timespan = tspan_short, timestep = Δt), ImplicitEuler())
 t_ie, q_ie, p_ie, h_ie = ode_arrays(sol_ie)
 save_solution(t_ie, q_ie, p_ie, h_ie, "pendulum-implicit-euler", labels_ode)
 
-
 ## Symplectic Euler A (PODE)
 sol_sea = integrate(podeproblem(timespan = tspan_long, timestep = Δt), SymplecticEulerA())
 t_sea, q_sea, p_sea, h_sea = pode_arrays(sol_sea)
 save_solution(t_sea, q_sea, p_sea, h_sea, "pendulum-symplectic-euler-a", labels_hamiltonian)
-
 
 ## Symplectic Euler B (PODE)
 sol_seb = integrate(podeproblem(timespan = tspan_long, timestep = Δt), SymplecticEulerB())

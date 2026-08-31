@@ -57,20 +57,19 @@ gauge transformation shifts ``\vartheta`` only by an exact one-form, ``\Omega`` 
 """
 module MasslessChargedParticleSingular
 
-    # components of the vector potential (singular gauge, A₂ = 0)
-    A₁(q, params) = - params[:A₀] * q[2] * (1 + 2 * q[1]^2 + 2 * q[2]^2 / 3)
-    A₂(q, params) = zero(eltype(q))
+# components of the vector potential (singular gauge, A₂ = 0)
+A₁(q, params) = - params[:A₀] * q[2] * (1 + 2 * q[1]^2 + 2 * q[2]^2 / 3)
+A₂(q, params) = zero(eltype(q))
 
-    # z-componend of the magnetic field (same as the standard vector potential)
-    B(q, params) = params[:A₀] * (1 + 2 * q[1]^2 + 2 * q[2]^2)
+# z-componend of the magnetic field (same as the standard vector potential)
+B(q, params) = params[:A₀] * (1 + 2 * q[1]^2 + 2 * q[2]^2)
 
-    # derivatives of the one-form components
-    dϑ₁dx₁(t, q, params) = - 4 * params[:A₀] * q[1] * q[2]
-    dϑ₁dx₂(t, q, params) = - params[:A₀] * (1 + 2 * q[1]^2 + 2 * q[2]^2)
-    dϑ₂dx₁(t, q, params) = zero(eltype(q))
-    dϑ₂dx₂(t, q, params) = zero(eltype(q))
+# derivatives of the one-form components
+dϑ₁dx₁(t, q, params) = - 4 * params[:A₀] * q[1] * q[2]
+dϑ₁dx₂(t, q, params) = - params[:A₀] * (1 + 2 * q[1]^2 + 2 * q[2]^2)
+dϑ₂dx₁(t, q, params) = zero(eltype(q))
+dϑ₂dx₂(t, q, params) = zero(eltype(q))
 
-
-    include("massless_charged_particle_common.jl")
+include("massless_charged_particle_common.jl")
 
 end

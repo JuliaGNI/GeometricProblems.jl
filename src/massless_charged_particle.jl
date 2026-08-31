@@ -52,20 +52,19 @@ variational integrators.
 """
 module MasslessChargedParticle
 
-    # components of the vector potential
-    A₁(q, params) = - params[:A₀] * q[2] * (1 + q[1]^2 + q[2]^2) / 2
-    A₂(q, params) = + params[:A₀] * q[1] * (1 + q[1]^2 + q[2]^2) / 2
+# components of the vector potential
+A₁(q, params) = - params[:A₀] * q[2] * (1 + q[1]^2 + q[2]^2) / 2
+A₂(q, params) = + params[:A₀] * q[1] * (1 + q[1]^2 + q[2]^2) / 2
 
-    # z-componend of the magnetic field
-    B(q, params) = params[:A₀] * (1 + 2 * q[1]^2 + 2 * q[2]^2)
+# z-componend of the magnetic field
+B(q, params) = params[:A₀] * (1 + 2 * q[1]^2 + 2 * q[2]^2)
 
-    # derivatives of the one-form components
-    dϑ₁dx₁(t, q, params) = - params[:A₀] * q[1] * q[2]
-    dϑ₁dx₂(t, q, params) = - params[:A₀] * (1 + q[1]^2 + 3 * q[2]^2) / 2
-    dϑ₂dx₁(t, q, params) = + params[:A₀] * (1 + 3 * q[1]^2 + q[2]^2) / 2
-    dϑ₂dx₂(t, q, params) = + params[:A₀] * q[1] * q[2]
+# derivatives of the one-form components
+dϑ₁dx₁(t, q, params) = - params[:A₀] * q[1] * q[2]
+dϑ₁dx₂(t, q, params) = - params[:A₀] * (1 + q[1]^2 + 3 * q[2]^2) / 2
+dϑ₂dx₁(t, q, params) = + params[:A₀] * (1 + 3 * q[1]^2 + q[2]^2) / 2
+dϑ₂dx₂(t, q, params) = + params[:A₀] * q[1] * q[2]
 
-
-    include("massless_charged_particle_common.jl")
+include("massless_charged_particle_common.jl")
 
 end

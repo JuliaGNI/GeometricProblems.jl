@@ -2,7 +2,7 @@
 using GeometricEquations
 using GeometricSolutions
 
-export odeproblem,  daeproblem,
+export odeproblem, daeproblem,
        podeproblem, pdaeproblem,
        iodeproblem, idaeproblem,
        lodeproblem, ldaeproblem,
@@ -22,13 +22,14 @@ const nt = 1000
 const DEFAULT_TIMESPAN = (0.0, Δt*nt)
 const DEFAULT_TIMESTEP = Δt
 
-default_parameters(::Type{T}=Float64) where {T} = (a₁=T(-1.0), a₂=T(-1.0), b₁=T(1.0), b₂=T(2.0))
+function default_parameters(::Type{T} = Float64) where {T}
+    (a₁ = T(-1.0), a₂ = T(-1.0), b₁ = T(1.0), b₂ = T(2.0))
+end
 const reference_solution = [2.576489958858641, 1.5388112243762107]
 
 const t₀ = DEFAULT_TIMESPAN[begin]
 const q₀ = [2.0, 1.0]
 const v₀ = [v₁(0, q₀, default_parameters()), v₂(0, q₀, default_parameters())]
-
 
 # Centre and semi-axes of the ellipse in phase space that `f_loop` traces, for the first Poincaré
 # invariant. `f_surface` reads them too, so that the two parameterisations cannot drift apart, and
@@ -37,19 +38,19 @@ const loop_centre = (1.0, 1.0)
 const loop_radii = (0.2, 0.3)
 
 function f_loop(s)
-   x0, y0 = loop_centre
-   rx, ry = loop_radii
+    x0, y0 = loop_centre
+    rx, ry = loop_radii
 
-   xs = x0 + rx*cos(2π*s)
-   ys = y0 + ry*sin(2π*s)
+    xs = x0 + rx*cos(2π*s)
+    ys = y0 + ry*sin(2π*s)
 
-   qs = [xs, ys]
+    qs = [xs, ys]
 
-   return qs
+    return qs
 end
 
 function f_loop(i, n)
-   f_loop(i/n)
+    f_loop(i/n)
 end
 
 # A rectangular patch of phase space for the second Poincaré invariant, concentric with `f_loop` and
@@ -59,129 +60,145 @@ end
 # `PoincareInvariants.getpoints` samples it over the unit square, at the points its plan prescribes
 # (Padua points for the Chebyshev plan, a regular grid for the finite-difference one).
 function f_surface(s, t)
-   x0, y0 = loop_centre
-   rx, ry = loop_radii
+    x0, y0 = loop_centre
+    rx, ry = loop_radii
 
-   xs = x0 + rx*(s - 0.5)
-   ys = y0 + ry*(t - 0.5)
+    xs = x0 + rx*(s - 0.5)
+    ys = y0 + ry*(t - 0.5)
 
-   qs = [xs, ys]
+    qs = [xs, ys]
 
-   return qs
+    return qs
 end
 
 # Samples the loop `f_loop` parameterises at `n` equidistant points. Together with `f_loop` this is
 # the live half of the Poincaré-invariant scaffolding, and it depends on nothing optional, so it
 # stays here rather than moving into the extension with the invariants themselves.
 function initial_conditions_loop(n)
-   q₀ = zeros(2, n)
+    q₀ = zeros(2, n)
 
-   for i in axes(q₀,2)
-       q₀[:,i] .= f_loop(i, n)
-   end
+    for i in axes(q₀, 2)
+        q₀[:, i] .= f_loop(i, n)
+    end
 
-   return q₀
+    return q₀
 end
-
 
 compute_energy_error(t, q, params) = compute_invariant_error(t, q, params, hamiltonian)
 
-
 "Creates an ODE object for the Lotka-Volterra 2D model."
-function odeproblem(q₀=q₀; timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
-    ODEProblem(lotka_volterra_2d_v, timespan, timestep, q₀; parameters=parameters, invariants=(h=hamiltonian,))
+function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEProblem(lotka_volterra_2d_v, timespan, timestep, q₀;
+        parameters = parameters, invariants = (h = hamiltonian,))
 end
 
 "Creates a Hamiltonian ODE object for the Lotka-Volterra 2D model."
-function hodeproblem(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
-    HODEProblem(lotka_volterra_2d_v, lotka_volterra_2d_f, hamiltonian, timespan, timestep, q₀, p₀;
-                parameters=parameters)
+function hodeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    HODEProblem(
+        lotka_volterra_2d_v, lotka_volterra_2d_f, hamiltonian, timespan, timestep, q₀, p₀;
+        parameters = parameters)
 end
 
 "Creates an implicit ODE object for the Lotka-Volterra 2D model."
-function iodeproblem(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function iodeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-                lotka_volterra_2d_g, timespan, timestep, q₀, p₀;
-                parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_2d_v)
+        lotka_volterra_2d_g, timespan, timestep, q₀, p₀;
+        parameters = parameters, invariants = (h = hamiltonian,), v̄ = lotka_volterra_2d_v)
 end
 
 "Creates a partitioned ODE object for the Lotka-Volterra 2D model."
-function podeproblem(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function podeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     PODEProblem(lotka_volterra_2d_v, lotka_volterra_2d_f, timespan, timestep, q₀, p₀;
-                parameters=parameters, invariants=(h=hamiltonian,))
+        parameters = parameters, invariants = (h = hamiltonian,))
 end
 
 "Creates a variational ODE object for the Lotka-Volterra 2D model."
-function lodeproblem(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function lodeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     LODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-                lotka_volterra_2d_g, lotka_volterra_2d_ω, lagrangian, timespan, timestep, q₀, p₀;
-                parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_2d_v)
+        lotka_volterra_2d_g, lotka_volterra_2d_ω, lagrangian, timespan, timestep, q₀, p₀;
+        parameters = parameters, invariants = (h = hamiltonian,), v̄ = lotka_volterra_2d_v)
 end
 
 "Creates a DAE object for the Lotka-Volterra 2D model."
-function daeproblem(q₀=vcat(q₀,v₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
-    DAEProblem(lotka_volterra_2d_v_dae, lotka_volterra_2d_u_dae, lotka_volterra_2d_ϕ_dae, timespan, timestep, q₀, λ₀;
-                parameters=parameters, invariants=(h=hamiltonian,))
+function daeproblem(q₀ = vcat(q₀, v₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    DAEProblem(lotka_volterra_2d_v_dae, lotka_volterra_2d_u_dae,
+        lotka_volterra_2d_ϕ_dae, timespan, timestep, q₀, λ₀;
+        parameters = parameters, invariants = (h = hamiltonian,))
 end
 
 "Creates a Hamiltonian DAE object for the Lotka-Volterra 2D model."
-function hdaeproblem(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function hdaeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     HDAEProblem(lotka_volterra_2d_v, lotka_volterra_2d_f,
-                lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
-                hamiltonian, timespan, timestep, q₀, p₀, λ₀; parameters=parameters)
+        lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+        lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
+        hamiltonian, timespan, timestep, q₀, p₀, λ₀; parameters = parameters)
 end
 
 "Creates an implicit DAE object for the Lotka-Volterra 2D model."
-function idaeproblem(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function idaeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-                lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
-                v̄=lotka_volterra_2d_v)
+        lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+        timespan, timestep, q₀, p₀, λ₀; parameters = parameters, invariants = (h = hamiltonian,),
+        v̄ = lotka_volterra_2d_v)
 end
 
 "Creates an implicit DAE object for the Lotka-Volterra 2D model."
-function idaeproblem_spark(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function idaeproblem_spark(
+        q₀ = q₀, p₀ = ϑ(t₀, q₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
-                lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
-                v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
+        lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+        timespan, timestep, q₀, p₀, λ₀; parameters = parameters, invariants = (h = hamiltonian,),
+        v̄ = lotka_volterra_2d_v, f̄ = lotka_volterra_2d_f)
 end
 
 "Creates a partitioned DAE object for the Lotka-Volterra 2D model."
-function pdaeproblem(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function pdaeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     PDAEProblem(lotka_volterra_2d_v_ham, lotka_volterra_2d_f_ham,
-                lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
-                v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
+        lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+        timespan, timestep, q₀, p₀, λ₀; parameters = parameters, invariants = (h = hamiltonian,),
+        v̄ = lotka_volterra_2d_v, f̄ = lotka_volterra_2d_f)
 end
 
 "Creates a variational DAE object for the Lotka-Volterra 2D model."
-function ldaeproblem(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function ldaeproblem(q₀ = q₀, p₀ = ϑ(t₀, q₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     LDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f_ham,
-                lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ_lode,
-                lotka_volterra_2d_ω, lagrangian,
-                timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
-                v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
+        lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+        lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ_lode,
+        lotka_volterra_2d_ω, lagrangian,
+        timespan, timestep, q₀, p₀, λ₀; parameters = parameters, invariants = (h = hamiltonian,),
+        v̄ = lotka_volterra_2d_v, f̄ = lotka_volterra_2d_f)
 end
 
 "Creates a variational DAE object for the Lotka-Volterra 2D model for use with SLRK integrators."
-function ldaeproblem_slrk(q₀=q₀, p₀=ϑ(t₀, q₀), λ₀=zero(q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function ldaeproblem_slrk(
+        q₀ = q₀, p₀ = ϑ(t₀, q₀), λ₀ = zero(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     LDAEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
-                lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
-                lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
-                lotka_volterra_2d_ω, lagrangian,
-                timespan, timestep, q₀, p₀, λ₀; parameters=parameters, invariants=(h=hamiltonian,),
-                v̄=lotka_volterra_2d_v, f̄=lotka_volterra_2d_f)
+        lotka_volterra_2d_u, lotka_volterra_2d_g, lotka_volterra_2d_ϕ,
+        lotka_volterra_2d_ū, lotka_volterra_2d_ḡ, lotka_volterra_2d_ψ,
+        lotka_volterra_2d_ω, lagrangian,
+        timespan, timestep, q₀, p₀, λ₀; parameters = parameters, invariants = (h = hamiltonian,),
+        v̄ = lotka_volterra_2d_v, f̄ = lotka_volterra_2d_f)
 end
 
 "Creates an implicit ODE object for the Lotka-Volterra 2D model for use with DG integrators."
-function iodeproblem_dg(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters())
+function iodeproblem_dg(q₀ = q₀, p₀ = ϑ(t₀, q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     IODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f, lotka_volterra_2d_g,
-                timespan, timestep, q₀, p₀; parameters=parameters, invariants=(h=hamiltonian,), v̄=lotka_volterra_2d_v)
+        timespan, timestep, q₀, p₀; parameters = parameters,
+        invariants = (h = hamiltonian,), v̄ = lotka_volterra_2d_v)
 end
-
 
 # The Poincaré invariants are implemented in the `LotkaVolterra2dPoincareInvariants` extension
 # (loaded with PoincareInvariants), in the same shape as the `*Plots` extensions. `f_loop`,
@@ -246,7 +263,6 @@ Lotka-Volterra 2d model share the same two-form.
 See also `poincare_invariant_1st`.
 """
 function poincare_invariant_2nd end
-
 
 # The four names below are the pre-0.4 interface. They are **dead** and throw `UndefVarError` when
 # called: the invariant needs `PoincareInvariant1st`, which PoincareInvariants 0.5 does not define,

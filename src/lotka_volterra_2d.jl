@@ -22,10 +22,8 @@ dϑ₁dx₂(t, q) = 1 + 1 / (q[1] * q[2])
 dϑ₂dx₁(t, q) = one(eltype(q))
 dϑ₂dx₂(t, q) = zero(eltype(q))
 
-
 include("lotka_volterra_2d_common.jl")
 include("lotka_volterra_2d_equations.jl")
-
 
 function d²ϑ₁d₁d₁(t, q)
     +2 * log(q[2]) / q[1]^3
@@ -59,15 +57,15 @@ function d²ϑ₂d₂d₂(t, q)
     zero(eltype(q))
 end
 
-
 function g̅₁(t, q, v)
-    d²ϑ₁d₁d₁(t, q) * q[1] * v[1] + d²ϑ₁d₂d₁(t, q) * q[1] * v[2] + d²ϑ₂d₁d₁(t, q) * q[2] * v[1] + d²ϑ₂d₂d₁(t, q) * q[2] * v[2]
+    d²ϑ₁d₁d₁(t, q) * q[1] * v[1] + d²ϑ₁d₂d₁(t, q) * q[1] * v[2] +
+    d²ϑ₂d₁d₁(t, q) * q[2] * v[1] + d²ϑ₂d₂d₁(t, q) * q[2] * v[2]
 end
 
 function g̅₂(t, q, v)
-    d²ϑ₁d₁d₂(t, q) * q[1] * v[1] + d²ϑ₁d₂d₂(t, q) * q[1] * v[2] + d²ϑ₂d₁d₂(t, q) * q[2] * v[1] + d²ϑ₂d₂d₂(t, q) * q[2] * v[2]
+    d²ϑ₁d₁d₂(t, q) * q[1] * v[1] + d²ϑ₁d₂d₂(t, q) * q[1] * v[2] +
+    d²ϑ₂d₁d₂(t, q) * q[2] * v[1] + d²ϑ₂d₂d₂(t, q) * q[2] * v[2]
 end
-
 
 function lotka_volterra_2d_ϑ_κ(Θ, t, q, v, params, κ)
     Θ[1] = (1 - κ) * ϑ₁(t, q) - κ * f₁(t, q, q)
@@ -75,13 +73,15 @@ function lotka_volterra_2d_ϑ_κ(Θ, t, q, v, params, κ)
     nothing
 end
 
-function lotka_volterra_2d_f_κ(f::AbstractVector, t, q::AbstractVector, v::AbstractVector, params, κ::Real)
+function lotka_volterra_2d_f_κ(
+        f::AbstractVector, t, q::AbstractVector, v::AbstractVector, params, κ::Real)
     f[1] = (1 - κ) * f₁(t, q, v) - κ * (g₁(t, q, v) + g̅₁(t, q, v)) - dHd₁(t, q, params)
     f[2] = (1 - κ) * f₂(t, q, v) - κ * (g₂(t, q, v) + g̅₂(t, q, v)) - dHd₂(t, q, params)
     nothing
 end
 
-function lotka_volterra_2d_g_κ(g::AbstractVector, t, q::AbstractVector, v::AbstractVector, params, κ::Real)
+function lotka_volterra_2d_g_κ(
+        g::AbstractVector, t, q::AbstractVector, v::AbstractVector, params, κ::Real)
     g[1] = (1 - κ) * f₁(t, q, v) - κ * (g₁(t, q, v) + g̅₁(t, q, v))
     g[2] = (1 - κ) * f₂(t, q, v) - κ * (g₂(t, q, v) + g̅₂(t, q, v))
     nothing
@@ -93,23 +93,25 @@ end
 #     nothing
 # end
 
-
 # The one-form of this problem is the κ-dependent closure below, not the module-level
 # `lotka_volterra_2d_ϑ` that `poincare_invariant_1st` integrates. That is not a mismatch: the two
 # differ by an exact form, so the loop integral is the same for every κ (checked numerically to 15
 # digits), and `poincare_invariant_1st` may be paired with this problem as with any other.
-function iodeproblem_dg_gauge(q₀=q₀, p₀=ϑ(t₀, q₀); timespan=DEFAULT_TIMESPAN, timestep=DEFAULT_TIMESTEP, parameters=default_parameters(), κ=0)
-    lotka_volterra_2d_ϑ = (p, t, q, v, params) -> lotka_volterra_2d_ϑ_κ(p, t, q, v, params, κ)
-    lotka_volterra_2d_f = (f, t, q, v, params) -> lotka_volterra_2d_f_κ(f, t, q, v, params, κ)
-    lotka_volterra_2d_g = (g, t, q, v, λ, params) -> lotka_volterra_2d_g_κ(g, t, q, λ, params, κ)
+function iodeproblem_dg_gauge(q₀ = q₀, p₀ = ϑ(t₀, q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters(), κ = 0)
+    lotka_volterra_2d_ϑ = (p, t, q, v, params) -> lotka_volterra_2d_ϑ_κ(
+        p, t, q, v, params, κ)
+    lotka_volterra_2d_f = (f, t, q, v, params) -> lotka_volterra_2d_f_κ(
+        f, t, q, v, params, κ)
+    lotka_volterra_2d_g = (g, t, q, v, λ, params) -> lotka_volterra_2d_g_κ(
+        g, t, q, λ, params, κ)
 
     IODEProblem(lotka_volterra_2d_ϑ, lotka_volterra_2d_f,
         lotka_volterra_2d_g, timespan, timestep, q₀, p₀;
-        parameters=parameters,
-        invariants=(h=hamiltonian,),
-        v̄=lotka_volterra_2d_v)
+        parameters = parameters,
+        invariants = (h = hamiltonian,),
+        v̄ = lotka_volterra_2d_v)
 end
-
 
 export plot_solution, plot_phase_portrait, plot_traces
 

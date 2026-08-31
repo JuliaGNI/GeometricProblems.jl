@@ -18,7 +18,7 @@ const SINK = Ref(0.0)
 @noinline sink!(::Nothing) = nothing
 
 "The wall-clock resolution these measurements are built on, estimated empirically."
-function timer_resolution(samples=1000)
+function timer_resolution(samples = 1000)
     smallest = Inf
     for _ in 1:samples
         a = time()
@@ -43,7 +43,7 @@ evaluation of these functions is a few nanoseconds, so a fixed repetition count 
 
 `f` must already have been called once, so that compilation is not measured.
 """
-function percall(f; target_seconds=0.05, samples=7)
+function percall(f; target_seconds = 0.05, samples = 7)
     # calibrate the repetition count
     reps = 64
     while reps < 1 << 30

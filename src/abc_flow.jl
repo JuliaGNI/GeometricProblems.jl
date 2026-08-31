@@ -11,41 +11,42 @@
 """
 module ABCFlow
 
-    using GeometricEquations 
-    using GeometricSolutions
-    using Parameters 
+using GeometricEquations
+using GeometricSolutions
+using Parameters
 
-    export odeproblem, odeensemble
+export odeproblem, odeensemble
 
-    const DEFAULT_TIMESPAN = (0.0, 100.0)
-    const DEFAULT_TIMESTEP = 0.1
+const DEFAULT_TIMESPAN = (0.0, 100.0)
+const DEFAULT_TIMESTEP = 0.1
 
-    default_parameters(::Type{T}=Float64) where {T} = (
-        A = T(0.5),
-        B = T(1.),
-        C = T(1.)
-    )
+default_parameters(::Type{T} = Float64) where {T} = (
+    A = T(0.5),
+    B = T(1.0),
+    C = T(1.0)
+)
 
-    const q₀ = [0.0, 0., 0.]
-    const q₁ = [0.5, 0., 0.]
-    const q₂ = [0.6, 0., 0.]
+const q₀ = [0.0, 0.0, 0.0]
+const q₁ = [0.5, 0.0, 0.0]
+const q₂ = [0.6, 0.0, 0.0]
 
+function abc_flow_v(v, t, q, params)
+    @unpack A, B, C = params
+    v[1] = A * sin(q[3]) + C * cos(q[2])
+    v[2] = B * sin(q[1]) + A * cos(q[3])
+    v[3] = C * sin(q[2]) + B * cos(q[1])
 
-    function abc_flow_v(v, t, q, params)
-        @unpack A, B, C = params
-        v[1] = A * sin(q[3]) + C * cos(q[2])
-        v[2] = B * sin(q[1]) + A * cos(q[3])
-        v[3] = C * sin(q[2]) + B * cos(q[1])
-        
-        nothing
-    end
+    nothing
+end
 
-    function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        ODEProblem(abc_flow_v, timespan, timestep, q₀; parameters = parameters)
-    end
+function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEProblem(abc_flow_v, timespan, timestep, q₀; parameters = parameters)
+end
 
-    function odeensemble(samples = [q₀, q₁, q₂]; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        ODEEnsemble(abc_flow_v, timespan, timestep, samples; parameters = parameters)
-    end
+function odeensemble(samples = [q₀, q₁, q₂]; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEEnsemble(abc_flow_v, timespan, timestep, samples; parameters = parameters)
+end
 
 end

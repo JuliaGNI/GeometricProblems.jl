@@ -8,7 +8,6 @@ import GeometricProblems.LotkaVolterra4d
 import GeometricProblems.LotkaVolterra4dLagrangian
 import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
-
 @testset "$(rpad("Lotka-Volterra 4D (Lagrangian)",80))" begin
     lag_ode = LotkaVolterra4dLagrangian.odeproblem()
     lag_lode = LotkaVolterra4dLagrangian.lodeproblem()
@@ -27,7 +26,6 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
     @test lag_ode.ics == ref_ode.ics
     @test lag_lode.ics == ref_lode.ics
     @test lag_ldae.ics == ref_ldae.ics
-
 
     lag_equs = functions(lag_ode)
     lag_invs = invariants(lag_ode)
@@ -49,7 +47,6 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     ref_sol = integrate(ref_ode, Gauss(2))
     @test relative_maximum_error(lag_sol.q, ref_sol.q) < 1E-14
-
 
     lag_equs = functions(lag_lode)
     lag_invs = invariants(lag_lode)
@@ -75,8 +72,10 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     g1 = zero(lag_lode.ics.q)
     g2 = zero(ref_lode.ics.q)
-    lag_equs.g(g1, initialtime(lag_lode), lag_lode.ics.q, v1, zero(v1), parameters(lag_lode))
-    ref_equs.g(g2, initialtime(ref_lode), ref_lode.ics.q, v2, zero(v2), parameters(ref_lode))
+    lag_equs.g(
+        g1, initialtime(lag_lode), lag_lode.ics.q, v1, zero(v1), parameters(lag_lode))
+    ref_equs.g(
+        g2, initialtime(ref_lode), ref_lode.ics.q, v2, zero(v2), parameters(ref_lode))
     @test g1 ≈ g2 atol = eps()
 
     v1 = zero(lag_lode.ics.q)
@@ -114,7 +113,6 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
     @test relative_maximum_error(ref_sol.q, ref.q) < 1E-8
     @test relative_maximum_error(ref_sol.q, lag_sol.q) < 4E-14
 
-
     lag_equs = functions(lag_ldae)
     lag_invs = invariants(lag_ldae)
     lag_igs = initialguess(lag_ldae)
@@ -139,20 +137,26 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
 
     g1 = zero(lag_ldae.ics.q)
     g2 = zero(ref_ldae.ics.q)
-    lag_equs.g(g1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
-    ref_equs.g(g2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
+    lag_equs.g(g1, initialtime(lag_ldae), lag_ldae.ics.q, v1,
+        lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
+    ref_equs.g(g2, initialtime(ref_ldae), ref_ldae.ics.q, v2,
+        ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
     @test g1 ≈ g2 atol = eps()
 
     u1 = zero(lag_ldae.ics.q)
     u2 = zero(ref_ldae.ics.q)
-    lag_equs.u(u1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
-    ref_equs.u(u2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
+    lag_equs.u(u1, initialtime(lag_ldae), lag_ldae.ics.q, v1,
+        lag_ldae.ics.p, lag_ldae.ics.λ, parameters(lag_ldae))
+    ref_equs.u(u2, initialtime(ref_ldae), ref_ldae.ics.q, v2,
+        ref_ldae.ics.p, ref_ldae.ics.λ, parameters(ref_ldae))
     @test u1 ≈ u2 atol = eps()
 
     ϕ1 = zero(lag_ldae.ics.q)
     ϕ2 = zero(ref_ldae.ics.q)
-    lag_equs.ϕ(ϕ1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, parameters(lag_ldae))
-    ref_equs.ϕ(ϕ2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, parameters(ref_ldae))
+    lag_equs.ϕ(
+        ϕ1, initialtime(lag_ldae), lag_ldae.ics.q, v1, lag_ldae.ics.p, parameters(lag_ldae))
+    ref_equs.ϕ(
+        ϕ2, initialtime(ref_ldae), ref_ldae.ics.q, v2, ref_ldae.ics.p, parameters(ref_ldae))
     @test ϕ1 ≈ ϕ2 atol = eps()
 
     v1 = zero(lag_ldae.ics.q)
@@ -182,5 +186,4 @@ import GeometricProblems.LotkaVolterra4dLagrangian: reference_solution
     @test relative_maximum_error(lag_sol.q, ref.q) < 1E-8
     @test relative_maximum_error(ref_sol.q, ref.q) < 1E-8
     @test relative_maximum_error(lag_sol.q, ref_sol.q) < 8E-14
-
 end

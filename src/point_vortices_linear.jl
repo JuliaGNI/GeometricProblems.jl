@@ -9,262 +9,257 @@ conserved quantity. Explicit (`odeproblem`), implicit/variational (`iodeproblem`
 """
 module PointVorticesLinear
 
-    using GeometricEquations
+using GeometricEquations
 
-    export odeproblem, iodeproblem, iodeproblem_dg, lodeproblem_formal_lagrangian,
-           hamiltonian, angular_momentum, ϑ₁, ϑ₂, ϑ₃, ϑ₄,
-           compute_energy, compute_energy_error, compute_angular_momentum_error,
-           compute_momentum_error, compute_one_form
+export odeproblem, iodeproblem, iodeproblem_dg, lodeproblem_formal_lagrangian,
+       hamiltonian, angular_momentum, ϑ₁, ϑ₂, ϑ₃, ϑ₄,
+       compute_energy, compute_energy_error, compute_angular_momentum_error,
+       compute_momentum_error, compute_one_form
 
-    const Δt = 0.01
-    const nt = 1000
-    const DEFAULT_TIMESPAN = (0.0, Δt*nt)
-    const DEFAULT_TIMESTEP = Δt
+const Δt = 0.01
+const nt = 1000
+const DEFAULT_TIMESPAN = (0.0, Δt*nt)
+const DEFAULT_TIMESTEP = Δt
 
-    const γ₁ = 4.0
-    const γ₂ = 2.0
-    const d  = 1.0
-    const q₀ = [γ₂*d/(γ₁+γ₂), 0.0, -γ₁*d/(γ₁+γ₂), 0.0]
+const γ₁ = 4.0
+const γ₂ = 2.0
+const d = 1.0
+const q₀ = [γ₂*d/(γ₁+γ₂), 0.0, -γ₁*d/(γ₁+γ₂), 0.0]
 
-    # The vortex circulations γ₁, γ₂ (and spacing d) are fixed structural constants of this
-    # model instance, so there are no tunable parameters and default_parameters returns an empty NamedTuple.
-    default_parameters(::Type{T}=Float64) where {T} = NamedTuple()
+# The vortex circulations γ₁, γ₂ (and spacing d) are fixed structural constants of this
+# model instance, so there are no tunable parameters and default_parameters returns an empty NamedTuple.
+default_parameters(::Type{T} = Float64) where {T} = NamedTuple()
 
+function hamiltonian(t, q, params)
+    γ₁ * γ₂ * log((q[1] - q[3])^2 + (q[2] - q[4])^2) / (4π)
+end
+# H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
 
-    function hamiltonian(t, q, params)
-        γ₁ * γ₂ * log( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (4π)
+ϑ₁(q) = - γ₁ * q[2] / 2
+ϑ₂(q) = + γ₁ * q[1] / 2
+ϑ₃(q) = - γ₂ * q[4] / 2
+ϑ₄(q) = + γ₂ * q[3] / 2
+
+ϑ(q) = [ϑ₁(q), ϑ₂(q), ϑ₃(q), ϑ₄(q)]
+
+function angular_momentum(t, q, params)
+    # γ₁ * (q[1]^2 + q[2]^2) * S(q[1],q[2]) +
+    # γ₂ * (q[3]^2 + q[4]^2) * S(q[3],q[4])
+    q[1] * ϑ₂(q) - q[2] * ϑ₁(q) +
+    q[3] * ϑ₄(q) - q[4] * ϑ₃(q)
+end
+# P depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
+angular_momentum(t, q, p, params) = angular_momentum(t, q, params)
+
+# Formal (phase-space) Lagrangian L = ϑ(q)·v - H(q) for the non-canonical system.
+# Its Euler–Lagrange equations reproduce the linearised point-vortex dynamics.
+function lagrangian(t, q, v, params)
+    ϑ₁(q) * v[1] + ϑ₂(q) * v[2] + ϑ₃(q) * v[3] + ϑ₄(q) * v[4] - hamiltonian(t, q, params)
+end
+
+dϑ1d1(t, q) = zero(eltype(q))
+dϑ1d2(t, q) = - γ₁ / 2
+dϑ1d3(t, q) = zero(eltype(q))
+dϑ1d4(t, q) = zero(eltype(q))
+dϑ2d1(t, q) = + γ₁ / 2
+dϑ2d2(t, q) = zero(eltype(q))
+dϑ2d3(t, q) = zero(eltype(q))
+dϑ2d4(t, q) = zero(eltype(q))
+dϑ3d1(t, q) = zero(eltype(q))
+dϑ3d2(t, q) = zero(eltype(q))
+dϑ3d3(t, q) = zero(eltype(q))
+dϑ3d4(t, q) = - γ₂ / 2
+dϑ4d1(t, q) = zero(eltype(q))
+dϑ4d2(t, q) = zero(eltype(q))
+dϑ4d3(t, q) = + γ₂ / 2
+dϑ4d4(t, q) = zero(eltype(q))
+
+function ϑ(p, t, q)
+    p[1] = ϑ₁(q)
+    p[2] = ϑ₂(q)
+    p[3] = ϑ₃(q)
+    p[4] = ϑ₄(q)
+end
+
+function ω(Ω, t, q)
+    Ω[1, 1] = 0
+    Ω[1, 2] = dϑ1d2(t, q) - dϑ2d1(t, q)
+    Ω[1, 3] = dϑ1d3(t, q) - dϑ3d1(t, q)
+    Ω[1, 4] = dϑ1d4(t, q) - dϑ4d1(t, q)
+
+    Ω[2, 1] = dϑ2d1(t, q) - dϑ1d2(t, q)
+    Ω[2, 2] = 0
+    Ω[2, 3] = dϑ2d3(t, q) - dϑ3d2(t, q)
+    Ω[2, 4] = dϑ2d4(t, q) - dϑ4d2(t, q)
+
+    Ω[3, 1] = dϑ3d1(t, q) - dϑ1d3(t, q)
+    Ω[3, 2] = dϑ3d2(t, q) - dϑ2d3(t, q)
+    Ω[3, 3] = 0
+    Ω[3, 4] = dϑ3d4(t, q) - dϑ4d3(t, q)
+
+    Ω[4, 1] = dϑ4d1(t, q) - dϑ1d4(t, q)
+    Ω[4, 2] = dϑ4d2(t, q) - dϑ2d4(t, q)
+    Ω[4, 3] = dϑ4d3(t, q) - dϑ3d4(t, q)
+    Ω[4, 4] = 0
+
+    nothing
+end
+
+# LODE calls the symplectic matrix with an extra velocity slot; ω depends only on q.
+ω(Ω, t, q, v, params) = ω(Ω, t, q)
+
+f1(t, q, v) = + γ₁ * v[2] / 2
+f2(t, q, v) = - γ₁ * v[1] / 2
+f3(t, q, v) = + γ₂ * v[4] / 2
+f4(t, q, v) = - γ₂ * v[3] / 2
+
+dHd1(t, q) = + γ₁ * γ₂ * (q[1] - q[3]) / ((q[1] - q[3])^2 + (q[2] - q[4])^2) / (2π)
+dHd2(t, q) = + γ₁ * γ₂ * (q[2] - q[4]) / ((q[1] - q[3])^2 + (q[2] - q[4])^2) / (2π)
+dHd3(t, q) = - γ₁ * γ₂ * (q[1] - q[3]) / ((q[1] - q[3])^2 + (q[2] - q[4])^2) / (2π)
+dHd4(t, q) = - γ₁ * γ₂ * (q[2] - q[4]) / ((q[1] - q[3])^2 + (q[2] - q[4])^2) / (2π)
+
+function dH(dH, t, q, params)
+    dH[1] = dHd1(t, q)
+    dH[2] = dHd2(t, q)
+    dH[3] = dHd3(t, q)
+    dH[4] = dHd4(t, q)
+    nothing
+end
+
+function point_vortices_v(v, t, q, params)
+    v[1] = - dHd2(t, q) / γ₁
+    v[2] = + dHd1(t, q) / γ₁
+    v[3] = - dHd4(t, q) / γ₂
+    v[4] = + dHd3(t, q) / γ₂
+    nothing
+end
+
+# The energy `h` and the angular momentum `p` are both conserved, so every formulation
+# carries them and the generic `Diagnostics.plot_invariant_error(sol; invariant = :h/:p)`
+# works out of the box.
+const INVARIANTS = (h = hamiltonian, p = angular_momentum)
+
+function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    ODEProblem(point_vortices_v, timespan, timestep, q₀;
+        invariants = INVARIANTS, parameters = parameters)
+end
+
+function point_vortices_ϑ(p, t, q, v, params)
+    p[1] = ϑ₁(q)
+    p[2] = ϑ₂(q)
+    p[3] = ϑ₃(q)
+    p[4] = ϑ₄(q)
+    nothing
+end
+
+function point_vortices_f(f, t, q, v, params)
+    f[1] = f1(t, q, v) - dHd1(t, q)
+    f[2] = f2(t, q, v) - dHd2(t, q)
+    f[3] = f3(t, q, v) - dHd3(t, q)
+    f[4] = f4(t, q, v) - dHd4(t, q)
+    nothing
+end
+
+function point_vortices_g(g, t, q, λ, params)
+    g[1] = f1(t, q, λ)
+    g[2] = f2(t, q, λ)
+    g[3] = f3(t, q, λ)
+    g[4] = f4(t, q, λ)
+    nothing
+end
+
+point_vortices_g(g, t, q, p, λ, params) = point_vortices_g(g, t, q, λ, params)
+point_vortices_g(g, t, q, v, p, λ, params) = point_vortices_g(g, t, q, p, λ, params)
+
+function point_vortices_v(v, t, q, p, params)
+    point_vortices_v(v, t, q, params)
+end
+
+function iodeproblem(q₀ = q₀, p₀ = ϑ(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    IODEProblem(point_vortices_ϑ, point_vortices_f,
+        point_vortices_g, timespan, timestep, q₀, p₀;
+        v̄ = point_vortices_v, invariants = INVARIANTS, parameters = parameters)
+end
+
+function iodeproblem_dg(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    IODEProblem(point_vortices_ϑ, point_vortices_f,
+        point_vortices_g, timespan, timestep, q₀, q₀;
+        v̄ = point_vortices_v, invariants = INVARIANTS, parameters = parameters)
+end
+
+function lodeproblem_formal_lagrangian(q₀ = q₀, p₀ = ϑ(q₀); timespan = DEFAULT_TIMESPAN,
+        timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
+    LODEProblem(point_vortices_ϑ, point_vortices_f, point_vortices_g, ω, lagrangian,
+        timespan, timestep, q₀, p₀;
+        v̄ = point_vortices_v, invariants = INVARIANTS, parameters = parameters)
+end
+
+function compute_energy(t, q, params)
+    h = zeros(q.nt+1)
+    for i in 1:(q.nt + 1)
+        h[i] = hamiltonian(t.t[i], q.d[:, i], params)
     end
-    # H depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
-    hamiltonian(t, q, p, params) = hamiltonian(t, q, params)
+    return h
+end
 
-    ϑ₁(q) = - γ₁ * q[2] / 2
-    ϑ₂(q) = + γ₁ * q[1] / 2
-    ϑ₃(q) = - γ₂ * q[4] / 2
-    ϑ₄(q) = + γ₂ * q[3] / 2
-
-    ϑ(q) = [ϑ₁(q), ϑ₂(q), ϑ₃(q), ϑ₄(q)]
-
-    function angular_momentum(t, q, params)
-        # γ₁ * (q[1]^2 + q[2]^2) * S(q[1],q[2]) +
-        # γ₂ * (q[3]^2 + q[4]^2) * S(q[3],q[4])
-        q[1] * ϑ₂(q) - q[2] * ϑ₁(q) +
-        q[3] * ϑ₄(q) - q[4] * ϑ₃(q)
+function compute_energy_error(t, q, params)
+    h = zeros(q.nt+1)
+    for i in 1:(q.nt + 1)
+        h[i] = hamiltonian(t.t[i], q.d[:, i], params)
     end
-    # P depends only on q; provide the 4-arg method for (t, q, p, params) invariant contexts.
-    angular_momentum(t, q, p, params) = angular_momentum(t, q, params)
+    h_error = (h .- h[1]) / h[1]
+end
 
-    # Formal (phase-space) Lagrangian L = ϑ(q)·v - H(q) for the non-canonical system.
-    # Its Euler–Lagrange equations reproduce the linearised point-vortex dynamics.
-    function lagrangian(t, q, v, params)
-        ϑ₁(q) * v[1] + ϑ₂(q) * v[2] + ϑ₃(q) * v[3] + ϑ₄(q) * v[4] - hamiltonian(t, q, params)
+function compute_angular_momentum_error(t, q, params)
+    P = zeros(q.nt+1)
+    for i in 1:(q.nt + 1)
+        P[i] = angular_momentum(t.t[i], q.d[:, i], params)
     end
+    P_error = (P .- P[1]) / P[1]
+end
 
+function compute_momentum_error(t, q, p)
+    p1_error = zeros(q.nt+1)
+    p2_error = zeros(q.nt+1)
+    p3_error = zeros(q.nt+1)
+    p4_error = zeros(q.nt+1)
 
-    dϑ1d1(t, q) = zero(eltype(q))
-    dϑ1d2(t, q) = - γ₁ / 2
-    dϑ1d3(t, q) = zero(eltype(q))
-    dϑ1d4(t, q) = zero(eltype(q))
-    dϑ2d1(t, q) = + γ₁ / 2
-    dϑ2d2(t, q) = zero(eltype(q))
-    dϑ2d3(t, q) = zero(eltype(q))
-    dϑ2d4(t, q) = zero(eltype(q))
-    dϑ3d1(t, q) = zero(eltype(q))
-    dϑ3d2(t, q) = zero(eltype(q))
-    dϑ3d3(t, q) = zero(eltype(q))
-    dϑ3d4(t, q) = - γ₂ / 2
-    dϑ4d1(t, q) = zero(eltype(q))
-    dϑ4d2(t, q) = zero(eltype(q))
-    dϑ4d3(t, q) = + γ₂ / 2
-    dϑ4d4(t, q) = zero(eltype(q))
-
-
-    function ϑ(p, t, q)
-        p[1] = ϑ₁(q)
-        p[2] = ϑ₂(q)
-        p[3] = ϑ₃(q)
-        p[4] = ϑ₄(q)
-    end
-
-    function ω(Ω, t, q)
-        Ω[1,1] = 0
-        Ω[1,2] = dϑ1d2(t,q) - dϑ2d1(t,q)
-        Ω[1,3] = dϑ1d3(t,q) - dϑ3d1(t,q)
-        Ω[1,4] = dϑ1d4(t,q) - dϑ4d1(t,q)
-
-        Ω[2,1] = dϑ2d1(t,q) - dϑ1d2(t,q)
-        Ω[2,2] = 0
-        Ω[2,3] = dϑ2d3(t,q) - dϑ3d2(t,q)
-        Ω[2,4] = dϑ2d4(t,q) - dϑ4d2(t,q)
-
-        Ω[3,1] = dϑ3d1(t,q) - dϑ1d3(t,q)
-        Ω[3,2] = dϑ3d2(t,q) - dϑ2d3(t,q)
-        Ω[3,3] = 0
-        Ω[3,4] = dϑ3d4(t,q) - dϑ4d3(t,q)
-
-        Ω[4,1] = dϑ4d1(t,q) - dϑ1d4(t,q)
-        Ω[4,2] = dϑ4d2(t,q) - dϑ2d4(t,q)
-        Ω[4,3] = dϑ4d3(t,q) - dϑ3d4(t,q)
-        Ω[4,4] = 0
-
-        nothing
-    end
-
-    # LODE calls the symplectic matrix with an extra velocity slot; ω depends only on q.
-    ω(Ω, t, q, v, params) = ω(Ω, t, q)
-
-
-    f1(t, q, v) = + γ₁ * v[2] / 2
-    f2(t, q, v) = - γ₁ * v[1] / 2
-    f3(t, q, v) = + γ₂ * v[4] / 2
-    f4(t, q, v) = - γ₂ * v[3] / 2
-
-
-    dHd1(t, q) = + γ₁ * γ₂ * (q[1] - q[3]) / ( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (2π)
-    dHd2(t, q) = + γ₁ * γ₂ * (q[2] - q[4]) / ( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (2π)
-    dHd3(t, q) = - γ₁ * γ₂ * (q[1] - q[3]) / ( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (2π)
-    dHd4(t, q) = - γ₁ * γ₂ * (q[2] - q[4]) / ( (q[1] - q[3])^2 + (q[2] - q[4])^2 ) / (2π)
-
-    function dH(dH, t, q, params)
-        dH[1] = dHd1(t, q)
-        dH[2] = dHd2(t, q)
-        dH[3] = dHd3(t, q)
-        dH[4] = dHd4(t, q)
-        nothing
-    end
-
-
-    function point_vortices_v(v, t, q, params)
-        v[1] = - dHd2(t,q) / γ₁
-        v[2] = + dHd1(t,q) / γ₁
-        v[3] = - dHd4(t,q) / γ₂
-        v[4] = + dHd3(t,q) / γ₂
-        nothing
-    end
-
-    # The energy `h` and the angular momentum `p` are both conserved, so every formulation
-    # carries them and the generic `Diagnostics.plot_invariant_error(sol; invariant = :h/:p)`
-    # works out of the box.
-    const INVARIANTS = (h = hamiltonian, p = angular_momentum)
-
-
-    function odeproblem(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        ODEProblem(point_vortices_v, timespan, timestep, q₀; invariants=INVARIANTS, parameters=parameters)
-    end
-
-
-    function point_vortices_ϑ(p, t, q, v, params)
-        p[1] = ϑ₁(q)
-        p[2] = ϑ₂(q)
-        p[3] = ϑ₃(q)
-        p[4] = ϑ₄(q)
-        nothing
-    end
-
-    function point_vortices_f(f, t, q, v, params)
-        f[1] = f1(t,q,v) - dHd1(t,q)
-        f[2] = f2(t,q,v) - dHd2(t,q)
-        f[3] = f3(t,q,v) - dHd3(t,q)
-        f[4] = f4(t,q,v) - dHd4(t,q)
-        nothing
-    end
-
-    function point_vortices_g(g, t, q, λ, params)
-        g[1] = f1(t,q,λ)
-        g[2] = f2(t,q,λ)
-        g[3] = f3(t,q,λ)
-        g[4] = f4(t,q,λ)
-        nothing
-    end
-
-    point_vortices_g(g, t, q, p, λ, params) = point_vortices_g(g, t, q, λ, params)
-    point_vortices_g(g, t, q, v, p, λ, params) = point_vortices_g(g, t, q, p, λ, params)
-
-    function point_vortices_v(v, t, q, p, params)
-        point_vortices_v(v, t, q, params)
-    end
-
-    function iodeproblem(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        IODEProblem(point_vortices_ϑ, point_vortices_f,
-                    point_vortices_g, timespan, timestep, q₀, p₀;
-                    v̄=point_vortices_v, invariants=INVARIANTS, parameters=parameters)
-    end
-
-    function iodeproblem_dg(q₀=q₀; timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        IODEProblem(point_vortices_ϑ, point_vortices_f,
-                    point_vortices_g, timespan, timestep, q₀, q₀;
-                    v̄=point_vortices_v, invariants=INVARIANTS, parameters=parameters)
-    end
-
-    function lodeproblem_formal_lagrangian(q₀=q₀, p₀=ϑ(q₀); timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
-        LODEProblem(point_vortices_ϑ, point_vortices_f, point_vortices_g, ω, lagrangian,
-                    timespan, timestep, q₀, p₀;
-                    v̄=point_vortices_v, invariants=INVARIANTS, parameters=parameters)
-    end
-
-
-    function compute_energy(t, q, params)
-        h = zeros(q.nt+1)
-        for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i], params)
-        end
-        return h
-    end
-
-    function compute_energy_error(t, q, params)
-        h = zeros(q.nt+1)
-        for i in 1:(q.nt+1)
-            h[i] = hamiltonian(t.t[i], q.d[:,i], params)
-        end
-        h_error = (h .- h[1]) / h[1]
-    end
-
-    function compute_angular_momentum_error(t, q, params)
-        P = zeros(q.nt+1)
-        for i in 1:(q.nt+1)
-            P[i] = angular_momentum(t.t[i], q.d[:,i], params)
-        end
-        P_error = (P .- P[1]) / P[1]
-    end
-
-    function compute_momentum_error(t, q, p)
-        p1_error = zeros(q.nt+1)
-        p2_error = zeros(q.nt+1)
-        p3_error = zeros(q.nt+1)
-        p4_error = zeros(q.nt+1)
-
-        for i in 1:(q.nt+1)
-            p1_error[i] = p.d[1,i] - ϑ₁(q.d[:,i])
-            p2_error[i] = p.d[2,i] - ϑ₂(q.d[:,i])
-            p3_error[i] = p.d[3,i] - ϑ₃(q.d[:,i])
-            p4_error[i] = p.d[4,i] - ϑ₄(q.d[:,i])
-        end
-
-        (p1_error, p2_error, p3_error, p4_error)
+    for i in 1:(q.nt + 1)
+        p1_error[i] = p.d[1, i] - ϑ₁(q.d[:, i])
+        p2_error[i] = p.d[2, i] - ϑ₂(q.d[:, i])
+        p3_error[i] = p.d[3, i] - ϑ₃(q.d[:, i])
+        p4_error[i] = p.d[4, i] - ϑ₄(q.d[:, i])
     end
 
-    function compute_one_form(t, q)
-        p1 = zeros(q.nt+1)
-        p2 = zeros(q.nt+1)
-        p3 = zeros(q.nt+1)
-        p4 = zeros(q.nt+1)
+    (p1_error, p2_error, p3_error, p4_error)
+end
 
-        for i in 1:(q.nt+1)
-            p1[i] = ϑ₁(q.d[:,i])
-            p2[i] = ϑ₂(q.d[:,i])
-            p3[i] = ϑ₃(q.d[:,i])
-            p4[i] = ϑ₄(q.d[:,i])
-        end
+function compute_one_form(t, q)
+    p1 = zeros(q.nt+1)
+    p2 = zeros(q.nt+1)
+    p3 = zeros(q.nt+1)
+    p4 = zeros(q.nt+1)
 
-        (p1, p2, p3, p4)
+    for i in 1:(q.nt + 1)
+        p1[i] = ϑ₁(q.d[:, i])
+        p2[i] = ϑ₂(q.d[:, i])
+        p3[i] = ϑ₃(q.d[:, i])
+        p4[i] = ϑ₄(q.d[:, i])
     end
 
+    (p1, p2, p3, p4)
+end
 
-    export plot_solution, plot_phase_portrait, plot_traces
+export plot_solution, plot_phase_portrait, plot_traces
 
-    # Problem-specific plots. The methods are implemented in the `PointVorticesPlots`
-    # extension, which is loaded together with `Makie`/`CairoMakie`.
-    function plot_solution end
-    function plot_phase_portrait end
-    function plot_traces end
+# Problem-specific plots. The methods are implemented in the `PointVorticesPlots`
+# extension, which is loaded together with `Makie`/`CairoMakie`.
+function plot_solution end
+function plot_phase_portrait end
+function plot_traces end
 
 end

@@ -26,7 +26,7 @@ function Pendulum.plot_pendulum(
     ax = Axis(
         axfig;
         aspect = 1,
-        limits = (-1.5, 1.5, -1.5, 1.5),
+        limits = (-1.5, 1.5, -1.5, 1.5)
     )
     hidedecorations!(ax)
     hidespines!(ax)
@@ -83,7 +83,7 @@ function Pendulum.plot_solution(
 
     tlims = [
         max(0.0, t[i] - trange),
-        t[end] < trange ? t[end] : max(t[i], trange),
+        t[end] < trange ? t[end] : max(t[i], trange)
     ]
 
     hmin = floor(min(0.0, minimum(h)))
@@ -95,7 +95,7 @@ function Pendulum.plot_solution(
         fig[1, 1:3];
         aspect = 3,
         ylabel = "$(labels.q)($(labels.t))",
-        xticklabelsvisible = false,
+        xticklabelsvisible = false
     )
     xlims!(ax_solution, tlims...)
     lines!(ax_solution, t[begin:i], q[begin:i]; linewidth = 2)
@@ -104,11 +104,12 @@ function Pendulum.plot_solution(
         fig[2, 1:3];
         aspect = 3,
         xlabel = "$(labels.t)",
-        ylabel = "$(labels.h)($(labels.t))",
+        ylabel = "$(labels.h)($(labels.t))"
     )
     xlims!(ax_hamiltonian, tlims...)
     ylims!(ax_hamiltonian, hmin, hlim)
-    lines!(ax_hamiltonian, t[begin:i], h[begin:i]; linewidth = 2, label = "$(labels.h)($(labels.t))")
+    lines!(ax_hamiltonian, t[begin:i], h[begin:i];
+        linewidth = 2, label = "$(labels.h)($(labels.t))")
 
     if hmod !== nothing
         lines!(ax_hamiltonian, t[begin:i], hmodt[begin:i]; linewidth = 2, label = "H̄(t)")
@@ -120,7 +121,7 @@ function Pendulum.plot_solution(
         aspect = 1,
         xlabel = "$(labels.q)",
         ylabel = "$(labels.p)",
-        xticks = ([0, π, 2π], ["0", "π", "2π"]),
+        xticks = ([0, π, 2π], ["0", "π", "2π"])
     )
     contourf!(ax_phasespace, qs, ps, hs; levels)
     if hmod !== nothing
@@ -170,7 +171,7 @@ solution. Returns a Makie `Figure`.
 """
 function Pendulum.plot_traces(sol; nplot = 1, nt = :auto)
     idx = _indices(sol, nplot, nt)
-    ts  = [sol.t[k] for k in idx]
+    ts = [sol.t[k] for k in idx]
     fig = Figure(size = (800, 400))
     ax = Axis(fig[1, 1]; xlabel = "t", ylabel = "θ, p")
     lines!(ax, ts, [sol.q[k][1] for k in idx]; label = "θ")

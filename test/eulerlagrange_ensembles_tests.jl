@@ -17,8 +17,10 @@ import GeometricProblems.ThreeBody as tb
 import GeometricProblems.LinearWave as lw
 
 # Perturb a single parameter of the module's default parameter set.
-_perturbed(M, field, δ) = merge(M.default_parameters(),
-    NamedTuple{(field,)}((getfield(M.default_parameters(), field) + δ,)))
+function _perturbed(M, field, δ)
+    merge(M.default_parameters(),
+        NamedTuple{(field,)}((getfield(M.default_parameters(), field) + δ,)))
+end
 
 # Run both an initial-condition ensemble and a parameter ensemble through a HODE and a LODE
 # integration, and assert that distinct samples yield distinct trajectories. The default
@@ -47,12 +49,24 @@ function test_ensembles(M, field, δ, q₀, p₀)
     @test lsol_ic.s[2].q.d.parent ≉ lsol_ic.s[1].q.d.parent
 end
 
-@testset "Duffing oscillator ensembles"            begin test_ensembles(duffing, :β, 0.5, duffing.q₀, duffing.p₀) end
-@testset "Morse oscillator ensembles"              begin test_ensembles(morse,   :D, 0.3, morse.q₀,   morse.p₀)   end
-@testset "Lennard-Jones oscillator ensembles"      begin test_ensembles(lj,      :ε, 0.2, lj.q₀,      lj.p₀)      end
-@testset "Mathews-Lakshmanan oscillator ensembles" begin test_ensembles(ml,      :λ, 0.5, ml.q₀,      ml.p₀)      end
-@testset "Double pendulum ensembles"               begin test_ensembles(dp,      :g, 0.5, dp.θ₀,      dp.p₀)      end
-@testset "Three-body ensembles"                    begin test_ensembles(tb,      :G, 0.2, tb.figure_eight.q, tb.figure_eight.p)          end
+@testset "Duffing oscillator ensembles" begin
+    test_ensembles(duffing, :β, 0.5, duffing.q₀, duffing.p₀)
+end
+@testset "Morse oscillator ensembles" begin
+    test_ensembles(morse, :D, 0.3, morse.q₀, morse.p₀)
+end
+@testset "Lennard-Jones oscillator ensembles" begin
+    test_ensembles(lj, :ε, 0.2, lj.q₀, lj.p₀)
+end
+@testset "Mathews-Lakshmanan oscillator ensembles" begin
+    test_ensembles(ml, :λ, 0.5, ml.q₀, ml.p₀)
+end
+@testset "Double pendulum ensembles" begin
+    test_ensembles(dp, :g, 0.5, dp.θ₀, dp.p₀)
+end
+@testset "Three-body ensembles" begin
+    test_ensembles(tb, :G, 0.2, tb.figure_eight.q, tb.figure_eight.p)
+end
 
 # `LinearWave` builds its equations of motion by hand *by default*, so `symbolic = true` is required
 # here — without it these three calls would not touch EulerLagrange at all and this testset would
@@ -64,7 +78,8 @@ end
 const N_wave = 20
 
 @testset "Linear wave ensembles (construction)" begin
-    param_vec = [lw.default_parameters(), merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
+    param_vec = [lw.default_parameters(),
+        merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
     q₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).q
     p₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).p
     @test lw.hodeensemble(N_wave; parameters = param_vec, symbolic = true) !== nothing
@@ -74,7 +89,8 @@ end
 
 # The hand-written ensembles are cheap enough to actually integrate, at the same lattice size.
 @testset "Linear wave ensembles (hand-written)" begin
-    param_vec = [lw.default_parameters(), merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
+    param_vec = [lw.default_parameters(),
+        merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
     q₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).q
     p₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).p
 

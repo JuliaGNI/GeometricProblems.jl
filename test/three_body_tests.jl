@@ -17,7 +17,7 @@ include("integrate_quietly.jl")
 @testset "$(rpad("Three-Body Problem",80))" begin
     params = ThreeBody.default_parameters()
 
-    G  = params.G
+    G = params.G
     m₁ = params.m₁
     m₂ = params.m₂
     m₃ = params.m₃

@@ -19,11 +19,15 @@ const timespan = (0.0, 10.0)
 const timestep = 0.01
 
 const runs = (
-    ("gauss2",                 odeproblem(;  timespan, timestep), Gauss(2)),
-    ("vprk-gauss2-midpoint",   iodeproblem(; timespan, timestep), MidpointProjection(VPRKGauss(2))),
-    ("vprk-gauss2-symmetric",  iodeproblem(; timespan, timestep), SymmetricProjection(VPRKGauss(2))),
-    ("vspark-glrk2-midpoint",  idaeproblem(; timespan, timestep), TableauVSPARKGLRKpMidpoint(2)),
-    ("vspark-glrk2-symmetric", idaeproblem(; timespan, timestep), TableauVSPARKGLRKpSymmetric(2)),
+    ("gauss2", odeproblem(; timespan, timestep), Gauss(2)),
+    ("vprk-gauss2-midpoint", iodeproblem(; timespan, timestep),
+        MidpointProjection(VPRKGauss(2))),
+    ("vprk-gauss2-symmetric", iodeproblem(; timespan, timestep),
+        SymmetricProjection(VPRKGauss(2))),
+    ("vspark-glrk2-midpoint", idaeproblem(; timespan, timestep),
+        TableauVSPARKGLRKpMidpoint(2)),
+    ("vspark-glrk2-symmetric", idaeproblem(; timespan, timestep),
+        TableauVSPARKGLRKpSymmetric(2))
 )
 
 for (name, problem, method) in runs
