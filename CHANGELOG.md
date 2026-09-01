@@ -11,6 +11,42 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [Unreleased]
+
+### Changed
+
+- **Breaking:** `KuboOscillator` no longer defines or exports `KuboNoise`. The six problem and
+  ensemble builders now pass `WienerProcess(1)` from GeometricEquations instead.
+
+  `KuboNoise` existed only because `AbstractStochasticProcess` was an empty marker with no
+  interface: something had to fill the `noise` field of an `SDE`, so this module invented a type
+  that said nothing beyond "there is noise here". GeometricEquations now provides real process
+  types, and `noisedims(problem)` answers how many Wiener processes drive a problem — which is
+  what lets a stochastic integrator size its increment vectors from the problem rather than being
+  told separately. Code naming `KuboNoise` should use `WienerProcess(1)`; code that only calls the
+  `*problem`/`*ensemble` builders is unaffected.
+
+### Added
+
+- `damped_psdeproblem` and `damped_spsdeproblem`: the damped Kubo oscillator of Kraus &
+  Tyranowski, *Variational integrators for stochastic dissipative Hamiltonian systems* §4.1, with
+  forcing `F(q,p) = -γp` and `f(q,p) = -νγp`, and the paper's parameters as defaults.
+
+  The undamped `spsdeproblem` has `f2 ≡ 0` and `G2 ≡ 0`, so the split half of the SPSDE
+  formulation was never exercised by anything — a stochastic integrator could drop those terms
+  entirely and every test here would still pass. The damped variant has genuinely non-zero `f2`
+  and `G2`, and the split and unsplit forms describe the same dynamics, so the two must agree on
+  a common sample path.
+
+- `exact_solution`, `exact_solution_q`, `exact_solution_p` and `exact_mean_energy` for the Kubo
+  oscillator, damped and undamped.
+
+  The diffusion is proportional to the drift, so the solution is the deterministic one evaluated
+  at the random time `θ(t) = t + νW(t)`. Given a prescribed noise path this is a *pathwise* exact
+  reference, which is what a convergence-order measurement needs — no fine-grid reference
+  solution, and no Monte-Carlo error in the reference. `exact_mean_energy` is the closed form of
+  `E(H)`, constant without damping and decaying with it.
+
 ## [0.8.3] — 2026-08-11
 
 Poincaré-invariant support for the six degenerate Lagrangian problems — the four Lotka-Volterra 2d
