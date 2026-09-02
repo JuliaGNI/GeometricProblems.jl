@@ -33,7 +33,7 @@ GeometricProblems = {path = ".."}
 [compat]
 CairoMakie = "0.15"
 ForwardDiff = "0.10, 1"
-GeometricEquations = "0.21"
+GeometricEquations = "0.21.3"
 GeometricIntegrators = "0.18"
 GeometricIntegratorsBase = "0.6.2"
 GeometricSolutions = "0.6.5"
