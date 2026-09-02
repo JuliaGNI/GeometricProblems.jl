@@ -13,6 +13,21 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-09-02
+
+The Kubo oscillator gets a real noise process, a damped variant, and exact solutions.
+
+`KuboNoise` is removed. It existed only because `AbstractStochasticProcess` was an empty marker
+with no interface, so this module had to invent a type to fill the `noise` field of an `SDE`;
+GeometricEquations now provides real process types, and `noisedims(problem)` is what lets a
+stochastic integrator size its increment vectors from the problem rather than being told
+separately. That removal is the reason this is 0.9.0 rather than a patch release.
+
+The damped variant is the first problem here with genuinely non-zero `f2` and `G2`, so it is the
+first that exercises the split half of an SPSDE at all — the undamped problem has both
+identically zero, which meant an integrator could drop those terms entirely and every test in
+this repository would still pass. One did.
+
 ### Changed
 
 - **Breaking:** `KuboOscillator` no longer defines or exports `KuboNoise`. The six problem and
@@ -1070,7 +1085,8 @@ plan IDs (`P*`) below refer to them.
   warning docstring. It remains unregistered (a 3-D Lotka-Volterra admits no non-degenerate
   Lagrangian); not deleted.
 
-[Unreleased]: https://github.com/JuliaGNI/GeometricProblems.jl/compare/v0.8.1...HEAD
+[Unreleased]: https://github.com/JuliaGNI/GeometricProblems.jl/compare/v0.9.0...HEAD
+[0.9.0]: https://github.com/JuliaGNI/GeometricProblems.jl/compare/v0.8.3...v0.9.0
 [0.8.1]: https://github.com/JuliaGNI/GeometricProblems.jl/compare/v0.8.0...v0.8.1
 [0.8.0]: https://github.com/JuliaGNI/GeometricProblems.jl/compare/v0.7.4...v0.8.0
 [0.7.4]: https://github.com/JuliaGNI/GeometricProblems.jl/compare/v0.7.3...v0.7.4
