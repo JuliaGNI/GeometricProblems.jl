@@ -56,6 +56,15 @@ default_parameters(::Type{T} = Float64) where {T} = (ν = T(noise_intensity),)
 const damped_noise_intensity = 0.5
 const damping_coefficient = 0.001
 
+# The damping is weak — with γ = 0.001 the energy decays on a timescale 1/γ = 1000 — so over the
+# undamped problems' timespan of 0.1 it moves E(H) by 5e-06 relative and the damped problem is
+# numerically indistinguishable from the undamped one. The damped builders therefore carry their
+# own default, long enough for the decay to be visible (about 10% by the final time).
+const damped_Δt = 0.1
+const damped_nt = 1000
+const DEFAULT_DAMPED_TIMESPAN = (0.0, damped_Δt*damped_nt)
+const DEFAULT_DAMPED_TIMESTEP = damped_Δt
+
 const q_init_damped = [2.0]
 const p_init_damped = [0.0]
 
@@ -64,16 +73,26 @@ function damped_parameters(::Type{T} = Float64;
     (ν = T(ν), γ = T(γ))
 end
 
-@doc raw"""
-    exact_solution_q(t, W, q₀, p₀, params)
-    exact_solution_p(t, W, q₀, p₀, params)
-    exact_solution(t, W, q₀, p₀, params)
+# The closed forms below are the *underdamped* solution: ω is real only for |γ| < 2, and at
+# |γ| = 2 the sin(ωθ)/ω terms are 0/0 and would return NaN rather than fail. Rejecting the whole
+# range keeps the one silent case out.
+function damped_frequency(γ)
+    abs(γ) < 2 || throw(DomainError(γ,
+        "the Kubo oscillator's closed-form solution is the underdamped one and needs |γ| < 2"))
+    sqrt(4 - γ^2) / 2
+end
 
-Exact solution of the (possibly damped) Kubo oscillator along the sample path with
-$W(t) = $ `W`.
+@doc raw"""
+    exact_solution_q(t, W, q₀, p₀, t₀, params)
+    exact_solution_p(t, W, q₀, p₀, t₀, params)
+    exact_solution(t, W, q₀, p₀, t₀, params)
+    exact_solution(t, W, x₀, t₀, params)
+
+Exact solution of the (possibly damped) Kubo oscillator at time `t`, along the sample path whose
+Wiener increment $W(t) - W(t_0)$ is `W`.
 
 Because the diffusion is proportional to the drift, the solution is the deterministic damped
-oscillator evaluated at the random time $\theta = t + \nu W(t)$:
+oscillator evaluated at the random time $\theta = (t - t_0) + \nu (W(t) - W(t_0))$:
 ```math
 \begin{aligned}
 q(t) &= e^{-\gamma \theta / 2} \left[ q_0 \cos \omega \theta
@@ -84,17 +103,18 @@ p(t) &= e^{-\gamma \theta / 2} \left[ p_0 \cos \omega \theta
 ```
 with $\omega = \tfrac{1}{2} \sqrt{4 - \gamma^2}$. `params` needs a noise intensity `ν`; a
 damping coefficient `γ` is taken as zero when absent, which reduces the above to a rotation by
-$\theta$.
+$\theta$. This is the underdamped solution, so $|\gamma| < 2$; anything else is a `DomainError`.
 
-The three-argument forms take the state as a single vector, for the `sdeproblem` formulation
-where $q = (q_1, q_2)$ plays the role of $(q, p)$.
+`q₀` and `p₀` are numbers or one-element vectors, and the result matches: a tuple of numbers or a
+tuple of vectors. The form taking a single state vector `x₀` serves the `sdeproblem` formulation,
+where $q = (q_1, q_2)$ plays the role of $(q, p)$, and returns `[q, p]`.
 """
-function exact_solution(t, W, q₀::Number, p₀::Number, params)
-    local ν = params.ν
-    local γ = hasproperty(params, :γ) ? params.γ : zero(ν)
-    local θ = t + ν * W
-    local ω = sqrt(4 - γ^2) / 2
-    local decay = exp(-γ * θ / 2)
+function exact_solution(t, W, q₀::Number, p₀::Number, t₀, params)
+    @unpack ν = params
+    γ = hasproperty(params, :γ) ? params.γ : zero(ν)
+    θ = (t - t₀) + ν * W
+    ω = damped_frequency(γ)
+    decay = exp(-γ * θ / 2)
 
     q = decay * (q₀ * cos(ω * θ) + (p₀ + γ * q₀ / 2) * sin(ω * θ) / ω)
     p = decay * (p₀ * cos(ω * θ) - (q₀ + γ * p₀ / 2) * sin(ω * θ) / ω)
@@ -102,29 +122,40 @@ function exact_solution(t, W, q₀::Number, p₀::Number, params)
     (q, p)
 end
 
-exact_solution_q(t, W, q₀, p₀, params) = exact_solution(t, W, q₀, p₀, params)[1]
-exact_solution_p(t, W, q₀, p₀, params) = exact_solution(t, W, q₀, p₀, params)[2]
+"""
+    exact_solution_q(t, W, q₀, p₀, t₀, params)
 
-function exact_solution(t, W, q₀::AbstractVector, p₀::AbstractVector, params)
-    q, p = exact_solution(t, W, q₀[begin], p₀[begin], params)
+Position component of [`exact_solution`](@ref).
+"""
+exact_solution_q(t, W, q₀, p₀, t₀, params) = exact_solution(t, W, q₀, p₀, t₀, params)[1]
+
+"""
+    exact_solution_p(t, W, q₀, p₀, t₀, params)
+
+Momentum component of [`exact_solution`](@ref).
+"""
+exact_solution_p(t, W, q₀, p₀, t₀, params) = exact_solution(t, W, q₀, p₀, t₀, params)[2]
+
+function exact_solution(t, W, q₀::AbstractVector, p₀::AbstractVector, t₀, params)
+    q, p = exact_solution(t, W, q₀[begin], p₀[begin], t₀, params)
     ([q], [p])
 end
 
-function exact_solution(t, W, x₀::AbstractVector, params)
-    q, p = exact_solution(t, W, x₀[begin], x₀[begin + 1], params)
+function exact_solution(t, W, x₀::AbstractVector, t₀, params)
+    q, p = exact_solution(t, W, x₀[begin], x₀[begin + 1], t₀, params)
     [q, p]
 end
 
 @doc raw"""
-    exact_mean_energy(t, q₀, p₀, params)
+    exact_mean_energy(t, q₀, p₀, t₀, params)
 
 Expected value of the Hamiltonian $H = (p^2 + q^2)/2$ of the damped Kubo oscillator at time `t`,
-in closed form (Kraus & Tyranowski §4.1):
+in closed form (Kraus & Tyranowski §4.1), written in the elapsed time $s = t - t_0$:
 ```math
-E(H) = a \, e^{-\frac{\gamma (2 - \nu^2 \gamma)}{2} t}
-     + e^{-((2 - \gamma^2)\nu^2 + \gamma) t}
-       \Big[ b \cos \big( 2 (1 - \nu^2 \gamma) \omega t \big)
-           + c \sin \big( 2 (1 - \nu^2 \gamma) \omega t \big) \Big],
+E(H) = a \, e^{-\frac{\gamma (2 - \nu^2 \gamma)}{2} s}
+     + e^{-((2 - \gamma^2)\nu^2 + \gamma) s}
+       \Big[ b \cos \big( 2 (1 - \nu^2 \gamma) \omega s \big)
+           + c \sin \big( 2 (1 - \nu^2 \gamma) \omega s \big) \Big],
 ```
 with $\omega = \tfrac{1}{2}\sqrt{4 - \gamma^2}$ and
 
@@ -134,25 +165,27 @@ b = -\frac{\gamma^2 (p_0^2 + q_0^2) + 4 \gamma p_0 q_0}{2 (4 - \gamma^2)}, \qqua
 c = \frac{\gamma (q_0^2 - p_0^2)}{2 \sqrt{4 - \gamma^2}} .
 ```
 
-Without damping this collapses to the constant $(p_0^2 + q_0^2)/2$, which is the exact
-conservation the undamped problems exhibit pathwise.
+This averages over the noise, so unlike [`exact_solution`](@ref) it needs no sample path. As
+there, $|\gamma| < 2$. Without damping it collapses to the constant $(p_0^2 + q_0^2)/2$, which is
+the exact conservation the undamped problems exhibit pathwise.
 """
-function exact_mean_energy(t, q₀::Number, p₀::Number, params)
-    local ν = params.ν
-    local γ = hasproperty(params, :γ) ? params.γ : zero(ν)
-    local ω = sqrt(4 - γ^2) / 2
+function exact_mean_energy(t, q₀::Number, p₀::Number, t₀, params)
+    @unpack ν = params
+    γ = hasproperty(params, :γ) ? params.γ : zero(ν)
+    ω = damped_frequency(γ)
+    s = t - t₀
 
     a = 2 * (p₀^2 + q₀^2 + γ * p₀ * q₀) / (4 - γ^2)
     b = -(γ^2 * (p₀^2 + q₀^2) + 4 * γ * p₀ * q₀) / (2 * (4 - γ^2))
     c = γ * (q₀^2 - p₀^2) / (2 * sqrt(4 - γ^2))
 
-    a * exp(-γ * (2 - ν^2 * γ) * t / 2) +
-    exp(-((2 - γ^2) * ν^2 + γ) * t) *
-    (b * cos(2 * (1 - ν^2 * γ) * ω * t) + c * sin(2 * (1 - ν^2 * γ) * ω * t))
+    a * exp(-γ * (2 - ν^2 * γ) * s / 2) +
+    exp(-((2 - γ^2) * ν^2 + γ) * s) *
+    (b * cos(2 * (1 - ν^2 * γ) * ω * s) + c * sin(2 * (1 - ν^2 * γ) * ω * s))
 end
 
-function exact_mean_energy(t, q₀::AbstractVector, p₀::AbstractVector, params)
-    exact_mean_energy(t, q₀[begin], p₀[begin], params)
+function exact_mean_energy(t, q₀::AbstractVector, p₀::AbstractVector, t₀, params)
+    exact_mean_energy(t, q₀[begin], p₀[begin], t₀, params)
 end
 
 function kubo_oscillator_sde_v(v, t, q, params)
@@ -331,7 +364,7 @@ Pairs with [`damped_spsdeproblem`](@ref), which splits the same dynamics; the tw
 same trajectory on a common sample path.
 """
 function damped_psdeproblem(q₀ = q_init_damped, p₀ = p_init_damped;
-        timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP,
+        timespan = DEFAULT_DAMPED_TIMESPAN, timestep = DEFAULT_DAMPED_TIMESTEP,
         parameters = damped_parameters())
     PSDEProblem(kubo_oscillator_psde_v, kubo_oscillator_damped_f,
         kubo_oscillator_psde_B, kubo_oscillator_damped_G, WienerProcess(1),
@@ -343,7 +376,7 @@ Damped Kubo oscillator as a split partitioned SDE, with the Hamiltonian part in 
 damping in `f2`/`G2`.
 """
 function damped_spsdeproblem(q₀ = q_init_damped, p₀ = p_init_damped;
-        timespan = DEFAULT_TIMESPAN, timestep = DEFAULT_TIMESTEP,
+        timespan = DEFAULT_DAMPED_TIMESPAN, timestep = DEFAULT_DAMPED_TIMESTEP,
         parameters = damped_parameters())
     SPSDEProblem(
         kubo_oscillator_spsde_v, kubo_oscillator_spsde_f1, kubo_oscillator_damped_f2,

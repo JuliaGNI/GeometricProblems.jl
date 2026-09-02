@@ -42,10 +42,38 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
   oscillator, damped and undamped.
 
   The diffusion is proportional to the drift, so the solution is the deterministic one evaluated
-  at the random time `θ(t) = t + νW(t)`. Given a prescribed noise path this is a *pathwise* exact
-  reference, which is what a convergence-order measurement needs — no fine-grid reference
-  solution, and no Monte-Carlo error in the reference. `exact_mean_energy` is the closed form of
-  `E(H)`, constant without damping and decaying with it.
+  at the random time `θ = (t - t₀) + ν(W(t) - W(t₀))`. Given a prescribed noise path this is a
+  *pathwise* exact reference, which is what a convergence-order measurement needs — no fine-grid
+  reference solution, and no Monte-Carlo error in the reference. `exact_mean_energy` is the
+  closed form of `E(H)`, constant without damping and decaying with it.
+
+  Both take `t₀` in the position `HarmonicOscillator`'s `exact_solution_q`/`_p` do, so a problem
+  built over a timespan that does not start at zero gets the right reference rather than one
+  silently shifted by `t₀`. Both are the *underdamped* solution and throw a `DomainError` outside
+  `|γ| < 2`; at `|γ| = 2` the closed form is a `0/0` that would otherwise return `NaN`.
+
+  `scripts/verify_kubo_exact_solution.jl` is the check: the pathwise solution against the
+  damped-oscillator ODE by central differences, the initial condition and the role of `t₀`,
+  pathwise energy conservation without damping, and `exact_mean_energy` against a quadrature of
+  the pathwise energy over the Wiener increment.
+
+- The damped builders carry their own `DEFAULT_DAMPED_TIMESPAN` of `(0.0, 100.0)` with a timestep
+  of `0.1`, rather than inheriting the undamped `(0.0, 0.1)`. With the paper's `γ = 0.001` the
+  energy decays by 5e-06 relative over `0.1` — a default run of `damped_psdeproblem()` would have
+  been numerically indistinguishable from the undamped problem. Over `100.0` the decay is 9.5%.
+
+### Tests
+
+- The damped builders, the exact solutions and the closed-form mean energy are covered: the
+  individual `f`, `G`, `f2` and `G2` terms, the agreement of the split and unsplit formulations,
+  the `t₀` convention, pathwise energy conservation, the `DomainError` outside `|γ| < 2`, and
+  `exact_mean_energy` against a quadrature of the pathwise energy.
+
+### Repository hygiene
+
+- `GeometricEquations` is bound at `0.21.3` rather than `0.21`. `WienerProcess` first appears in
+  0.21.3, and an earlier 0.21.x resolves and loads but throws `UndefVarError` the moment a
+  `KuboOscillator` builder is called.
 
 ## [0.8.3] — 2026-08-11
 

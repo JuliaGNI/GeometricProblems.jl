@@ -18,7 +18,9 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Documenter = "1"
 EulerLagrange = "0.5"
 GeometricBase = "0.14"
-GeometricEquations = "0.21"
+# `WienerProcess`, which the KuboOscillator builders pass as the noise object, first appears in
+# 0.21.3 — an earlier 0.21.x resolves and loads but throws when a builder is called.
+GeometricEquations = "0.21.3"
 GeometricSolutions = "0.6.5"
 NaNMath = "1"
 Parameters = "0.12, 0.13"
