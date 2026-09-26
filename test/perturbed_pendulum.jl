@@ -3,7 +3,7 @@ using GeometricIntegrators
 using GeometricProblems.PerturbedPendulum
 using GeometricSolutions
 
-include("integrate_quietly.jl")
+include("helpers/integrate_quietly.jl")
 
 @testset "$(rpad("Perturbed Pendulum",80))" begin
     hode = @test_nowarn hodeproblem()

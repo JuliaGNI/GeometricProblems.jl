@@ -5,7 +5,7 @@ using GeometricProblems.TodaLattice
 using LinearAlgebra
 using Test
 
-include("integrate_quietly.jl")
+include("helpers/integrate_quietly.jl")
 
 const TL = TodaLattice
 
@@ -289,7 +289,7 @@ end
 
 # The ensembles above are hand-written now, so the symbolic branch of `hodeensemble`/`lodeensemble` —
 # which destructures `functions(...)`, a different code path from the problem constructors — is only
-# covered if it is asked for explicitly. `test/eulerlagrange_ensembles_tests.jl` exists to exercise
+# covered if it is asked for explicitly. `test/integration/eulerlagrange_ensembles.jl` exists to exercise
 # the EulerLagrange ensemble plumbing and names this file as its `TodaLattice` counterpart, so the
 # coverage has to stay here. Small lattice, as there: construction is all this checks, and
 # `lagrangian_system` grows as N^2.4.

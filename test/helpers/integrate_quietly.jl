@@ -15,7 +15,7 @@ using Test
 # SimpleSolvers is only an indirect dependency (via GeometricIntegrators), so it must not be
 # imported. The `:SimpleSolvers` symbol is therefore load-bearing: should those messages move to
 # another module, this filter would match nothing and all 33 assertions built on it would pass
-# vacuously rather than failing. The positive control in `three_body_tests.jl` is what keeps that
+# vacuously rather than failing. The positive control in `three_body_problem.jl` is what keeps that
 # from going unnoticed — it integrates a case known to complain and asserts the filter still
 # catches it.
 

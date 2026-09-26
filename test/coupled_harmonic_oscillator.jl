@@ -2,7 +2,7 @@ using GeometricIntegrators: ImplicitMidpoint, integrate
 import GeometricProblems.CoupledHarmonicOscillator as cho
 using Test
 
-include("integrate_quietly.jl")
+include("helpers/integrate_quietly.jl")
 
 q₀_vec = [cho.q₀ .+ α for α in 0.0:0.4:0.4]
 p₀_vec = [cho.p₀ .+ α for α in 0.0:0.4:0.4]

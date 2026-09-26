@@ -1,7 +1,7 @@
 using GeometricIntegrators: ImplicitMidpoint
 using Test
 
-include("integrate_quietly.jl")
+include("../helpers/integrate_quietly.jl")
 
 # Tests for issue #64: parameter-varying (and initial-condition-varying) ensembles for the
 # EulerLagrange-generated HODE/LODE problems. These complement the existing ensemble tests
@@ -74,7 +74,7 @@ end
 #
 # It still runs on a small lattice: `lagrangian_system` grows as n^2.5 and the generated `ω` as n^2,
 # so the default Ñ = 256 (258 degrees of freedom) costs minutes. Construction is all this testset
-# checks, as in `toda_lattice_tests.jl`.
+# checks, as in `toda_lattice.jl`.
 const N_wave = 20
 
 @testset "Linear wave ensembles (construction)" begin
