@@ -3,7 +3,7 @@ using GeometricIntegrators
 using GeometricProblems.OuterSolarSystem
 using GeometricSolutions
 
-include("integrate_quietly.jl")
+include("helpers/integrate_quietly.jl")
 
 const OSS = OuterSolarSystem
 

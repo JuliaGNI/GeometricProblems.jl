@@ -2,7 +2,7 @@ using GeometricIntegrators: Gauss, integrate, relative_maximum_error
 using GeometricProblems.ThreeBody
 using Test
 
-include("integrate_quietly.jl")
+include("helpers/integrate_quietly.jl")
 
 # Regression tests for the three-body problem:
 #  * the potential must contain all three pairwise gravitational interactions (previously the

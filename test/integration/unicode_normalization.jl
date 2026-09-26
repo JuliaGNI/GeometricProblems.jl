@@ -16,7 +16,7 @@ using Unicode: normalize
 # `q̇` is `q` followed by U+0307 and there is no single codepoint for it, so it is already in normal
 # form. `obsolete/` is excluded — it is kept for reference and not edited.
 
-const REPO_ROOT = dirname(@__DIR__)
+const REPO_ROOT = dirname(dirname(@__DIR__))
 const SKIP_DIRS = ("obsolete", "build", "node_modules")
 const EXTENSIONS = (".jl", ".md", ".toml", ".yml", ".bib")
 

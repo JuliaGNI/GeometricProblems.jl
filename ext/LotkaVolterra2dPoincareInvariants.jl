@@ -31,7 +31,7 @@ import GeometricProblems.LotkaVolterra2dSymmetric
 # called: `PoincareInvariant1st` is not defined by PoincareInvariants 0.5, and
 # `lotka_volterra_2d_ode`/`lotka_volterra_2d_iode` are now `odeproblem`/`iodeproblem`. They are
 # left unrepaired: removing them would be breaking, and nothing calls them.
-# `test/poincare_invariants_tests.jl` pins both halves — that the new constructors work, and that
+# `test/integration/poincare_invariants.jl` pins both halves — that the new constructors work, and that
 # the old names still throw.
 for M in (:LotkaVolterra2d, :LotkaVolterra2dGauge, :LotkaVolterra2dSingular, :LotkaVolterra2dSymmetric)
     @eval begin

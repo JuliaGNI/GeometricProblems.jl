@@ -1,4 +1,5 @@
 [deps]
+Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 GeometricEquations = "c85262ba-a08a-430a-b926-d29770767bf2"
@@ -29,7 +30,7 @@ GeometricProblems = {path = ".."}
 # PoincareInvariants makes Pkg precompile the `LotkaVolterra2dPoincareInvariants` and
 # `MasslessChargedParticlePoincareInvariants` extensions during the test run, so that a syntax or
 # resolution error in either fails CI, and it supplies the invariants the advection tests compute.
-# See `poincare_invariants_tests.jl`.
+# See `integration/poincare_invariants.jl`.
 [compat]
 CairoMakie = "0.15"
 ForwardDiff = "0.10, 1"

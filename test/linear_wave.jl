@@ -6,7 +6,7 @@ using GeometricSolutions
 using LinearAlgebra
 using Test
 
-include("integrate_quietly.jl")
+include("helpers/integrate_quietly.jl")
 
 const LW = LinearWave
 
