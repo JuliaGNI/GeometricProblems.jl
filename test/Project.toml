@@ -32,6 +32,7 @@ GeometricProblems = {path = ".."}
 # resolution error in either fails CI, and it supplies the invariants the advection tests compute.
 # See `integration/poincare_invariants.jl`.
 [compat]
+Aqua = "0.8.18"
 CairoMakie = "0.15"
 ForwardDiff = "0.10, 1"
 GeometricEquations = "0.21.3"
