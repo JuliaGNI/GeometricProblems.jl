@@ -211,7 +211,7 @@ function compute_energy_error(t, q, params)
     for i in 1:(q.nt + 1)
         h[i] = hamiltonian(t.t[i], q.d[:, i], params)
     end
-    h_error = (h .- h[1]) / h[1]
+    return (h .- h[1]) / h[1]
 end
 
 function compute_angular_momentum_error(t, q, params)
@@ -219,7 +219,7 @@ function compute_angular_momentum_error(t, q, params)
     for i in 1:(q.nt + 1)
         P[i] = angular_momentum(t.t[i], q.d[:, i], params)
     end
-    P_error = (P .- P[1]) / P[1]
+    return (P .- P[1]) / P[1]
 end
 
 function compute_momentum_error(t, q, p)
