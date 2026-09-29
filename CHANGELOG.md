@@ -19,6 +19,7 @@ Test suite reorganized to match the environment's unified layout.
 
 - Test files renamed to mirror `src/` structure (`foo_tests.jl` → `foo.jl`, etc.); integration tests moved to `test/integration/`, helpers to `test/helpers/`. Test runner gains named groups: `runtests.jl` runs `["core", "slow"]` by default, with slow containing Lotka-Volterra 4D variants, Euler-Lagrange ensembles, and plotting extensions (each ≈59–86 s, measured locally after a first run). New `test/quality/aqua.jl` runs `Aqua.test_all`; stale-deps check marked `@test_broken` for #116. Aqua added to `test/Project.toml` dependencies; `LinearAlgebra = "1"` added to `[compat]` of `Project.toml`, which Aqua's `deps_compat` asks for.
 - The `[compat]` entries for dependencies of the root `Project.toml` are removed from `test/Project.toml` (GeometricEquations, GeometricSolutions, LinearAlgebra, PoincareInvariants) and `docs/Project.toml` (Documenter, GeometricEquations, GeometricSolutions). The root bound is the only bound for a shared dependency; a copy in `test/` or `docs/` can only duplicate or narrow it, and drifts. Test-only and docs-only bounds stay.
+- `compute_energy_error` and `compute_angular_momentum_error` return their result directly instead of through an unused local, which clears fatou's `unused-binding` findings in `src/`. The returned value does not change.
 
 ## [0.9.0] — 2026-09-02
 
