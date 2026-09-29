@@ -6,15 +6,15 @@ using GeometricSolutions
 
 @testset "$(rpad("Lotka-Volterra 2d",80))" begin
     ode = odeproblem()
-    hode = hodeproblem()
+    hodeproblem()
     iode = iodeproblem()
-    pode = podeproblem()
-    lode = lodeproblem()
-    dae = daeproblem()
-    hdae = hdaeproblem()
+    podeproblem()
+    lodeproblem()
+    daeproblem()
+    hdaeproblem()
     idae = idaeproblem()
-    pdae = pdaeproblem()
-    ldae = ldaeproblem()
+    pdaeproblem()
+    ldaeproblem()
 
     ref = integrate(ode, Gauss(8))
 
