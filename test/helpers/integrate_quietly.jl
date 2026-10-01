@@ -24,10 +24,10 @@ const SIMPLESOLVERS = :SimpleSolvers
 # Integrate while capturing the log, and return the distinct SimpleSolvers messages alongside the
 # solution. Records from every other module are forwarded to the enclosing logger rather than
 # swallowed, so that unrelated warnings stay visible and stay catchable by an enclosing
-# `@test_nowarn`.
-function integrate_capturing_messages(problem, method)
+# `@test_nowarn`. Keyword arguments, e.g. solver tolerances, are passed on to `integrate`.
+function integrate_capturing_messages(problem, method; kwargs...)
     logger = TestLogger(min_level = Warn)
-    solution = with_logger(() -> integrate(problem, method), logger)
+    solution = with_logger(() -> integrate(problem, method; kwargs...), logger)
 
     outer = current_logger()
     for l in logger.logs
@@ -46,8 +46,8 @@ function simplesolvers_messages(problem, method)
     first(integrate_capturing_messages(problem, method))
 end
 
-function integrate_quietly(problem, method)
-    messages, solution = integrate_capturing_messages(problem, method)
+function integrate_quietly(problem, method; kwargs...)
+    messages, solution = integrate_capturing_messages(problem, method; kwargs...)
     # Assert on the distinct messages rather than their count, so that a failure reports what the
     # solver actually complained about.
     @test isempty(messages)

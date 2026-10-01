@@ -2,7 +2,10 @@ using GeometricEquations
 using GeometricEquations: functions, parameters
 using Test
 
+import GeometricProblems.ChargedParticle2d as cp2
+import GeometricProblems.FrequencyModulatedOscillator as fmo
 import GeometricProblems.HarmonicOscillator as ho
+import GeometricProblems.KeplerProblem as kepler
 import GeometricProblems.LinearWave as lw
 import GeometricProblems.LotkaVolterra2d as lv2
 import GeometricProblems.LotkaVolterra2dGauge as lv2gauge
@@ -60,10 +63,13 @@ const toda_q = toda.compute_initial_q(toda.μ, TODA_N)
 const toda_v = zero(toda_q) .+ 0.1
 
 const LODE_PROBLEMS = (
+    ("ChargedParticle2d.lodeproblem", cp2.lodeproblem(), 2, true, ([1.3, 0.2], [0.7, -0.4])),
+    ("FrequencyModulatedOscillator.lodeproblem", fmo.lodeproblem(), 1, true, ([0.7], [0.3])),
     ("HarmonicOscillator.lodeproblem", ho.lodeproblem(), 1, true, ([0.7], [0.3])),
     ("HarmonicOscillator.ldaeproblem", ho.ldaeproblem(), 1, true, ([0.7], [0.3])),
     ("HarmonicOscillator.degenerate_lodeproblem",
         ho.degenerate_lodeproblem(), 2, false, ([0.7, 0.3], [0.3, -0.2])),
+    ("KeplerProblem.lodeproblem", kepler.lodeproblem(), 2, true, ([0.3, -0.4], [0.9, 1.1])),
     ("LinearWave.lodeproblem", lw.lodeproblem(WAVE_N), WAVE_N + 2, true, (wave_q, wave_v)),
     ("LotkaVolterra2d.lodeproblem", lv2.lodeproblem(), 2, false, ([2.0, 1.0], [0.3, -0.2])),
     ("LotkaVolterra2d.ldaeproblem", lv2.ldaeproblem(), 2, false, ([2.0, 1.0], [0.3, -0.2])),

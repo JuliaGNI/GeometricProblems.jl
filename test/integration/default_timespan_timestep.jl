@@ -19,11 +19,14 @@ using GeometricEquations: timespan, timestep
 # a module missing from it is a module in which the shadowing of #83/#82 could silently return.
 const PROBLEM_MODULES = (
     :ABCFlow,
+    :ChargedParticle2d,
     :CoupledHarmonicOscillator,
     :DoublePendulum,
     :DuffingOscillator,
+    :FrequencyModulatedOscillator,
     :HarmonicOscillator,
     :HenonHeilesPotential,
+    :KeplerProblem,
     :KuboOscillator,
     :LennardJonesOscillator,
     :LinearWave,
