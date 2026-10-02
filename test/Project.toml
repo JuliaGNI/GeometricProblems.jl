@@ -24,10 +24,8 @@ GeometricProblems = {path = ".."}
 # GeometricIntegratorsBase is named explicitly, although nothing here loads it, because the bound
 # is what this suite actually depends on: `ImplicitMidpoint` is its method, not a Runge-Kutta one
 # (GeometricIntegrators 0.18 names its own `ImplicitMidpointRK`), and only 0.6.2 and later
-# implement it for the `PODEProblem`/`HODEProblem`s the tests below integrate. GeometricIntegrators
-# asks for "0.6", so without this entry the resolver is free to settle on 0.6.1 and those tests
-# fail. The bound is 0.6.9, the first release for GeometricBase 0.15, which needs SimpleSolvers
-# 0.14.1.
+# implement it for the `PODEProblem`/`HODEProblem`s the tests below integrate. The bound is 0.6.9,
+# the first release for GeometricBase 0.15; it needs SimpleSolvers 0.14.1.
 #
 # PoincareInvariants makes Pkg precompile the `LotkaVolterra2dPoincareInvariants` and
 # `MasslessChargedParticlePoincareInvariants` extensions during the test run, so that a syntax or
