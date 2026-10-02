@@ -19,7 +19,8 @@ Documenter = "1"
 EulerLagrange = "0.5.2"
 GeometricBase = "0.15.0"
 # `WienerProcess`, which the KuboOscillator builders pass as the noise object, first appears in
-# 0.21.3 — an earlier 0.21.x resolves and loads but throws when a builder is called.
+# 0.21.3 — an earlier 0.21.x resolves and loads but throws when a builder is called. The bound is
+# 0.21.5, the first release for GeometricBase 0.15.
 GeometricEquations = "0.21.5"
 GeometricSolutions = "0.6.6"
 LinearAlgebra = "1"
