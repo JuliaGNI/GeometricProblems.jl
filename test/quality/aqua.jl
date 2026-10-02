@@ -8,9 +8,8 @@ using Test
 # time and cannot see these, as each is a property of the package as a whole.
 #
 # On Julia 1.11 the persistent-tasks wrapper's `Pkg.precompile` also builds the Makie and
-# PoincareInvariants extensions after the package loads. That took 218 s and 92 s in two runs,
-# more than Aqua's default `tmax` of 30 s. A real persistent task blocks forever, so a larger
-# `tmax` hides none.
+# PoincareInvariants extensions after the package loads, and this takes longer than Aqua's default
+# `tmax` of 30 s. A real persistent task blocks forever, so a larger `tmax` hides none.
 Aqua.test_all(
     GeometricProblems;
     stale_deps = false,                    # issue #116: run as @test_broken below

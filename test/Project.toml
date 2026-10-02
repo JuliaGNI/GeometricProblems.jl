@@ -18,15 +18,16 @@ Unicode = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 GeometricProblems = {path = ".."}
 
 # GeometricIntegrators is a test-only dependency, so its bound belongs here, where it is
-# resolved, and not in the root project. 0.18 is what pulls in SimpleSolvers 0.11 or later and
+# resolved, and not in the root project. 0.18.1 and later pull in SimpleSolvers 0.11 or later and
 # GeometricIntegratorsBase 0.6; 0.17 pins SimpleSolvers to 0.10 and everything below it to 0.9.
 #
 # GeometricIntegratorsBase is named explicitly, although nothing here loads it, because the bound
 # is what this suite actually depends on: `ImplicitMidpoint` is its method, not a Runge-Kutta one
-# (GeometricIntegrators 0.18 renamed its own to `ImplicitMidpointRK`), and only 0.6.2 and later implement it
-# for the `PODEProblem`/`HODEProblem`s the tests below integrate. GeometricIntegrators asks for
-# "0.6", so without this entry the resolver is free to settle on 0.6.1 and those tests fail. The
-# bound is 0.6.9, the first release for GeometricBase 0.15, which needs SimpleSolvers 0.14.1.
+# (GeometricIntegrators 0.18 names its own `ImplicitMidpointRK`), and only 0.6.2 and later
+# implement it for the `PODEProblem`/`HODEProblem`s the tests below integrate. GeometricIntegrators
+# asks for "0.6", so without this entry the resolver is free to settle on 0.6.1 and those tests
+# fail. The bound is 0.6.9, the first release for GeometricBase 0.15, which needs SimpleSolvers
+# 0.14.1.
 #
 # PoincareInvariants makes Pkg precompile the `LotkaVolterra2dPoincareInvariants` and
 # `MasslessChargedParticlePoincareInvariants` extensions during the test run, so that a syntax or
