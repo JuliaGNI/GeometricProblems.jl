@@ -11,6 +11,12 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [Unreleased]
+
+### Repository hygiene
+
+- KI-4 is deleted from `KNOWN_ISSUES.md`: GeometricIntegrators 0.18.6 allows GeometricBase 0.15, so the test and docs environments resolve, and the test, Doctests and Documentation jobs pass on `main`.
+
 ## [0.9.1] — 2026-10-03
 
 Test suite reorganized to match the environment's unified layout.
