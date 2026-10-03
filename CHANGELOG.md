@@ -13,6 +13,10 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ## [Unreleased]
 
+### Documentation
+
+- The four TikZ figures of the manual (pendulum, double pendulum, coupled harmonic oscillator, third-degree spline) come from GeometricFigures.jl: each page links the light and the dark SVG at the address that `GeometricFigures.figure_url` returns, and `docs/make.jl` loads the remote theme switch `figures.css` as an asset. The TikZ sources and Makefile in `docs/src/images/`, the `images` target of `docs/Makefile`, the `buildpath` constant of `docs/make.jl` and `docs/src/assets/extra_styles.css` are removed.
+
 ### Repository hygiene
 
 - KI-4 is deleted from `KNOWN_ISSUES.md`: GeometricIntegrators 0.18.6 allows GeometricBase 0.15, so the test and docs environments resolve, and the test, Doctests and Documentation jobs pass on `main`.

@@ -2,13 +2,8 @@
 
 This system describes two harmonic oscillators that are coupled nonlinearly. 
 
-```@example
-HTML("""<object type="image/svg+xml" class="display-light-only" data=$(joinpath(Main.buildpath, "images/coupled_harmonic_oscillator.png"))></object>""") # hide
-```
-
-```@example
-HTML("""<object type="image/svg+xml" class="display-dark-only" data=$(joinpath(Main.buildpath, "images/coupled_harmonic_oscillator_dark.png"))></object>""") # hide
-```
+![Visualization of the coupled harmonic oscillator.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/coupled-harmonic-oscillator/coupled-harmonic-oscillator_light.svg)
+![Visualization of the coupled harmonic oscillator.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/coupled-harmonic-oscillator/coupled-harmonic-oscillator_dark.svg)
 
 The following shows the ``q_1`` component of the system for different values of ``k``: 
 

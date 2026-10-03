@@ -12,13 +12,8 @@ In here we describe the initial condition used for the [discretized linear wave]
 
 Plotted on the relevant domain it takes the following shape: 
 
-```@example
-HTML("""<object type="image/svg+xml" class="display-light-only" data=$(joinpath(Main.buildpath, "images/third_degree_spline.png"))></object>""") # hide
-```
-
-```@example
-HTML("""<object type="image/svg+xml" class="display-dark-only" data=$(joinpath(Main.buildpath, "images/third_degree_spline_dark.png"))></object>""") # hide
-```
+![Third degree spline.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/third-degree-spline/third-degree-spline_light.svg)
+![Third degree spline.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/third-degree-spline/third-degree-spline_dark.svg)
 
 Taking the above function ``h(s)`` as a starting point, the initial conditions for the linear wave equations are modelled with 
 

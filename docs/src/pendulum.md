@@ -3,13 +3,8 @@
 The mathematical pendulum consists of a point mass ``m`` attached to the origin ``(x,y) = (0,0)`` by a massless rod of length ``l``.
 All motion is assumed to be frictionless and confined to a plane, and the pendulum moves in a homogeneous gravitational field of strength ``g``.
 
-```@example
-HTML("""<object type="image/svg+xml" class="display-light-only" data=$(joinpath(Main.buildpath, "images/pendulum.png"))></object>""") # hide
-```
-
-```@example
-HTML("""<object type="image/svg+xml" class="display-dark-only" data=$(joinpath(Main.buildpath, "images/pendulum_dark.png"))></object>""") # hide
-```
+![The mathematical pendulum: a point mass m on a massless rod of length l, at the angle θ, in a gravitational field g.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/pendulum/pendulum_light.svg)
+![The mathematical pendulum: a point mass m on a massless rod of length l, at the angle θ, in a gravitational field g.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/pendulum/pendulum_dark.svg)
 
 The configuration of the system is described by a single angle ``\theta``, measured from the upward vertical, in terms of which the cartesian coordinates of the mass are
 ```math

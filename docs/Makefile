@@ -1,7 +1,7 @@
 
-.PHONY: documenter images
+.PHONY: documenter
 
-all: images documenter
+all: documenter
 
 doctests: 
 	cd ..; julia --project=docs  -e ';									\
@@ -17,10 +17,5 @@ doctests:
 documenter:
 	julia --color=yes --project=. --threads=8 make.jl
 
-images:
-	$(MAKE) all   -C src/images
-	$(MAKE) clean -C src/images
-	
 clean:
-	$(MAKE) empty -C src/images
 	rm -Rf build
