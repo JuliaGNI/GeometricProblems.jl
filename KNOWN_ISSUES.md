@@ -24,25 +24,6 @@ Defects found during review and recorded, not fixed.
 - **Fix:** compare each ensemble member with the matching single problem, or with a reference
   value.
 
-## KI-4 · The test, Doctests and Documentation jobs fail because the test and docs environments do not resolve
-
-- **Kind:** upstream
-- **Evidence:** `test/Project.toml` and `docs/Project.toml` require `GeometricIntegrators = "0.18"`,
-  and the package requires `GeometricBase = "0.15.0"`. In the General registry every
-  GeometricIntegrators release from 0.18.0 to 0.18.5 bounds GeometricBase to 0.14.8–0.14.12. On
-  Julia 1.11.9, a temporary environment that develops this repository and adds
-  GeometricIntegrators 0.18 fails with `Unsatisfiable requirements detected`. In one run the
-  resolver reported it for package GeometricBase [9a0b12b7]: `restricted to versions 0.15 by
-  GeometricProblems`, `restricted by compatibility requirements with GeometricIntegrators
-  [dcce2d33] to versions: 0.14.8 - 0.14.12 — no versions left`. In another run it reported it for
-  package GeometricIntegrators; the package named depends on the resolve order, the cause is the
-  same. Every test job of `CI.yml`, its `Doctests - ubuntu-latest` job and the
-  `Documentation` job of `Documenter.yml` instantiate one of these environments and fail there.
-  The jobs heal when GeometricIntegrators registers a release for GeometricBase 0.15 (0.18.6).
-  Then a `workflow_dispatch` of `CI.yml` and of `Documenter.yml` on `main` must be green, and a
-  later pull request deletes this entry.
-- **Fix:** none in this repository; wait for the GeometricIntegrators release.
-
 ## KI-5 · The examples environment bounds a GeometricIntegrators release that is not registered, and no example has run against it
 
 - **Kind:** not verified
