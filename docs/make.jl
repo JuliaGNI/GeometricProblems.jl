@@ -2,9 +2,6 @@ using Documenter
 using GeometricProblems
 using DocumenterCitations
 
-# if the docs are generated with github actions, then this changes the path; see: https://github.com/JuliaDocs/Documenter.jl/issues/921 
-const buildpath = haskey(ENV, "CI") ? ".." : ""
-
 const bib = CitationBibliography(joinpath(@__DIR__, "src", "GeometricProblems.bib"))
 
 makedocs(;
@@ -13,7 +10,7 @@ makedocs(;
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", nothing) == "true",
         assets = [
-            "assets/extra_styles.css",
+            asset("https://juliagni.github.io/GeometricFigures.jl/figures.css"; islocal = false),
         ]
     ),
     pages = ["Home" => "index.md",

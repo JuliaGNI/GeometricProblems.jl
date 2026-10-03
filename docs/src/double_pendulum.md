@@ -4,13 +4,8 @@ The double pendulum consists of two pendula, one attached to the origin at ``(x,
 Each pendulum consists of a point mass ``m_i`` attached to a massless rod of length ``l_i`` with ``i \in (1,2)``.
 All motion is assumed to be frictionless.
 
-```@example
-HTML("""<object type="image/svg+xml" class="display-light-only" data=$(joinpath(Main.buildpath, "images/double-pendulum.png"))></object>""") # hide
-```
-
-```@example
-HTML("""<object type="image/svg+xml" class="display-dark-only" data=$(joinpath(Main.buildpath, "images/double-pendulum_dark.png"))></object>""") # hide
-```
+![The double pendulum: two point masses m₁ and m₂ on massless rods of lengths l₁ and l₂, the second attached to the first.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/double-pendulum/double-pendulum_light.svg)
+![The double pendulum: two point masses m₁ and m₂ on massless rods of lengths l₁ and l₂, the second attached to the first.](https://juliagni.github.io/GeometricFigures.jl/figures/problems/double-pendulum/double-pendulum_dark.svg)
 
 The dynamics of the system is most naturally described in terms of the angles ``\theta_i`` between the rods ``l_i`` and the vertical axis ``y``.
 In terms of these angles, the cartesian coordinates are given by
