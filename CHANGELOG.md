@@ -15,6 +15,10 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 Test suite reorganized to match the environment's unified layout.
 
+### Changed
+
+- The floors rise to Julia 1.11, GeometricBase 0.15.0, EulerLagrange 0.5.2, GeometricEquations 0.21.5 and GeometricSolutions 0.6.6, to GeometricIntegratorsBase 0.6.9 in the test and docs environments, and to GeometricIntegrators 0.18.6 in the examples environment, because GeometricBase 0.15 declares its stubs public and requires Julia 1.11.
+
 ### Repository hygiene
 
 - Test files renamed to mirror `src/` structure (`foo_tests.jl` → `foo.jl`, etc.); integration tests moved to `test/integration/`, helpers to `test/helpers/`. Test runner gains named groups: `runtests.jl` runs `["core", "slow"]` by default, with slow containing Lotka-Volterra 4D variants, Euler-Lagrange ensembles, and plotting extensions (each ≈59–86 s, measured locally after a first run). New `test/quality/aqua.jl` runs `Aqua.test_all`; stale-deps check marked `@test_broken` for #116. Aqua added to `test/Project.toml` dependencies; `LinearAlgebra = "1"` added to `[compat]` of `Project.toml`, which Aqua's `deps_compat` asks for.
