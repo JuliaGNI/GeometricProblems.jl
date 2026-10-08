@@ -19,6 +19,7 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ### Repository hygiene
 
+- CI uploads coverage from the `Julia 1 - ubuntu-latest` job instead of `Julia min`, and a test job saves the Julia cache only when it succeeds.
 - KI-4 is deleted from `KNOWN_ISSUES.md`: GeometricIntegrators 0.18.6 allows GeometricBase 0.15, so the test and docs environments resolve, and the test, Doctests and Documentation jobs pass on `main`.
 
 ## [0.9.1] — 2026-10-03
