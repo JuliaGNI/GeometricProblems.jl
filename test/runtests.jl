@@ -12,7 +12,7 @@ if "core" in GROUPS
     @safetestset "Double Pendulum" include("double_pendulum.jl")
     @safetestset "Harmonic Oscillator" include("harmonic_oscillator.jl")
     @safetestset "Kubo Oscillator" include("kubo_oscillator.jl")
-    @safetestset "Nonlinear Oscillators" include("nonlinear_oscillators.jl")
+    @safetestset "Nonlinear Oscillators" include("integration/nonlinear_oscillators.jl")
     @safetestset "Linear Wave" include("linear_wave.jl")
     @safetestset "Massless Charged Particle" include("massless_charged_particle.jl")
     @safetestset "Massless Charged Particle (singular)" include("massless_charged_particle_singular.jl")
