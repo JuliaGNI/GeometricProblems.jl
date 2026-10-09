@@ -13,6 +13,10 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ## [Unreleased]
 
+### Changed
+
+- `test/nonlinear_oscillators.jl` moves to `test/integration/nonlinear_oscillators.jl`. It tests four source files at the top of `src/` (`duffing_oscillator.jl`, `lennard_jones_oscillator.jl`, `morse_oscillator.jl`, `mathews_lakshmanan_oscillator.jl`) and mirrors no `src/nonlinear_oscillators.jl`; the test convention keeps a test file at the top level of `test/` only where it mirrors `src/<name>.jl`.
+
 ### Documentation
 
 - The four TikZ figures of the manual (pendulum, double pendulum, coupled harmonic oscillator, third-degree spline) come from GeometricFigures.jl: each page links the light and the dark SVG at the address that `GeometricFigures.figure_url` returns, and `docs/make.jl` loads the remote theme switch `figures.css` as an asset. The TikZ sources and Makefile in `docs/src/images/`, the `images` target of `docs/Makefile`, the `buildpath` constant of `docs/make.jl` and `docs/src/assets/extra_styles.css` are removed.
