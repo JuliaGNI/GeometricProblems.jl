@@ -11,7 +11,11 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
-## [0.10.0] — unreleased
+## [0.10.0] — 2026-10-29
+
+### Breaking Changes
+
+- **`LinearWave` states have `N` entries, not `N + 2`.** `hodeproblem(N)`, `lodeproblem(N)` and the ensembles take initial conditions of length `N`, the `N` interior points, and a call with `N + 2` entries no longer fits. Build the initial condition with `LinearWave.initial_condition(μ, N)` on `LinearWave.interior_domain(N)`, in place of `compute_initial_condition2(μ, N + 2)`. The four-argument `hamiltonian` and `lagrangian` read `N = length(q)`, and `potential` and `∇V!` use the new stencil. Solutions differ from earlier releases at the boundary, because the boundary values are now fixed at zero.
 
 ### Model fixes
 
