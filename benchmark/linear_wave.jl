@@ -13,7 +13,7 @@
 #   4. How many evaluations would it take for the symbolic route to earn its setup cost back?
 #   5. What does the difference come to over a whole integration?
 #
-# The state has n = N + 2 components (N interior points plus the two boundary points), and the
+# The state has n = N components (one per interior point; the boundary values are zero), and the
 # Lagrangian is regular, so EulerLagrange emits a 2n × 2n Lagrange two-form. It builds that form by
 # symbolically differentiating a *dense* matrix, which is what makes the symbolic route scale as
 # badly as it does. Note that the `ω` rows below measure something no integrator ever calls — every
@@ -48,7 +48,7 @@ const BUDGET = 90.0
 
 "Positions, momenta and velocities of the default initial condition on `N` interior points."
 function state(N)
-    ic = lw.compute_initial_condition2(lw.μ̃, N + 2)
+    ic = lw.initial_condition(lw.μ̃, N)
     # the mass matrix is the identity, so q̇ = p
     return collect(ic.q), collect(ic.p), collect(ic.p)
 end
@@ -63,7 +63,7 @@ be optimised away. Generated and hand-written write into separate buffers, so th
 both the agreement check and the timings.
 """
 function comparisons(N, hameqs, lageqs)
-    n = N + 2
+    n = N
     q, p, v = state(N)
     gen, hand = zeros(n), zeros(n)
     Ωgen, Ωhand = zeros(2n, 2n), zeros(2n, 2n)
@@ -108,7 +108,7 @@ const WORKER = raw"""
     lw.lagrangian_system(4, P)      # warm up Symbolics; deliberately never called
 
     N = parse(Int, ARGS[1])
-    n = N + 2
+    n = N
     q = collect(lw.compute_initial_condition2(lw.μ̃, n).q)
     v = collect(lw.compute_initial_condition2(lw.μ̃, n).p)
     out = zeros(n)
@@ -203,7 +203,7 @@ end
 println("\n∇V! against a central finite difference of `potential`:")
 @printf("  %4s %14s %14s   %s\n", "N", "max|Δ|/scale", "scale", "verdict")
 for N in (1, 2, 3, 5, 12, 64)
-    n = N + 2
+    n = N
     q = collect(lw.compute_initial_condition2(lw.μ̃, n).q) .+ 0.1 .* collect(1:n)
     h = 1e-6
     reference = zeros(n)
@@ -253,10 +253,10 @@ for N in (FULL ? vcat(N_SWEEP, N_FULL) : N_SWEEP)
     # The hand-written column is in µs: it builds two problems out of function pointers, which is
     # five orders of magnitude away from everything beside it.
     @printf("%4d %5d %9.3f s %9.3f s %8.1f µs %9.3f s %9.3f s %12d\n",
-        N, N + 2, r.t_hsys, r.t_lsys, 1e6 * r.t_hand, r.t_f, r.t_ω, r.chars)
+        N, N, r.t_hsys, r.t_lsys, 1e6 * r.t_hand, r.t_f, r.t_ω, r.chars)
     flush(stdout)
 
-    push!(SWEEP_N, N + 2)
+    push!(SWEEP_N, N)
     push!(SWEEP_LAG, r.t_lsys)
     push!(SWEEP_OMEGA_CHARS, r.chars)
     # everything a user pays before the first useful step of a `symbolic = true` LODE
@@ -278,13 +278,13 @@ let b_lag = power_law(SWEEP_N, SWEEP_LAG), b_chars = power_law(SWEEP_N, SWEEP_OM
     @printf("`lagrangian_system` grows as n^%.2f, the generated `ω` as n^%.2f.\n", b_lag,
         b_chars)
     if !FULL && !isempty(SWEEP_N)
-        n_default = lw.Ñ + 2
+        n_default = lw.Ñ
         scale = (n_default / last(SWEEP_N))
         @printf("Extrapolated to the default Ñ = %d (n = %d): `lagrangian_system` ≈ %.0f s, `ω` ≈ %.1f MB of code.\n",
             lw.Ñ, n_default,
             last(SWEEP_LAG) * scale^b_lag,
             last(SWEEP_OMEGA_CHARS) * scale^b_chars / 1e6)
-        println("(Measured directly with LINEAR_WAVE_BENCH_FULL=1: 155 s and 14.0 MB.)")
+        println("(Measured directly with LINEAR_WAVE_BENCH_FULL=1 before 0.10, at n = 258: 155 s and 14.0 MB.)")
     end
 end
 

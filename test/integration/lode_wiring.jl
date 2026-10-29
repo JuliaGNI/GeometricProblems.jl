@@ -47,10 +47,10 @@ import GeometricProblems.TodaLattice as toda
 #
 # `LinearWave` is entered on a small lattice rather than at its default Ñ = 256: this list is a
 # `const` evaluated at load time, and allocating a 516×516 `ones` per assertion would serve no
-# purpose. Its state has N + 2 components, so N = 5 gives d = 7 and a 14×14 two-form.
+# purpose. Its state has N components, so N = 5 gives d = 5 and a 10×10 two-form.
 const WAVE_N = 5
-const wave_q = lw.compute_initial_condition2(lw.μ̃, WAVE_N + 2).q
-const wave_v = lw.compute_initial_condition2(lw.μ̃, WAVE_N + 2).p
+const wave_q = lw.initial_condition(lw.μ̃, WAVE_N).q
+const wave_v = lw.initial_condition(lw.μ̃, WAVE_N).p
 
 # `TodaLattice` is entered on a small lattice for the same reason, and its state has exactly N
 # components, so N = 5 gives d = 5 and a 10×10 two-form. Its default initial momentum is zero, which
@@ -64,7 +64,7 @@ const LODE_PROBLEMS = (
     ("HarmonicOscillator.ldaeproblem", ho.ldaeproblem(), 1, true, ([0.7], [0.3])),
     ("HarmonicOscillator.degenerate_lodeproblem",
         ho.degenerate_lodeproblem(), 2, false, ([0.7, 0.3], [0.3, -0.2])),
-    ("LinearWave.lodeproblem", lw.lodeproblem(WAVE_N), WAVE_N + 2, true, (wave_q, wave_v)),
+    ("LinearWave.lodeproblem", lw.lodeproblem(WAVE_N), WAVE_N, true, (wave_q, wave_v)),
     ("LotkaVolterra2d.lodeproblem", lv2.lodeproblem(), 2, false, ([2.0, 1.0], [0.3, -0.2])),
     ("LotkaVolterra2d.ldaeproblem", lv2.ldaeproblem(), 2, false, ([2.0, 1.0], [0.3, -0.2])),
     ("LotkaVolterra2d.ldaeproblem_slrk", lv2.ldaeproblem_slrk(),

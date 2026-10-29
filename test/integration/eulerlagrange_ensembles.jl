@@ -73,15 +73,15 @@ end
 # silently stop testing what the file is about.
 #
 # It still runs on a small lattice: `lagrangian_system` grows as n^2.5 and the generated `ω` as n^2,
-# so the default Ñ = 256 (258 degrees of freedom) costs minutes. Construction is all this testset
+# so the default Ñ = 256 (256 degrees of freedom) costs minutes. Construction is all this testset
 # checks, as in `toda_lattice.jl`.
 const N_wave = 20
 
 @testset "Linear wave ensembles (construction)" begin
     param_vec = [lw.default_parameters(),
         merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
-    q₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).q
-    p₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).p
+    q₀ = lw.initial_condition(lw.μ̃, N_wave).q
+    p₀ = lw.initial_condition(lw.μ̃, N_wave).p
     @test lw.hodeensemble(N_wave; parameters = param_vec, symbolic = true) !== nothing
     @test lw.lodeensemble(N_wave; parameters = param_vec, symbolic = true) !== nothing
     @test lw.hodeensemble([q₀, q₀ .+ 0.01], [p₀, p₀]; symbolic = true) !== nothing
@@ -91,8 +91,8 @@ end
 @testset "Linear wave ensembles (hand-written)" begin
     param_vec = [lw.default_parameters(),
         merge(lw.default_parameters(), (μ = lw.default_parameters().μ + 0.1,))]
-    q₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).q
-    p₀ = lw.compute_initial_condition2(lw.μ̃, N_wave + 2).p
+    q₀ = lw.initial_condition(lw.μ̃, N_wave).q
+    p₀ = lw.initial_condition(lw.μ̃, N_wave).p
 
     hsol = integrate_quietly(lw.hodeensemble(N_wave; parameters = param_vec), ImplicitMidpoint())
     lsol = integrate_quietly(lw.lodeensemble(N_wave; parameters = param_vec), ImplicitMidpoint())

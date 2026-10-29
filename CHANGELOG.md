@@ -11,11 +11,20 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
-## [Unreleased] — targeting 0.9.3
+## [0.10.0] — unreleased
+
+### Model fixes
+
+- **`LinearWave` is the homogeneous Dirichlet problem** (breaking). The state is the `N` interior points ``ξ_i = i/(N+1) - 1/2`` only, with ``q_0 = q_{N+1} = 0`` fixed, instead of `N + 2` entries whose two boundary values were advanced freely, so the boundary condition ``q(t, ±1/2) = 0`` the documentation stated was not imposed. The Hamiltonian is now ``\tfrac12 p^Tp - \tfrac{μ^2}{2} q^T D_{ξξ} q`` with the central-difference matrix ``D_{ξξ}`` and the canonical Poisson matrix, which is the full-order model of Buchfink, Glas and Haasdonk (2023). `hodeproblem(N)`, `lodeproblem(N)` and the ensembles take initial conditions of length `N`, the four-argument `hamiltonian`/`lagrangian` read `N = length(q)`, and `potential`/`∇V!` implement the new stencil. In the interior the equations of motion are unchanged.
 
 ### Added
 
+- `LinearWave.interior_domain(N)`, the `N` interior grid points, and `LinearWave.initial_condition(μ, N)`, the travelling-pulse initial condition `(q, p)` on them. These replace `compute_initial_condition2(μ, N + 2)` as the default initial condition of the constructors.
 - `LorenzAttractor.plot_phase_portrait(sol; nplot, nt, latex)` draws the 3D trajectory of a Lorenz solution and returns a Makie `Figure`. The `LorenzAttractorPlots` extension implements it, loaded with `Makie` like the other problem plots, and it has the signature of `LotkaVolterra3d.plot_phase_portrait`. The manual page of the Lorenz attractor calls it instead of building the figure by hand.
+
+### Tests
+
+- `test/linear_wave.jl` checks the Hamiltonian and force against ``D_{ξξ}``, the interior grid, the travelling-wave solution ``u_0(ξ - μt)`` and energy conservation under `ImplicitMidpoint` at `N = 256`, and an ensemble with one `μ` and one initial condition per sample.
 
 ## [0.9.2] — 2026-10-24
 

@@ -5,13 +5,14 @@ The linear wave equation in one dimension has the following Hamiltonian (see e.g
 ```math
     \mathcal{H}_\mathrm{cont}(q, p; \mu) := \frac{1}{2}\int_\Omega \mu^2(\partial_\xi q(t, \xi; \mu))^2 + p(t, \xi; \mu)^2 d\xi,
 ```
-where the domain is ``\Omega = (-1/2, 1/2)``. We then divide the domain into ``\tilde{N}`` equidistantly spaced points[^1] ``\xi_i = i\Delta_\xi - 1/2`` for ``i = 1, \ldots, \tilde{N}`` and ``\Delta_\xi := 1/(\tilde{N} + 1)``.
-
-[^1]: In total the system is therefore described by ``N = \tilde{N} + 2`` coordinates, since we also have to consider the two boundary points. The resulting (semi-discrete) Hamiltonian, matching the implementation, then is:
+where the domain is ``\Omega = (-1/2, 1/2)``. We then divide the interior of the domain into ``\tilde{N}`` equidistantly spaced points ``\xi_i = i\Delta_\xi - 1/2`` for ``i = 1, \ldots, \tilde{N}`` and ``\Delta_\xi := 1/(\tilde{N} + 1)``. The homogeneous Dirichlet boundary conditions fix ``q_0 = q_{\tilde{N}+1} = 0``, so the two boundary points are not part of the state, which has ``\tilde{N}`` positions and ``\tilde{N}`` momenta. The resulting (semi-discrete) Hamiltonian is the one of [buchfink2023symplectic](@cite):
 
 ```math
-    \mathcal{H}_h(z) = \frac{1}{2} \sum_{i = 1}^{\tilde{N} + 2} p_i^2 + \frac{\mu^2}{4\Delta_\xi^2} \sum_{i = 2}^{\tilde{N} + 1} \left[ (q_i - q_{i - 1})^2 + (q_{i+1} - q_i)^2 \right].
+    \mathcal{H}_h(q, p) = \frac{1}{2} \sum_{i = 1}^{\tilde{N}} p_i^2 + \frac{\mu^2}{2\Delta_\xi^2} \sum_{i = 0}^{\tilde{N}} (q_{i+1} - q_i)^2
+    = \frac{1}{2} p^Tp - \frac{\mu^2}{2} q^T D_{\xi\xi} q,
 ```
+
+where ``D_{\xi\xi} = \mathrm{tridiag}(1, -2, 1)/\Delta_\xi^2`` is the central-difference matrix, and the equations of motion ``\dot{q} = p``, ``\dot{p} = \mu^2 D_{\xi\xi} q`` are Hamilton's equations with the canonical Poisson matrix.
 
 The discretized linear wave equation is an example of a *completely integrable system*, i.e. a Hamiltonian system evolving in ``\mathbb{R}^{2n}`` that has ``n`` Poisson-commuting invariants of motion (see [arnold1978mathematical](@cite)). 
 
@@ -48,7 +49,7 @@ N = 128
 
 sol = integrate(lw.hodeproblem(N), ImplicitMidpoint())
 
-Ω  = lw.compute_domain(N + 2)      # N interior points plus the two boundary points
+Ω  = lw.interior_domain(N)        # the N interior points; q = 0 at ξ = ±1/2
 nt = length(sol.t) - 1             # the time axis of a DataSeries runs 0:nt
 
 fig = Figure(size = (800, 700))
@@ -74,31 +75,19 @@ fig
 ```
 
 As we can see the pulse travels in one direction, at the speed ``\mu`` set by the initial momentum
-``p(0, \omega; \mu) = -\mu \partial_\omega q_0``, and keeps its shape — the discretization is
+``p(0, \omega; \mu) = -\mu \partial_\omega q_0``, and keeps its shape: the discretization is
 non-dispersive to the resolution of the figure.
 
 ## Implementation
 
-The equations of motion are written by hand. Because the sum above runs over the *interior* points
-``i = 2, \ldots, \tilde{N}+1``, it counts every interior difference twice, so with
-``d_k := q_{k+1} - q_k`` the potential is
+The equations of motion are written by hand. The force ``-\partial V/\partial q = \mu^2 D_{\xi\xi} q``
+is the three-point stencil ``\mu^2 (q_{j-1} - 2q_j + q_{j+1})/\Delta_\xi^2``, in which the Dirichlet
+values ``q_0 = q_{\tilde{N}+1} = 0`` drop one neighbor from the first and the last row; this is how
+`∇V!` is written.
 
-```math
-    V(q) = \frac{c}{2} \sum_{k=1}^{\tilde{N}+1} w_k d_k^2, \qquad
-    c := \frac{\mu^2}{2\Delta_\xi^2}, \qquad
-    w_k := 2 - [k = 1] - [k = \tilde{N}+1],
-```
-
-i.e. the two boundary weights are ``1`` rather than ``2``, and
-``\partial V/\partial q_j = c \, (w_{j-1} d_{j-1} - w_j d_j)`` with ``d_0 = d_{\tilde{N}+2} = 0``.
-Substituting the weights splits that into a *uniform* weight-two stencil plus four scalar corrections
-at the boundaries, which is how `∇V!` is written: the loop is then branch-free, each output is
-written exactly once, and the expression is correct for every ``\tilde{N} \ge 1`` without any case
-analysis at the edges.
-
-The Lagrangian ``L = \tfrac{1}{2} \sum_k \dot q_k^2 - V(q)`` is *regular* — ``\vartheta = \partial
+The Lagrangian ``L = \tfrac{1}{2} \sum_k \dot q_k^2 - V(q)`` is *regular*: ``\vartheta = \partial
 L/\partial\dot q = \dot q``, so the mass matrix ``M = \partial\vartheta/\partial\dot q`` is the
-identity. It is therefore a second-order system of ``n = \tilde{N} + 2`` equations, equivalently first
+identity. It is therefore a second-order system of ``n = \tilde{N}`` equations, equivalently first
 order in ``2n``, and its Lagrange two-form is the ``2n \times 2n`` canonical
 ``\omega = [\,0\; -I;\; I\; 0\,]``.
 
