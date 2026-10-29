@@ -43,11 +43,11 @@ end
 @testset "$(rpad("Linear Wave: hand-written matches generated",80))" begin
     # Small on purpose: `lagrangian_system` grows as n^2.5 and the generated `ω` as n^2.
     N = 5
-    n = N + 2
+    n = N
     params = LW.default_parameters()
 
-    q = LW.compute_initial_condition2(LW.μ̃, n).q
-    p = LW.compute_initial_condition2(LW.μ̃, n).p
+    q = LW.initial_condition(LW.μ̃, n).q
+    p = LW.initial_condition(LW.μ̃, n).p
     v = copy(p)                 # the mass matrix is the identity, so q̇ = p
 
     hamiltonian_functions = functions(LW.hamiltonian_system(N, params))
@@ -89,16 +89,14 @@ end
     @test lagrangian_functions.L(0.0, q, v, params) ≈ lagrangian(0.0, q, v, params, N)
     @test hamiltonian_functions.H(0.0, q, p, params) ≈ hamiltonian(0.0, q, p, params, N)
 
-    # the four-argument methods GeometricEquations requires recover N = length(q) - 2
+    # the four-argument methods GeometricEquations requires recover N = length(q)
     @test lagrangian(0.0, q, v, params) == lagrangian(0.0, q, v, params, N)
     @test hamiltonian(0.0, q, p, params) == hamiltonian(0.0, q, p, params, N)
 
-    # `∇V!` is where the hand-written formulation could go wrong: the sum in `V` runs over the
-    # interior points and so counts every interior difference twice, which makes the two boundary
-    # weights 1 rather than 2. The kernel handles that with four scalar corrections on top of a
-    # uniform stencil, and the signs of those corrections are checked by nothing else. Differentiate
-    # `potential` itself, which shares no code with `∇V!`. N = 1 is included because it is the case a
-    # peeled-boundary stencil gets wrong: there the second and the second-to-last point coincide.
+    # `∇V!` is where the hand-written formulation could go wrong: the Dirichlet values q₀ = q_{N+1} = 0
+    # enter only through the two end rows of the stencil, which nothing else checks. Differentiate
+    # `potential` itself, which shares no code with `∇V!`. N = 1 is included because there the two
+    # end rows coincide.
     function reference_∇V!(dV, q, params, N)
         h = 1e-6
         for i in eachindex(q)
@@ -112,18 +110,17 @@ end
     end
 
     for M in (1, 2, 3, 5, 12)
-        m = M + 2
         # perturbed off the initial condition, so that no stencil entry is accidentally zero
-        qM = LW.compute_initial_condition2(LW.μ̃, m).q .+ 0.1 .* collect(1:m)
-        kernel = zeros(m)
-        reference = zeros(m)
+        qM = LW.initial_condition(LW.μ̃, M).q .+ 0.1 .* collect(1:M)
+        kernel = zeros(M)
+        reference = zeros(M)
         LW.∇V!(kernel, qM, params, M)
         reference_∇V!(reference, qM, params, M)
         @test kernel ≈ reference rtol = 1e-6
         @test any(!iszero, kernel)
 
         # α scales the gradient; α = -1 is what the force function uses
-        negated = zeros(m)
+        negated = zeros(M)
         LW.∇V!(negated, qM, params, M, -1)
         @test negated ≈ -kernel
     end
@@ -169,8 +166,8 @@ end
     @test relative_maximum_error(lode_sol.p, lode_sym_sol.p) < 1E-11
 
     # The two-argument form infers N from the state, in both branches.
-    q₀ = LW.compute_initial_condition2(LW.μ̃, N + 2).q
-    p₀ = LW.compute_initial_condition2(LW.μ̃, N + 2).p
+    q₀ = LW.initial_condition(LW.μ̃, N).q
+    p₀ = LW.initial_condition(LW.μ̃, N).p
     @test hodeproblem(q₀, p₀) isa HODEProblem
     @test lodeproblem(q₀, p₀) isa LODEProblem
     @test lodeproblem(q₀, p₀; symbolic = true) isa LODEProblem
@@ -184,7 +181,7 @@ end
     # ...and every *sample* of an ensemble is checked, not just the first. A ragged ensemble is
     # accepted by neither branch on its own merits: the hand-written fields would integrate sample 2
     # as a lattice of its own size, and the generated ones — which have N baked in — would write only
-    # the first N + 2 components of its force and leave the rest at whatever the buffer held. Both run
+    # the first N components of its force and leave the rest at whatever the buffer held. Both run
     # to completion without complaint, which is what makes the check the only thing standing here.
     q₁ = [q₀; 0.1]      # one component too many
     p₁ = [p₀; 0.0]
@@ -202,4 +199,56 @@ end
     # ...while a well-formed ensemble is of course still accepted, in both branches.
     @test hodeensemble(N, [q₀, q₀ .+ 0.1], [p₀, p₀]) isa HODEEnsemble
     @test lodeensemble(N, [q₀, q₀ .+ 0.1], [p₀, p₀]; symbolic = true) isa LODEEnsemble
+end
+
+@testset "$(rpad("Linear Wave: Dirichlet full-order model",80))" begin
+    # The FOM of Buchfink, Glas and Haasdonk: N interior points, q₀ = q_{N+1} = 0 and
+    # H = ½ pᵀp - ½ μ² qᵀ D q with the central-difference matrix D = tridiag(1, -2, 1) / Δξ².
+    N = 7
+    params = LW.default_parameters()
+    μ = params.μ
+    Δξ = 1 / (N + 1)
+    D = SymTridiagonal(fill(-2.0, N), fill(1.0, N - 1)) / Δξ^2
+
+    q = collect(range(-0.3, 0.8, length = N)) .^ 2
+    p = collect(range(0.4, -0.2, length = N))
+    @test hamiltonian(0.0, q, p, params) ≈ p' * p / 2 - μ^2 * q' * D * q / 2
+    f = zeros(N)
+    LW.linear_wave_f(f, 0.0, q, p, params)
+    @test f ≈ μ^2 * D * q
+
+    # the grid is interior: N points at spacing 1/(N+1), none of them on the boundary
+    Ω = LW.interior_domain(N)
+    @test length(Ω) == N
+    @test Ω[begin] ≈ -1 / 2 + Δξ
+    @test Ω[end] ≈ 1 / 2 - Δξ
+    @test diff(Ω) ≈ fill(Δξ, N - 1)
+    @test LW.initial_condition(μ, N).q ≈ LW.u₀(collect(Ω), μ)
+
+    # Integrated from `initial_condition`, the discrete solution approximates the travelling wave
+    # u₀(ξ - μt) of the continuous problem while the pulse is away from the boundary, and the
+    # implicit midpoint rule conserves the quadratic Hamiltonian to round-off.
+    M = 256
+    timespan = (0.0, 0.25)
+    timestep = 1 / 400
+    sol = integrate_quietly(hodeproblem(M; timespan = timespan, timestep = timestep),
+        ImplicitMidpoint())
+    Ω = collect(LW.interior_domain(M))
+    exact = LW.u₀(Ω .- μ * timespan[2], μ)
+    @test maximum(abs, sol.q[end] - exact) < 2e-2
+    H = [hamiltonian(0.0, sol.q[n], sol.p[n], params) for n in eachindex(sol.t)]
+    @test maximum(abs, H .- H[begin]) / H[begin] < 1e-10
+
+    # An ensemble with one μ per sample and an initial condition of its own for each μ, which is how
+    # a training set over a parameter range is built.
+    μs = [5 / 12, 1 / 2, 2 / 3]
+    ics = [LW.initial_condition(μᵢ, N) for μᵢ in μs]
+    ensemble = hodeensemble(N, [ic.q for ic in ics], [ic.p for ic in ics];
+        parameters = [(μ = μᵢ,) for μᵢ in μs], timespan = (0.0, 0.1), timestep = 0.01)
+    esol = integrate_quietly(ensemble, ImplicitMidpoint())
+    @test length(esol.s) == length(μs)
+    for (i, ic) in pairs(ics)
+        @test esol.s[i].q[0] ≈ ic.q
+        @test esol.s[i].p[0] ≈ ic.p
+    end
 end
