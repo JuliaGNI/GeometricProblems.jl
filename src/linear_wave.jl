@@ -93,8 +93,9 @@ function potential(q, parameters, N)
     @unpack μ = parameters
 
     Δx² = (one(μ) / (N + 1)) ^ 2
-    μ ^ 2 / 2Δx² * (q[1] ^ 2 + sum((q[i + 1] - q[i]) ^ 2 for i in 1:(N - 1); init = zero(μ)) +
-                    q[N] ^ 2)
+    μ ^ 2 / 2Δx² *
+    (q[1] ^ 2 + sum((q[i + 1] - q[i]) ^ 2 for i in 1:(N - 1); init = zero(μ)) +
+     q[N] ^ 2)
 end
 
 @doc raw"""

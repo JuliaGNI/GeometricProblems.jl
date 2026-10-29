@@ -20,6 +20,7 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 ### Added
 
 - `LinearWave.interior_domain(N)`, the `N` interior grid points, and `LinearWave.initial_condition(μ, N)`, the travelling-pulse initial condition `(q, p)` on them. These replace `compute_initial_condition2(μ, N + 2)` as the default initial condition of the constructors.
+- `LorenzAttractor.plot_phase_portrait(sol; nplot, nt, latex)` draws the 3D trajectory of a Lorenz solution and returns a Makie `Figure`. The `LorenzAttractorPlots` extension implements it, loaded with `Makie` like the other problem plots, and it has the signature of `LotkaVolterra3d.plot_phase_portrait`. The manual page of the Lorenz attractor calls it instead of building the figure by hand.
 
 ### Tests
 

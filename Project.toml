@@ -41,6 +41,7 @@ PoincareInvariants = "26663084-47d3-540f-bd97-40ca743aafa4"
 [extensions]
 DiagnosticsPlots = "Makie"
 HarmonicOscillatorPlots = "Makie"
+LorenzAttractorPlots = "Makie"
 LotkaVolterra2dPlots = "Makie"
 LotkaVolterra2dPoincareInvariants = "PoincareInvariants"
 LotkaVolterra3dPlots = "Makie"

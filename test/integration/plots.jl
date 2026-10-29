@@ -8,6 +8,7 @@ using GeometricEquations: invariants, parameters
 import GeometricProblems.Diagnostics as diag
 import GeometricProblems.HarmonicOscillator as ho
 import GeometricProblems.Pendulum as pend
+import GeometricProblems.LorenzAttractor as lorenz
 import GeometricProblems.LotkaVolterra2d as lv2
 import GeometricProblems.LotkaVolterra3d as lv3
 import GeometricProblems.LotkaVolterra4d as lv4
@@ -51,6 +52,13 @@ import GeometricProblems.PointVorticesLinear as pvl
         sol = integrate(ode, Gauss(2))
         @test lv3.plot_phase_portrait(sol) isa Figure
         @test lv3.plot_traces(sol, ode) isa Figure
+    end
+
+    @testset "Lorenz attractor" begin
+        sol = integrate(lorenz.odeproblem(), Gauss(2))
+        @test lorenz.plot_phase_portrait(sol) isa Figure
+        @test lorenz.plot_phase_portrait(sol; nplot = 10, nt = 500, latex = false) isa
+              Figure
     end
 
     @testset "Lotka-Volterra 4d" begin
