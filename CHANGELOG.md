@@ -11,6 +11,12 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [Unreleased] — targeting 0.9.3
+
+### Added
+
+- `LorenzAttractor.plot_phase_portrait(sol; nplot, nt, latex)` draws the 3D trajectory of a Lorenz solution and returns a Makie `Figure`. The `LorenzAttractorPlots` extension implements it, loaded with `Makie` like the other problem plots, and it has the signature of `LotkaVolterra3d.plot_phase_portrait`. The manual page of the Lorenz attractor calls it instead of building the figure by hand.
+
 ## [0.9.2] — 2026-10-24
 
 ### Changed

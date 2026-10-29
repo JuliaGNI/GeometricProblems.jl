@@ -24,7 +24,7 @@ module LorenzAttractor
 
 using GeometricEquations
 
-export odeproblem
+export odeproblem, plot_phase_portrait
 
 const Δt = 0.01
 const nt = 1000
@@ -48,5 +48,8 @@ function odeproblem(q₀ = q₀; timespan = DEFAULT_TIMESPAN,
         timestep = DEFAULT_TIMESTEP, parameters = default_parameters())
     ODEProblem(lorenz_attractor_v, timespan, timestep, q₀; parameters = parameters)
 end
+
+# The plot function is implemented in the `LorenzAttractorPlots` extension (loaded with Makie).
+function plot_phase_portrait end
 
 end
