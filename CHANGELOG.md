@@ -16,6 +16,11 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 ### Changed
 
 - **The NaNMath floor is 1.1.2** (`[compat] NaNMath = "1.1.2"`, from `"1"`), because no lower 1.x can be installed: the EulerLagrange floor 0.5.2 requires Symbolics 7, which requires SymbolicUtils 4.3.0 or later, and every SymbolicUtils 4.x requires NaNMath 1.1.2 or later. The upper bound stays below 2.0. The CI Downgrade job failed its `forcedeps` check on this entry.
+- **The Makie floor of the plot extensions is 0.24** (`[compat] Makie = "0.24"`, from `"0.21, 0.22, 0.23, 0.24"`), because the tests load the extensions with CairoMakie 0.15, and every CairoMakie 0.15.x requires Makie 0.24, so no lower Makie can be resolved with the test project. The CI Downgrade job failed its `forcedeps` check on this entry.
+
+### Tests
+
+- **The test floors of ForwardDiff and GeometricIntegrators are 0.10.36 and 0.18.6** (`test/Project.toml`, from `"0.10, 1"` and `"0.18"`). Symbolics 7, which the EulerLagrange floor 0.5.2 requires, accepts no ForwardDiff 0.10 below 0.10.36, and GeometricIntegrators 0.18.0 to 0.18.5 require GeometricBase 0.14, while the root floor is GeometricBase 0.15. The CI Downgrade job resolves both projects together and failed its `forcedeps` check on these entries.
 
 ## [0.10.0] — 2026-10-29
 

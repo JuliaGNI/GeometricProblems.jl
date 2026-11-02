@@ -20,6 +20,10 @@ GeometricProblems = {path = ".."}
 # GeometricIntegrators is a test-only dependency, so its bound belongs here, where it is
 # resolved, and not in the root project. 0.18.1 and later pull in SimpleSolvers 0.11 or later and
 # GeometricIntegratorsBase 0.6; 0.17 pins SimpleSolvers to 0.10 and everything below it to 0.9.
+# The bound is 0.18.6, the first release for GeometricBase 0.15.
+#
+# ForwardDiff starts at 0.10.36 because Symbolics 7, which the EulerLagrange floor pulls in,
+# accepts no earlier 0.10.x.
 #
 # GeometricIntegratorsBase is named explicitly, although nothing here loads it, because the bound
 # is what this suite actually depends on: `ImplicitMidpoint` is its method, not a Runge-Kutta one
@@ -34,8 +38,8 @@ GeometricProblems = {path = ".."}
 [compat]
 Aqua = "0.8.18"
 CairoMakie = "0.15"
-ForwardDiff = "0.10, 1"
-GeometricIntegrators = "0.18"
+ForwardDiff = "0.10.36, 1"
+GeometricIntegrators = "0.18.6"
 GeometricIntegratorsBase = "0.6.9"
 Logging = "1"
 SafeTestsets = "0.1"
