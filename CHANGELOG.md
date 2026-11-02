@@ -11,6 +11,12 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [Unreleased]
+
+### Changed
+
+- **The NaNMath floor is 1.1.2** (`[compat] NaNMath = "1.1.2"`, from `"1"`), because no lower 1.x can be installed: the EulerLagrange floor 0.5.2 requires Symbolics 7, which requires SymbolicUtils 4.2.1 or later, and every SymbolicUtils 4.x requires NaNMath 1.1.2 or later. The upper bound stays below 2.0. The CI Downgrade job failed its `forcedeps` check on this entry.
+
 ## [0.10.0] — 2026-10-29
 
 ### Breaking Changes
