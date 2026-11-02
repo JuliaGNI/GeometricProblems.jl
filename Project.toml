@@ -24,10 +24,14 @@ GeometricBase = "0.15.0"
 GeometricEquations = "0.21.5"
 GeometricSolutions = "0.6.6"
 LinearAlgebra = "1"
-NaNMath = "1"
+# Every SymbolicUtils 4.x requires NaNMath 1.1.2 or later, and EulerLagrange 0.5.2 needs
+# Symbolics 7, which needs SymbolicUtils 4, so no lower NaNMath 1.x can be installed.
+NaNMath = "1.1.2"
 Parameters = "0.12, 0.13"
 Reexport = "1"
-Makie = "0.21, 0.22, 0.23, 0.24"
+# The plot extensions are tested with CairoMakie 0.15, and every CairoMakie 0.15.x requires
+# Makie 0.24, so no earlier Makie resolves together with the tests.
+Makie = "0.24"
 # The Poincaré-invariant extensions build `FirstPI`/`SecondPI`, which only 0.5 defines. The 0.4
 # bound covered the pre-0.4 interface that the extensions still carry but that has never worked
 # against a released PoincareInvariants, so nothing is lost by dropping it.
