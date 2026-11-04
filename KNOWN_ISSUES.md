@@ -28,13 +28,13 @@ Defects found during review and recorded, not fixed.
 
 - **Kind:** not verified
 - **Evidence:** `examples/Project.toml` bounds `GeometricIntegrators = "0.19"` and resolves with
-  GeometricIntegrators 0.19.0. `examples/harmonic_oscillator.jl` runs to the end and writes its four
+  GeometricIntegrators 0.19.0. `examples/harmonic_oscillator.jl` runs to the end and writes its five
   figures. `examples/pendulum.jl` fails (KI-6). The other seven were written for
-  GeometricIntegrators 0.17 and SimpleSolvers 0.10, and no run against these bounds is recorded. The environment resolves
-  SimpleSolvers 0.14 through GeometricIntegrators: 0.11 removes `Backtracking`'s `α₀`, 0.12 stops
-  line-search warnings inside `solver_step!`, and 0.13 changes the default linear solver for LAPACK
-  element types. No example calls SimpleSolvers directly, so only the last change can reach them,
-  through the implicit integrators. CI runs no example.
+  GeometricIntegrators 0.17 and SimpleSolvers 0.10, and no run against these bounds is recorded.
+  The environment resolves SimpleSolvers 0.14 through GeometricIntegrators: 0.11 removes
+  `Backtracking`'s `α₀`, 0.12 stops line-search warnings inside `solver_step!`, and 0.13 changes
+  the default linear solver for LAPACK element types. No example calls SimpleSolvers directly, so
+  only the last change can reach them, through the implicit integrators. CI runs no example.
 - **Fix:** run each of the seven examples, and fix what fails in a later pull request.
 
 ## KI-6 · `examples/pendulum.jl` calls `hamiltonian` without the parameters
