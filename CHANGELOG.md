@@ -13,8 +13,13 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 
 ## [Unreleased]
 
+### Bug fixes
+
+- **The shadow Hamiltonian of `examples/harmonic_oscillator.jl` has the right second-order term.** `_H̃2` was `(k² q² + p²) / 12`, and the second-order term of `H = p²/(2m) + k q²/2` is `(k² q² / m + k p² / m²) / 12`. Measured on the example's integrator, the spread of `H̃` along a trajectory falls by a factor 8 when the step halves with the corrected term, and by a factor 4 with the old one, so the old term left an error of the order of the step squared. The script `scripts/verify_symplectic_euler_shadow_hamiltonian.jl` runs the check, with the opposite sign as a control that fails.
+
 ### Changed
 
+- **The examples follow the letters of GeometricIntegrators 0.19.** `examples/Project.toml` bounds `GeometricIntegrators = "0.19"`. GeometricIntegrators 0.19 and GeometricIntegratorsBase 0.7 follow Leimkuhler and Reich, *Simulating Hamiltonian Dynamics* (2004), and exchange the meaning of `SymplecticEulerA` and `SymplecticEulerB`: A evaluates at `(q_{n+1}, p_n)` and B at `(q_n, p_{n+1})`. The shadow Hamiltonian `H̃` in `examples/harmonic_oscillator.jl`, which belonged to the method called B, belongs to A, and the script plots it with the A run. The calls keep their names, so each run computes the other method than before. `KNOWN_ISSUES.md` KI-5 states what has run and KI-6 records `examples/pendulum.jl`.
 - **The NaNMath floor is 1.1.2** (`[compat] NaNMath = "1.1.2"`, from `"1"`), because no lower 1.x can be installed: the EulerLagrange floor 0.5.2 requires Symbolics 7, which requires SymbolicUtils 4.3.0 or later, and every SymbolicUtils 4.x requires NaNMath 1.1.2 or later. The upper bound stays below 2.0. The CI Downgrade job failed its `forcedeps` check on this entry.
 - **The Makie floor of the plot extensions is 0.24** (`[compat] Makie = "0.24"`, from `"0.21, 0.22, 0.23, 0.24"`), because the tests load the extensions with CairoMakie 0.15, and every CairoMakie 0.15.x requires Makie 0.24, so no lower Makie can be resolved with the test project. The CI Downgrade job failed its `forcedeps` check on this entry.
 
