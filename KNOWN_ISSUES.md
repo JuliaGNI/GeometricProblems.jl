@@ -24,20 +24,25 @@ Defects found during review and recorded, not fixed.
 - **Fix:** compare each ensemble member with the matching single problem, or with a reference
   value.
 
-## KI-5 · The examples environment bounds a GeometricIntegrators release that is not registered, and no example has run against it
+## KI-5 · Seven of the nine examples have no recorded run against the bounds of the examples environment
 
 - **Kind:** not verified
-- **Evidence:** `examples/Project.toml` bounds `GeometricIntegrators = "0.18.6"`, the release for
-  GeometricBase 0.15, and the environment does not resolve until it registers. The bound skips
-  0.18.0–0.18.5, and the examples are written for GeometricIntegrators 0.17 and SimpleSolvers 0.10.
-  GeometricIntegrators 0.18.0 renames its `SymplecticEulerA` and `SymplecticEulerB` to
-  `SymplecticEulerARK` and `SymplecticEulerBRK`, and re-exports the GeometricIntegratorsBase
-  integrators of the unsuffixed names. So the calls in `examples/harmonic_oscillator.jl:82` and
-  `:88` and `examples/pendulum.jl:67` and `:72` resolve, but run the GeometricIntegratorsBase
-  integrators instead of the Runge-Kutta ones. Through GeometricIntegrators the environment
-  resolves SimpleSolvers 0.14: 0.11 removes `Backtracking`'s `α₀`, 0.12 stops line-search warnings
-  inside `solver_step!`, and 0.13 changes the default linear solver for LAPACK element types. No
-  example calls SimpleSolvers directly, so only the last change can reach them, through the
-  implicit integrators. No example has run against these bounds; CI runs none.
-- **Fix:** after GeometricIntegrators 0.18.6 registers, resolve the examples environment, run each
-  example, and fix what fails in a later pull request.
+- **Evidence:** `examples/Project.toml` bounds `GeometricIntegrators = "0.19"` and resolves with
+  GeometricIntegrators 0.19.0. `examples/harmonic_oscillator.jl` runs to the end and writes its five
+  figures. `examples/pendulum.jl` fails (KI-6). The other seven were written for
+  GeometricIntegrators 0.17 and SimpleSolvers 0.10, and no run against these bounds is recorded.
+  The environment resolves SimpleSolvers 0.14 through GeometricIntegrators: 0.11 removes
+  `Backtracking`'s `α₀`, 0.12 stops line-search warnings inside `solver_step!`, and 0.13 changes
+  the default linear solver for LAPACK element types. No example calls SimpleSolvers directly, so
+  only the last change can reach them, through the implicit integrators. CI runs no example.
+- **Fix:** run each of the seven examples, and fix what fails in a later pull request.
+
+## KI-6 · `examples/pendulum.jl` calls `hamiltonian` without the parameters
+
+- **Kind:** defect
+- **Evidence:** `examples/pendulum.jl:18` and `:27` call `hamiltonian.(t, q, p)`. The method in
+  `src/pendulum.jl` takes `(t, q, p, params)`, so the script stops with
+  `MethodError: no method matching hamiltonian(::Float64, ::Float64, ::Float64)` at line 58, in the
+  first section, before any symplectic Euler call. `examples/harmonic_oscillator.jl` passes
+  `Ref(params)`.
+- **Fix:** pass `default_parameters()` as `harmonic_oscillator.jl` does, and run the script.

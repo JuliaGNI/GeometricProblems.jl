@@ -13,9 +13,10 @@ const tspan_short_ie = (0.0, 100.0)
 
 const params = default_parameters()
 
-# Shadow Hamiltonian for Symplectic Euler B
-_H̃1(q, p) = -params.k * p * q / 2
-_H̃2(q, p) = (params.k^2 * q^2 + p^2) / 12
+# Shadow Hamiltonian for Symplectic Euler A, to second order in the time step:
+#   H̃ = H + Δt/2 H_p H_q + Δt²/12 (H_pp H_q² + H_qq H_p²)  with  H_p = p/m, H_q = k q, H_pp = 1/m, H_qq = k.
+_H̃1(q, p) = -params.k * p * q / (2 * params.m)
+_H̃2(q, p) = (params.k^2 * q^2 / params.m + params.k * p^2 / params.m^2) / 12
 H̃(q, p) = hamiltonian(0, q, p, params) - Δt * _H̃1(q, p) + Δt^2 * _H̃2(q, p)
 
 # Extract (t, q, p, h) arrays from an ODE solution where state = [position, velocity]
@@ -78,14 +79,14 @@ sol_ie = integrate(odeproblem(timespan = tspan_short_ie, timestep = 0.1), Implic
 t_ie, q_ie, p_ie, h_ie = ode_arrays(sol_ie)
 save_solution(t_ie, q_ie, p_ie, h_ie, "harmonic-oscillator-implicit-euler", labels_ode)
 
-## Symplectic Euler A (PODE)
+## Symplectic Euler A (PODE) — also plots the shadow Hamiltonian H̃
 sol_sea = integrate(podeproblem(timespan = tspan_long, timestep = Δt), SymplecticEulerA())
 t_sea, q_sea, p_sea, h_sea = pode_arrays(sol_sea)
 save_solution(t_sea, q_sea, p_sea, h_sea,
-    "harmonic-oscillator-symplectic-euler-a", labels_hamiltonian)
+    "harmonic-oscillator-symplectic-euler-a", labels_hamiltonian, H̃)
 
-## Symplectic Euler B (PODE) — also plots the shadow Hamiltonian H̃
+## Symplectic Euler B (PODE)
 sol_seb = integrate(podeproblem(timespan = tspan_long, timestep = Δt), SymplecticEulerB())
 t_seb, q_seb, p_seb, h_seb = pode_arrays(sol_seb)
 save_solution(t_seb, q_seb, p_seb, h_seb,
-    "harmonic-oscillator-symplectic-euler-b", labels_hamiltonian, H̃)
+    "harmonic-oscillator-symplectic-euler-b", labels_hamiltonian)

@@ -6,9 +6,11 @@ GeometricProblems = "18cb22b4-ad41-5c80-9c5f-710df63fbdc9"
 [sources]
 GeometricProblems = {path = ".."}
 
-# The examples are not run by CI, so this bound is the only thing keeping them in step with `test/`
-# and `docs/`. 0.18.6 is the first release for GeometricBase 0.15.
+# The examples are not run by CI. 0.19 is the first release whose `SymplecticEulerA` and
+# `SymplecticEulerB` follow the letters of Leimkuhler and Reich, which `harmonic_oscillator.jl`
+# relies on for its shadow Hamiltonian. `test/` and `docs/` bound 0.18, where the two letters have
+# the other meaning, and call neither.
 [compat]
 CairoMakie = "0.15"
-GeometricIntegrators = "0.18.6"
+GeometricIntegrators = "0.19"
 julia = "1.12"
