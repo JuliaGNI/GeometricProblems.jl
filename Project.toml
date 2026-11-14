@@ -22,7 +22,7 @@ GeometricBase = "0.15.0"
 # 0.21.3 — an earlier 0.21.x loads but throws when a builder is called. The bound is 0.21.5, the
 # first release for GeometricBase 0.15.
 GeometricEquations = "0.21.5"
-GeometricSolutions = "0.6.6"
+GeometricSolutions = "0.6.6, 0.7"
 LinearAlgebra = "1"
 # Every SymbolicUtils 4.x requires NaNMath 1.1.2 or later, and EulerLagrange 0.5.2 needs
 # Symbolics 7, which needs SymbolicUtils 4, so no lower NaNMath 1.x can be installed.
