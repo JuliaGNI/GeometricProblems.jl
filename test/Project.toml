@@ -19,8 +19,8 @@ GeometricProblems = {path = ".."}
 
 # GeometricIntegrators is a test-only dependency, so its bound belongs here, where it is
 # resolved, and not in the root project. 0.18.1 and later pull in SimpleSolvers 0.11 or later and
-# GeometricIntegratorsBase 0.6; 0.17 pins SimpleSolvers to 0.10 and everything below it to 0.9.
-# The bound is 0.18.6, the first release for GeometricBase 0.15.
+# GeometricIntegratorsBase 0.6 or later; 0.17 pins SimpleSolvers to 0.10 and everything below it
+# to 0.9. The bound is 0.18.6, the first release for GeometricBase 0.15.
 #
 # ForwardDiff starts at 0.10.36 because Symbolics 7, which the EulerLagrange floor pulls in,
 # accepts no earlier 0.10.x.

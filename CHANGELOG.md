@@ -27,7 +27,7 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 ### Tests
 
 - **The test floors of ForwardDiff and GeometricIntegrators are 0.10.36 and 0.18.6** (`test/Project.toml`, from `"0.10, 1"` and `"0.18"`). Symbolics 7, which the EulerLagrange floor 0.5.2 requires, accepts no ForwardDiff 0.10 below 0.10.36, and GeometricIntegrators 0.18.0 to 0.18.5 require GeometricBase 0.14, while the root floor is GeometricBase 0.15. The CI Downgrade job resolves both projects together and failed its `forcedeps` check on these entries.
-- **The tests and the docs accept GeometricIntegrators 0.19 and GeometricIntegratorsBase 0.7** (`test/Project.toml` `"0.18.6, 0.19"` and `"0.6.9, 0.7"`, from `"0.18.6"` and `"0.6.9"`; `docs/Project.toml` `"0.18, 0.19"` and `"0.6.9, 0.7"`, from `"0.18"` and `"0.6.9"`). Only GeometricIntegrators 0.19.1 and GeometricIntegratorsBase 0.7.1 and later accept GeometricSolutions 0.7, so without them the suite cannot run on it. Neither the tests nor the docs use a symplectic Euler method, whose letters these releases exchange.
+- **The tests and the docs accept GeometricIntegrators 0.19 and GeometricIntegratorsBase 0.7** (`test/Project.toml` `"0.18.6, 0.19"` and `"0.6.9, 0.7"`, from `"0.18.6"` and `"0.6.9"`; `docs/Project.toml` `"0.18, 0.19"` and `"0.6.9, 0.7"`, from `"0.18"` and `"0.6.9"`). Only GeometricIntegrators 0.19.1 and GeometricIntegratorsBase 0.7.1 and later accept GeometricSolutions 0.7, so without them the suite cannot run on it; the suite also needs a PoincareInvariants release after 0.5.2, which caps GeometricSolutions at 0.6. Neither the tests nor the docs use a symplectic Euler method, whose letters these releases exchange.
 
 ## [0.10.0] — 2026-10-29
 
