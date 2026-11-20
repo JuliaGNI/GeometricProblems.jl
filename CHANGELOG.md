@@ -11,6 +11,16 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
+## [Unreleased]
+
+### Changed
+
+- **LotkaVolterra4d's `ϑ(Θ, t, q)` is `@inline`**, so a stage residual can write the one-form into an `MVector` without a heap allocation. `lotka_volterra_4d_ϑ`, the `ϑ` of the IODE, LODE and DAE problems, forwards `Θ` to `ϑ(Θ, t, q)`; `@inline` at the caller's call site reaches only that forwarding call, and the method behind it was not inlined, so the `MVector` escaped to the heap: 32 B per call in `Float32` and 48 B in `Float64` with `SVector` arguments. A kernel without a device heap, such as KernelAbstractions' `CPU()` backend, then fails on the residual. The values are unchanged. GeometricSolvers' device benchmark runs the implicit-midpoint residual of `iodeproblem()` in such a kernel.
+
+### Tests
+
+- **`test/lotka_volterra_4d.jl` asserts that writing `ϑ` into an `MVector` through `lotka_volterra_4d_ϑ` allocates nothing**, in `Float32` and `Float64`, and that the values equal those of `ϑ(t, q)`. The allocation assertion fails without the `@inline` (32 B and 48 B). The test environment gains StaticArrays.
+
 ## [0.10.1] — 2026-11-14
 
 ### Bug fixes
