@@ -171,7 +171,8 @@ dϑ₄dx₄(t, q) = (+log(q[1]) - log(q[2]) + log(q[3])) / q[4]^2 / 2
 # dϑ₄dx₃(t, q) = zero(eltype(q))
 # dϑ₄dx₄(t, q) = zero(eltype(q))
 
-# Inlined, so that an `MVector` `Θ` that the caller inlines this function into stays on the stack.
+# Inlined, so that the `MVector` `Θ` of a caller that inlines `lotka_volterra_4d_ϑ` stays on
+# the stack.
 @inline function ϑ(Θ::AbstractVector, t, q::AbstractVector)
     Θ[1] = ϑ₁(t, q)
     Θ[2] = ϑ₂(t, q)
