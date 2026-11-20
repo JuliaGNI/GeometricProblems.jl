@@ -11,7 +11,7 @@ Categories: **Bug fixes** = code defects (typos, wrong API calls, crashes, bad i
 > Development notes for the 0.7.0 correctness audit — the original findings report, its
 > remediation plan and the execution log — are archived under [`docs/dev/`](docs/dev/).
 
-## [Unreleased]
+## [0.10.2] — 2026-11-20
 
 ### Changed
 
